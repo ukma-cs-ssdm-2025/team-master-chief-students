@@ -59,5 +59,5 @@
 ## 8. Підписи
 - [x] Єрмолович Захар (GitHub: @Ermolz)
 - [x] Загоруй Нікіта (GitHub: @nikkkitosss)
-- [ ] Костенко Нікіта (GitHub: @nikitakost)
+- [x] Костенко Нікіта (GitHub: @nikitakost)
 - [x] Слободян Володимир (GitHub: @opitral)
