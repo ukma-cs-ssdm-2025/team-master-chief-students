@@ -60,4 +60,4 @@
 - [x] Єрмолович Захар (GitHub: @Ermolz)
 - [x] Загоруй Нікіта (GitHub: @nikkkitosss)
 - [ ] Костенко Нікіта (GitHub: @nikitakost)
-- [ ] Слободян Володимир (GitHub: @opitral)
+- [x] Слободян Володимир (GitHub: @opitral)
