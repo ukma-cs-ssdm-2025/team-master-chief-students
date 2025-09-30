@@ -1,0 +1,27 @@
+@startuml
+actor Employee
+participant "React SPA" as Client
+participant "API Backend" as API
+participant "Expense Module" as Expense
+participant "DB" as DB
+
+== Add Expense (FR-002) ==
+Employee -> Client : Fill expense form {amount, date, category, desc, currency, file?}
+Client -> API : POST /expenses {ExpenseModel}
+note right of API : NFR SEC-002 (HTTPS/TLS)
+
+API -> Expense : validate(expenseModel)
+alt valid
+  Expense -> DB : INSERT Expense (amount, category, date, ...)
+  alt with file (receipt attached)
+    Expense -> ObjectStorage : upload(file)
+    ObjectStorage --> Expense : file URL
+    Expense -> DB : update expense with file link
+  end
+  Expense -> API : ExpenseCreated(id)
+  API -> Client : 201 Created {expenseId}
+else invalid
+  Expense -> API : error(validation failed)
+  API -> Client : 400 Bad Request
+end
+@enduml

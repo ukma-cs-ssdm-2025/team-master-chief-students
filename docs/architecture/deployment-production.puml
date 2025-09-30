@@ -1,0 +1,23 @@
+@startuml
+node "User Device" {
+  component "React SPA" as SPA
+}
+node "Load Balancer" {
+  [LB]
+}
+node "App Servers (K8s)" {
+  component "API Backend" as API
+}
+node "Data Plane" {
+  database "PostgreSQL (Primary + Replica)" as PG
+  [Redis Cluster] as Redis
+  [Object Storage (S3)] as S3
+  [Message Broker (RabbitMQ)] as MQ
+}
+SPA --> LB : HTTPS
+LB --> API : HTTPS
+API --> PG : SQL
+API --> Redis : cache
+API --> S3 : upload receipts
+API --> MQ : publish/consume jobs
+@enduml

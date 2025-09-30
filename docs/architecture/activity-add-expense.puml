@@ -1,0 +1,24 @@
+```plantuml
+@startuml
+start
+
+:Employee заповнює форму витрати;
+:React SPA формує ExpenseModel;
+if (дані валідні?) then (yes)
+  :API Backend отримує ExpenseModel;
+  :ExpenseService валідує дані;
+  :ExpenseRepository зберігає expense у DB;
+  if (є прикріплений файл?) then (yes)
+    :Upload file to Object Storage;
+    :Зберегти URL файлу у DB;
+  else (no)
+  endif
+  :ExpenseService публікує подію (MQ, notification);
+  :API повертає 201 Created;
+else (no)
+  :API повертає 400 Bad Request;
+endif
+
+stop
+@enduml
+```
