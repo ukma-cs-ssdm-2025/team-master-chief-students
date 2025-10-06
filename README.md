@@ -44,6 +44,12 @@
 - Здатність системи зростати разом з потребами бізнесу
 - Чистий код та архітектура, що забезпечують легкість розвитку
 
+## 🔗 Посилання 
+- [Requirements, RTM, US](./docs/requirements)
+- [ADR](./docs/decisions)
+- [Architecture(UML)](./docs/architecture)
+- [Team Charter](./TeamCharter.md)
+- [Swagger UI](https://ukma-cs-ssdm-2025.github.io/team-master-chief-students/swagger-ui/)
 
 
 [![Open in Codespaces](https://classroom.github.com/assets/launch-codespace-2972f46106e565e64193e422d61a12cf1da4916b45550586e14ef0a7c637dd04.svg)](https://classroom.github.com/open-in-codespaces?assignment_repo_id=20486319)
