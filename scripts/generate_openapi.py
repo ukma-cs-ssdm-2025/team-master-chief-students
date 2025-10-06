@@ -6,7 +6,7 @@ import shlex
 OPENAPI_URL = "http://localhost:8080/v3/api-docs.yaml"
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DOCS_DIR = ROOT_DIR / "docs" / "api"
-OPENAPI_FILE = DOCS_DIR / "openapi.yaml"
+OPENAPI_FILE = DOCS_DIR / "openapi-generated.yaml"
 REDOC_FILE = DOCS_DIR / "index.html"
 
 print("🚀 Генерація OpenAPI YAML...")
