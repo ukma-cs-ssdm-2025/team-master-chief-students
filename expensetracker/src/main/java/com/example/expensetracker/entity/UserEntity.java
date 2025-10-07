@@ -2,18 +2,17 @@ package com.example.expensetracker.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import java.util.*;
 
 
-@Entity
-@Table(name = "users")
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
+@Builder
+@Entity
+@Table(name = "users")
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,7 +31,6 @@ public class UserEntity {
     private String role = "ROLE_USER";
 
     private boolean active = true;
-
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ExpenseEntity> expenses = new ArrayList<>();

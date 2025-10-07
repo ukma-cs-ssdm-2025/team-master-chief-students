@@ -1,7 +1,5 @@
 package com.example.expensetracker.service.impl;
 
-
-
 import com.example.expensetracker.dto.UserDto;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.repository.UserRepository;
@@ -12,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.exception.UnauthorizedException;
 import com.example.expensetracker.mapper.UserMapper;
-
 
 import java.util.List;
 import java.util.Optional;

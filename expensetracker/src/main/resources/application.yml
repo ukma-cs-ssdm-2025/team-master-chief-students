@@ -1,21 +1,33 @@
 spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-    show-sql: ${SPRING_JPA_SHOW_SQL:true}
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+    application:
+        name: expense-tracker
 
-server:
-  port: ${SERVER_PORT:8080}
+    datasource:
+        url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/expense_tracker}
+        username: ${POSTGRES_USER}
+        password: ${POSTGRES_PASSWORD}
+        driver-class-name: org.postgresql.Driver
+    jpa:
+        open-in-view: false
+        show-sql: false
+        hibernate:
+            ddl-auto: update
 
 jwt:
-  secret: ${JWT_SECRET:change_this_secret_for_prod}
-  expiration-ms: ${JWT_EXPIRATION_MS:900000}
-  refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
+    secret: ${JWT_ACCESS_SECRET:change_this_secret_for_prod}
+    refresh-secret: ${JWT_REFRESH_SECRET:change_this_refresh_secret_for_prod}
+    expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
+
+server:
+    port: ${SERVER_PORT:8080}
+
+logging:
+    level:
+        root: INFO
+        org.flywaydb: WARN
+        com.zaxxer.hikari: WARN
+        org.hibernate: WARN
+
+    pattern:
+        console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level){cyan} %clr([%t]){faint} %clr(%-40.40logger{39}){yellow} : %msg%n"

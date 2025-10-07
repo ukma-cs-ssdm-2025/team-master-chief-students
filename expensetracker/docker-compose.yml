@@ -1,10 +1,8 @@
 services:
   postgres:
-    image: postgres:16
-    container_name: expense_postgres
+    image: postgres:15
+    container_name: expense-tracker-postgres
     restart: always
-    env_file:
-      - .env.docker
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,10 +16,8 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4
-    container_name: expense_pgadmin
+    container_name: expense-tracker-pgadmin
     restart: always
-    env_file:
-      - .env.docker
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
@@ -34,23 +30,18 @@ services:
 
   app:
     build: .
-    container_name: expense_app
+    container_name: expense-tracker-app
     restart: always
     ports:
       - "${SERVER_PORT}:8080"
-    env_file:
-      - .env.docker
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
-      SERVER_PORT: ${SERVER_PORT}
     depends_on:
       - postgres
     networks:

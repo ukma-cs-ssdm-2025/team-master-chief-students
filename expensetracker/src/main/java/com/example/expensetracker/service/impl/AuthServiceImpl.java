@@ -9,10 +9,7 @@ import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.repository.UserRepository;
 import com.example.expensetracker.service.AuthService;
 import com.example.expensetracker.security.JwtService;
-import com.example.expensetracker.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +44,6 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .build();
     }
-
 
     @Override
     public AuthResponseDto login(AuthRequestDto dto) {
