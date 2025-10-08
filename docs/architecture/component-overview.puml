@@ -1,0 +1,32 @@
+@startuml
+skinparam componentStyle rectangle
+
+package "Web" {
+  [React SPA] as Client
+}
+
+package "Backend" {
+  [API Gateway / Backend] as API
+  [Expense Module] as Expense
+  [Approval Engine] as Approval
+  [Reporting Module] as Reporting
+  [Integration Module] as Integration
+}
+
+package "Infra" {
+  [PostgreSQL] as DB
+  [Redis Cache] as Redis
+  [Message Broker] as MQ
+  [Object Storage] as S3
+}
+
+[External Systems] as External
+
+Client -> API : HTTPS REST / GraphQL
+API -> Expense : RPC / method calls
+Expense -> DB : SQL
+Approval -> MQ : publish(approval_requested)
+Reporting -> DB : read(aggregations)
+Integration -> External : Webhooks / HTTP
+
+@enduml
