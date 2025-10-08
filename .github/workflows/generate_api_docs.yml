@@ -33,7 +33,7 @@ jobs:
                   pip install requests
 
             - name: Run script to generate docs
-              run: python scripts/generate_api_docs.py
+              run: python scripts/generate_openapi.py
 
             - name: Commit and push generated docs
               run: |
