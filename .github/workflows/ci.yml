@@ -1,20 +1,50 @@
-name: CI
+name: Java CI with Maven & Docs Generation
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main", "develop" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  build-test-and-docs:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run simple test
-        run: echo "Hello, World!"
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build, run tests, and generate docs
+        run: mvn -B verify
+        working-directory: ./expensetracker
+
+      - name: Commit and push generated docs
+        if: github.event_name == 'push'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add expensetracker/docs/
+          if git diff --staged --quiet; then
+            echo "✅ Documentation is up to date. No changes to commit."
+          else
+            git commit -m "docs: 🤖 Automatically update API documentation"
+            git push
+            echo "✅ Documentation updated and pushed."
+          fi
