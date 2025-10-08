@@ -1,0 +1,27 @@
+@startuml
+actor User
+participant "React SPA" as Client
+participant "API Backend" as API
+participant "Reporting Module" as Reporting
+participant "DB" as DB
+participant "Export Service" as Export
+
+== Generate Report + Export (FR-005, FR-007, FR-008) ==
+User -> Client : Request expense report (period filter)
+Client -> API : GET /reports?period=Q1 (HTTPS)
+API -> Reporting : buildReport(period)
+Reporting -> DB : SELECT aggregated expenses
+DB --> Reporting : result set
+Reporting -> API : report data
+API -> Client : JSON (for chart)
+note right of Client : FR-005 (chart update), FR-011 (filter refresh)
+
+== Export to CSV/PDF ==
+User -> Client : Click "Export CSV/PDF"
+Client -> API : GET /reports/export?type=csv
+API -> Export : generateFile(format=csv/pdf, data)
+note right of Export : NFR PERF-002 (≤2s for 10k rows), DATA-001 (UTF-8)
+Export -> API : file stream
+API -> Client : download (CSV/PDF)
+note right of API : DATA-002 (logging export ops)
+@enduml
