@@ -1,0 +1,27 @@
+@startuml
+actor User
+participant "React SPA" as Client
+participant "API Backend" as API
+participant "Auth Module" as Auth
+participant "DB" as DB
+
+== Login Flow (FR-001) ==
+User -> Client : Enter login + password
+Client -> API : POST /auth/login {credentials} (HTTPS)
+note right of API : NFR SEC-002 (TLS)
+
+API -> Auth : validateCredentials()
+Auth -> DB : SELECT user by login
+DB --> Auth : user record (hashed password)
+Auth -> Auth : compare bcrypt(password, salt>=10)
+note right of Auth : NFR SEC-001 (hashed storage)
+
+alt valid
+  Auth -> API : generate JWT (access+refresh)
+  API -> Client : 200 OK {tokens}
+  note right of Client : NFR SEC-003 (session timeout 15 min)
+else invalid
+  Auth -> API : error
+  API -> Client : 401 Unauthorized
+end
+@enduml
