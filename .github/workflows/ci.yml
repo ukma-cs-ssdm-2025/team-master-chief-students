@@ -1,20 +1,48 @@
-name: CI
+name: Java CI with Maven
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main", "develop" ]
   pull_request:
-    branches:
-      - main
+    branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run simple test
-        run: echo "Hello, World!"
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build and run tests with Maven
+        run: mvn -B verify
+
+      - name: Commit and push generated docs
+        if: github.event_name == 'push'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          # Додаємо всю папку docs, де лежить згенерований файл
+          git add docs/
+          # Перевіряємо, чи є зміни для коміту
+          if git diff --staged --quiet; then
+            echo "✅ Документація актуальна, нічого не комітимо."
+          else
+            git commit -m "docs: 🤖 Автоматично оновлено API документацію"
+            git push
+            echo "✅ Документацію оновлено та запушено."
+          fi
