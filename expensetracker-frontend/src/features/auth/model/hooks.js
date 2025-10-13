@@ -1,37 +1,42 @@
-// src/features/auth/model/hooks.js
 import { useState } from "react";
-import { authApi } from "./api";
-import { useNavigate } from "react-router-dom";
+import { login, register } from "./api";
 
 export const useAuth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
-  const login = async ({ email, password }) => {
-    setLoading(true);
-    setError(null);
-
+  const loginUser = async (data) => {
     try {
-      const response = await authApi.login(email, password);
-
-      if (response.success) {
-        const { accessToken, refreshToken } = response.data;
-        // зберігаємо токени
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-
-        // переходимо на дашборд
-        navigate("/dashboard");
-      } else {
-        setError(response.message || "Login failed");
-      }
+      setLoading(true);
+      setError(null);
+      const res = await login(data);
+      return res;
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      setError(err.response?.data?.message || "Login failed");
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  return { login, loading, error };
+  const registerUser = async (data) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await register(data);
+      return res;
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    login: loginUser,
+    register: registerUser,
+    loading,
+    error,
+  };
 };
