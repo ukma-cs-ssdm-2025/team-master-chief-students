@@ -5,8 +5,11 @@ import com.example.expensetracker.entity.ExpenseEntity;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.mapper.ExpenseMapper;
 import com.example.expensetracker.repository.ExpenseRepository;
+import com.example.expensetracker.security.SecurityUser;
 import com.example.expensetracker.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -24,6 +27,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     @Override
     public ExpenseDto create(ExpenseDto dto) {
         ExpenseEntity entity = mapper.toEntity(dto);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        SecurityUser userDetails = (SecurityUser) auth.getPrincipal();
+        entity.setUser(userDetails.getUser());
         return mapper.toDto(expenseRepository.save(entity));
     }
 
