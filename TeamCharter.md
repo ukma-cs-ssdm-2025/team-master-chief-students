@@ -7,8 +7,8 @@
 	-  Костенко Нікіта Сергійович (GitHub: @nikitakost, електронна пошта НаУКМА: n.kostenko@ukma.edu.ua)
 	-  Слободян Володимир Олександрович (GitHub: @opitral, електронна пошта НаУКМА: v.slobodian@ukma.edu.ua)
 ## 2. Ролі та відповідальності
-- Repo Maintainer, Quality Lead, Backend Lead: Єрмолович Захар
-- CI Maintainer, Requirements Lead, Integration Lead: Слободян Володимир
+- Repo Maintainer, Quality Lead, Backend Lead, Code Reviewer: Єрмолович Захар
+- CI Maintainer, Requirements Lead, Integration Lead, Security Analyst: Слободян Володимир
 - Documentation Lead: Загоруй Нікіта
 - Issue Tracker Lead, Traceability Lead, Quality Lead: Костенко Нікіта
 ## 3. План комунікації
