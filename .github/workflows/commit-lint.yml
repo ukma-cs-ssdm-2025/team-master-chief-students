@@ -1,20 +1,27 @@
-name: Validate Commit Messages
+name: Check Commit Message
 
 on: [push]
 
 jobs:
-    validate-commits:
+    check-commit-message:
+        name: Check Commit Message Format
         runs-on: ubuntu-latest
         steps:
-            - name: Checkout Code
+            - name: Checkout code
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: Run Commit Validation Script
+            - name: Validate Commit Message
               run: |
-                  # Make the script executable.
-                  chmod +x ./scripts/validate_commits.sh
-                  
-                  # Execute the script, passing the 'before' and 'after' commit SHAs from the push event.
-                  ./scripts/validate_commits.sh ${{ github.event.before }} ${{ github.event.after }}
+                  COMMIT_MSG=$(git log -1 --pretty=%B)
+                  REGEX="^(feat|fix|docs|chore)\(#([0-9]+)\): .+ \((closes|fixes|resolves) #\2\)$"
+                  echo "Checking commit message: $COMMIT_MSG"
+                  if [[ ! "$COMMIT_MSG" =~ $REGEX ]]; then
+                    echo "🚫 Error: The commit message does not match the required format."
+                    echo "   Expected format: type(#issue): message (closes|fixes|resolves #issue)"
+                    echo "   Example: feat(#123): add new login button (closes #123)"
+                    exit 1
+                  else
+                    echo "✅ Commit message format is correct."
+                  fi
