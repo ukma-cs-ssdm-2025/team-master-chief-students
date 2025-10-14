@@ -1,0 +1,20 @@
+name: Validate Commit Messages
+
+on: [push]
+
+jobs:
+    validate-commits:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Run Commit Validation Script
+              run: |
+                  # Make the script executable.
+                  chmod +x ./scripts/validate_commits.sh
+                  
+                  # Execute the script, passing the 'before' and 'after' commit SHAs from the push event.
+                  ./scripts/validate_commits.sh ${{ github.event.before }} ${{ github.event.after }}
