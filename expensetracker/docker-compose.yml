@@ -10,7 +10,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - pg_data_15:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -40,15 +40,15 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
-      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION_MS}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION_MS}
     depends_on:
       - postgres
     networks:
       - app-network
 
 volumes:
-  pg_data:
+  pg_data_15:
 
 networks:
   app-network:

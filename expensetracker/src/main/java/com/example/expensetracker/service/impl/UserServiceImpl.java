@@ -3,9 +3,12 @@ package com.example.expensetracker.service.impl;
 import com.example.expensetracker.dto.UserDto;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.repository.UserRepository;
+import com.example.expensetracker.security.SecurityUser;
 import com.example.expensetracker.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.exception.UnauthorizedException;
@@ -71,5 +74,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<UserEntity> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        UserEntity user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return new SecurityUser(user);
     }
 }

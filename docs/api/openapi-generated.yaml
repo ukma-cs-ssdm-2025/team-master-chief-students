@@ -1,0 +1,696 @@
+openapi: 3.0.1
+info:
+  title: Expense Tracker API
+  description: Documentation for Expense Tracker
+  version: "1.0"
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+security:
+- BearerAuth: []
+tags:
+- name: Authentication
+  description: "Endpoints for user registration, login, and token refresh"
+- name: Users
+  description: Endpoints for managing users
+- name: Expenses
+  description: Endpoints for managing expenses
+- name: Expense Filter
+  description: Endpoints for filtering expenses and retrieving statistics
+paths:
+  /api/v1/users/me:
+    get:
+      tags:
+      - Users
+      summary: Get current user
+      description: Retrieves information about the currently authenticated user.
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: Current user fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Current user fetched successfully
+                data:
+                  id: 1
+                  name: John Doe
+                  email: john@example.com
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "401":
+          description: Unauthorized - JWT token missing or invalid
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+      - Users
+      summary: Update current user
+      description: Updates information of the currently authenticated user.
+      operationId: updateCurrentUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserDto"
+        required: true
+      responses:
+        "401":
+          description: Unauthorized - JWT token missing or invalid
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/expenses/{id}:
+    get:
+      tags:
+      - Expenses
+      summary: Get expense by ID
+      description: Retrieves a specific expense record by its ID.
+      operationId: getById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Expense retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Expense retrieved successfully
+                data:
+                  id: 1
+                  category: Food
+                  description: Lunch
+                  amount: 12.5
+                  date: 2025-10-10
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: Internal server error
+                timestamp: 2025-10-10T20:00:00
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Expense not found
+                timestamp: 2025-10-10T20:00:00
+      security:
+      - BearerAuth: []
+    put:
+      tags:
+      - Expenses
+      summary: Update expense
+      description: Updates an existing expense record by its ID.
+      operationId: update
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseDto"
+        required: true
+      responses:
+        "200":
+          description: Expense updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Expense updated successfully
+                data:
+                  id: 1
+                  category: Food
+                  description: Updated lunch
+                  amount: 15.0
+                  date: 2025-10-10
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: Internal server error
+                timestamp: 2025-10-10T20:00:00
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Expense not found
+                timestamp: 2025-10-10T20:00:00
+      security:
+      - BearerAuth: []
+    delete:
+      tags:
+      - Expenses
+      summary: Delete expense
+      description: Deletes an expense record by its ID.
+      operationId: delete
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: Internal server error
+                timestamp: 2025-10-10T20:00:00
+        "404":
+          description: Expense not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 404
+                message: Expense not found
+                timestamp: 2025-10-10T20:00:00
+        "200":
+          description: Expense deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Expense deleted successfully
+                data: null
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+      security:
+      - BearerAuth: []
+  /api/v1/expenses:
+    get:
+      tags:
+      - Expenses
+      summary: Get all expenses
+      description: Retrieves all expense records.
+      operationId: getAll
+      responses:
+        "200":
+          description: All expenses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: All expenses retrieved successfully
+                data:
+                - id: 1
+                  category: Food
+                  description: Lunch
+                  amount: 12.5
+                  date: 2025-10-10
+                - id: 2
+                  category: Transport
+                  description: Taxi
+                  amount: 20.0
+                  date: 2025-10-09
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 500
+                message: Internal server error
+                timestamp: 2025-10-10T20:00:00
+      security:
+      - BearerAuth: []
+    post:
+      tags:
+      - Expenses
+      summary: Create expense
+      description: Creates a new expense record.
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseDto"
+        required: true
+      responses:
+        "200":
+          description: Expense created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Expense created successfully
+                data:
+                  id: 1
+                  category: Food
+                  description: Lunch
+                  amount: 12.5
+                  date: 2025-10-10
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Validation error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - BearerAuth: []
+  /api/v1/auth/register:
+    post:
+      tags:
+      - Authentication
+      summary: Register a new user
+      description: Creates a new user account and returns access/refresh tokens.
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequestDto"
+        required: true
+      responses:
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /api/v1/auth/refresh:
+    post:
+      tags:
+      - Authentication
+      summary: Refresh access token
+      description: Generates new access and refresh tokens using a valid refresh token.
+      operationId: refresh
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthResponseDto"
+        required: true
+      responses:
+        "200":
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Token refreshed successfully
+                data:
+                  accessToken: newAccessTokenValue...
+                  refreshToken: newRefreshTokenValue...
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "401":
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Invalid or expired refresh token
+                timestamp: 2025-10-10T20:00:00
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Authentication
+      summary: User login
+      description: Authenticates user credentials and returns new access and refresh
+        tokens.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequestDto"
+        required: true
+      responses:
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                status: 401
+                message: Invalid email or password
+                timestamp: 2025-10-10T20:00:00
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Login successful
+                data:
+                  accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  refreshToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+  /api/v1/users:
+    get:
+      tags:
+      - Users
+      summary: Get all users
+      description: Retrieves all registered users. Requires admin privileges.
+      operationId: getAllUsers
+      responses:
+        "200":
+          description: Users fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "403":
+          description: Forbidden - Admin privileges required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/users/{id}:
+    get:
+      tags:
+      - Users
+      summary: Get user by ID
+      description: Retrieves user information by ID. Requires admin privileges.
+      operationId: getUserById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "403":
+          description: Forbidden - Admin privileges required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User fetched successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+      - Users
+      summary: Delete user
+      description: Deletes a user by ID. Requires admin privileges.
+      operationId: deleteUser
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "403":
+          description: Forbidden - Admin privileges required
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: User deleted successfully
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+  /api/v1/expenses/filter:
+    get:
+      tags:
+      - Expense Filter
+      summary: Filter expenses
+      description: "Filters expenses by category, date range, and amount range."
+      operationId: filter
+      parameters:
+      - name: category
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: fromDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: toDate
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+      - name: minAmount
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: maxAmount
+        in: query
+        required: false
+        schema:
+          type: number
+      responses:
+        "200":
+          description: Filtered expenses retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Filtered expenses retrieved successfully
+                data:
+                - id: 1
+                  category: Food
+                  description: Lunch
+                  amount: 12.5
+                  date: 2025-10-10
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: No expenses found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/v1/expenses/filter/statistics:
+    get:
+      tags:
+      - Expense Filter
+      summary: Get expense statistics
+      description: Returns total amount and count of expenses.
+      operationId: getStatistics
+      responses:
+        "500":
+          description: Internal server error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: Expense statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+              example:
+                success: true
+                message: Expense statistics retrieved successfully
+                data:
+                  totalAmount: 150.0
+                  count: 5
+                metadata:
+                  timestamp: 2025-10-10T20:00:00
+        "404":
+          description: No expenses found
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        email:
+          type: string
+        active:
+          type: boolean
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        message:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+    ExpenseDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+        date:
+          type: string
+          format: date
+    RegisterRequestDto:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    AuthResponseDto:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+    AuthRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      name: BearerAuth
+      scheme: bearer
+      bearerFormat: JWT
