@@ -2,6 +2,7 @@ package com.example.expensetracker.controller.v1;
 
 import com.example.expensetracker.dto.AuthRequestDto;
 import com.example.expensetracker.dto.AuthResponseDto;
+import com.example.expensetracker.dto.LogoutRequestDto;
 import com.example.expensetracker.dto.RegisterRequestDto;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -153,5 +155,10 @@ public class AuthController {
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Token refreshed successfully", response)
         );
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequestDto request) {
+        throw new NotImplementedException();
     }
 }

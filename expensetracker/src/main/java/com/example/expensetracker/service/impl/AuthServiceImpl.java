@@ -74,4 +74,9 @@ public class AuthServiceImpl implements AuthService {
 
         return new AuthResponseDto(newAccessToken, newRefreshToken);
     }
+
+    @Override
+    public void logout(String refreshToken) {
+
+    }
 }
