@@ -159,6 +159,9 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequestDto request) {
-        throw new NotImplementedException();
+        authService.logout(request.getRefreshToken());
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Logout successful", null)
+        );
     }
 }
