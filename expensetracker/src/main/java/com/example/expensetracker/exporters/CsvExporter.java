@@ -8,11 +8,13 @@ import java.util.List;
 
 public class CsvExporter {
 
-    public void exportExpenses(Writer writer, List<ExpenseEntity> expenses) {
+    private static final String CSV_EXPENSES_HEADER = "ID,Date,Category,Amount,Description\n";
+
+    public void export(Writer writer, List<ExpenseEntity> expenses) {
         try {
-            writer.write("ID,Date,Category,Amount,Description\n");
+            writer.write(CSV_EXPENSES_HEADER);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error writing CSV header", e);
         }
     }
 }
