@@ -10,7 +10,7 @@ public class CsvExporter {
 
     private static final String CSV_EXPENSES_HEADER = "ID,Date,Category,Amount,Description\n";
 
-    public void export(Writer writer, List<ExpenseEntity> expenses) {
+    public void exportExpenses(Writer writer, List<ExpenseEntity> expenses) {
         try {
             writer.write(CSV_EXPENSES_HEADER);
         } catch (IOException e) {
