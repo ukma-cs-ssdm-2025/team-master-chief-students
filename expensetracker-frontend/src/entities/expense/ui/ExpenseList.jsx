@@ -1,11 +1,14 @@
 // src/entities/expense/ui/ExpenseList.jsx
 import React, { useState } from "react";
+import { useCategories } from "../../category/model/hooks";
 
 export const ExpenseList = ({ expenses = [], onDelete, onUpdate }) => {
+  const { categories, loading: categoriesLoading } = useCategories();
+
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({
     description: "",
-    category: "",
+    categoryId: "",
     amount: "",
     date: "",
   });
@@ -29,7 +32,7 @@ export const ExpenseList = ({ expenses = [], onDelete, onUpdate }) => {
     setEditingId(exp.id);
     setEditData({
       description: exp.description,
-      category: exp.category,
+      categoryId: exp.categoryId.toString(), // привели до рядка для select
       amount: exp.amount,
       date: exp.date,
     });
@@ -41,12 +44,29 @@ export const ExpenseList = ({ expenses = [], onDelete, onUpdate }) => {
   };
 
   const submitEdit = () => {
-    if (!editData.description || !editData.category || !editData.amount || !editData.date) {
+    if (!editData.description || !editData.categoryId || !editData.amount || !editData.date) {
       alert("Please fill all fields");
       return;
     }
 
-    onUpdate && onUpdate(editingId, { ...editData, amount: Number(editData.amount) });
+    const selectedCategory = categories.find(
+      (cat) => cat.id === Number(editData.categoryId)
+    );
+
+    if (!selectedCategory) {
+      alert("Selected category is invalid");
+      return;
+    }
+
+    onUpdate &&
+      onUpdate(editingId, {
+        description: editData.description,
+        categoryId: selectedCategory.id,
+        categoryName: selectedCategory.name,
+        amount: Number(editData.amount),
+        date: editData.date,
+      });
+
     setEditingId(null);
   };
 
@@ -56,6 +76,8 @@ export const ExpenseList = ({ expenses = [], onDelete, onUpdate }) => {
 
   return (
     <div className="space-y-3">
+      {categoriesLoading && <p className="text-gray-500">Loading categories...</p>}
+
       {expenses.map((exp) => (
         <div
           key={exp.id}
@@ -70,13 +92,20 @@ export const ExpenseList = ({ expenses = [], onDelete, onUpdate }) => {
                 className="border p-2 rounded"
                 placeholder="Description"
               />
-              <input
-                name="category"
-                value={editData.category}
+              <select
+                name="categoryId"
+                value={editData.categoryId}
                 onChange={handleEditChange}
                 className="border p-2 rounded"
-                placeholder="Category"
-              />
+                required
+              >
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id.toString()}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
               <input
                 type="number"
                 name="amount"
@@ -113,7 +142,7 @@ export const ExpenseList = ({ expenses = [], onDelete, onUpdate }) => {
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="font-semibold text-gray-900 text-lg">{exp.description}</h3>
                   <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                    {exp.category}
+                    {exp.categoryName}
                   </span>
                 </div>
                 <p className="text-sm text-gray-500">{exp.date}</p>
