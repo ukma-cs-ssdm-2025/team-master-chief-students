@@ -38,7 +38,7 @@ class ExpenseFilterControllerTest {
     @Test
     void testFilterExpenses() throws Exception {
         List<ExpenseDto> filtered = List.of(
-                new ExpenseDto(1L, "Food", "Dinner", BigDecimal.valueOf(20), LocalDate.now())
+                new ExpenseDto(1L,1L,  "Food", "Dinner", BigDecimal.valueOf(20), LocalDate.now())
         );
 
         when(expenseService.filter(any(), any(), any(), any(), any())).thenReturn(filtered);
