@@ -157,6 +157,15 @@ public class AuthController {
         );
     }
 
+    @Operation(summary = "User logout", description = "Invalidates the user's refresh token.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200", description = "Logout successful"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400", description = "Invalid request: token is missing or not found"
+            )
+    })
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequestDto request) {
         authService.logout(request.getRefreshToken());
