@@ -22,12 +22,17 @@ public class CsvExporter {
     }
 
     private String formatExpenseAsCsvLine(ExpenseEntity expense) {
+        String description = expense.getDescription();
+        if (description.contains(",")) {
+            description = "\"" + description + "\"";
+        }
+
         return String.format("%d,%s,%s,%s,%s\n",
                 expense.getId(),
                 expense.getDate().toString(),
                 expense.getCategory().getName(),
                 expense.getAmount().toPlainString(),
-                expense.getDescription()
+                description
         );
     }
 }
