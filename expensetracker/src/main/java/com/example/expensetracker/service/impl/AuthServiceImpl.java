@@ -3,22 +3,25 @@ package com.example.expensetracker.service.impl;
 import com.example.expensetracker.dto.AuthRequestDto;
 import com.example.expensetracker.dto.AuthResponseDto;
 import com.example.expensetracker.dto.RegisterRequestDto;
+import com.example.expensetracker.entity.RefreshToken;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.UnauthorizedException;
 import com.example.expensetracker.exception.ValidationException;
+import com.example.expensetracker.repository.RefreshTokenRepository;
 import com.example.expensetracker.repository.UserRepository;
 import com.example.expensetracker.service.AuthService;
 import com.example.expensetracker.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-
+    private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -73,5 +76,14 @@ public class AuthServiceImpl implements AuthService {
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
         return new AuthResponseDto(newAccessToken, newRefreshToken);
+    }
+
+    @Override
+    @Transactional
+    public void logout(String refreshToken) {
+        RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new ValidationException("Refresh token not found"));
+
+        refreshTokenRepository.delete(token);
     }
 }
