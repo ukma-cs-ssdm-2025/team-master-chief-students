@@ -50,4 +50,29 @@ public class CsvExporterTest {
                 """;
         assertEquals(expectedCsv, writer.toString());
     }
+
+    @Test
+    void export_WithCommaInDescription_ShouldQuoteField() {
+        CsvExporter exporter = new CsvExporter();
+        StringWriter writer = new StringWriter();
+
+        CategoryEntity category = new CategoryEntity();
+        category.setName("Groceries");
+
+        ExpenseEntity expense = ExpenseEntity.builder()
+                .id(2L)
+                .date(LocalDate.of(2025, 10, 24))
+                .category(category)
+                .amount(new BigDecimal("50.00"))
+                .description("Milk, eggs, bread")
+                .build();
+
+        exporter.exportExpenses(writer, List.of(expense));
+
+        String expectedCsv = """
+                ID,Date,Category,Amount,Description
+                2,2025-10-24,Groceries,50.00,"Milk, eggs, bread"
+                """;
+        assertEquals(expectedCsv, writer.toString());
+    }
 }
