@@ -4,6 +4,8 @@ import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.entity.ExpenseEntity;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+
 @Component
 public class ExpenseMapper {
     public ExpenseDto toDto(ExpenseEntity e) {
@@ -23,7 +25,7 @@ public class ExpenseMapper {
                 .id(dto.getId())
                 .description(dto.getDescription())
                 .amount(dto.getAmount())
-                .date(dto.getDate())
+                .date(LocalDate.now())
                 .build();
     }
 }
