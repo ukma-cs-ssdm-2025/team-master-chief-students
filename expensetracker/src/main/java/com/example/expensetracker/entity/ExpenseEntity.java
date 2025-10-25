@@ -28,7 +28,6 @@ public class ExpenseEntity {
 
     private BigDecimal amount;
     private String description;
-
-    private LocalDate date = LocalDate.now();
+    private LocalDate date;
 
 }
