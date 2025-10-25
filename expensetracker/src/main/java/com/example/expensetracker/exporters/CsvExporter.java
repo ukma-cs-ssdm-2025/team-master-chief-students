@@ -1,11 +1,13 @@
 package com.example.expensetracker.exporters;
 
 import com.example.expensetracker.entity.ExpenseEntity;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 
+@Component
 public class CsvExporter {
 
     private static final String CSV_EXPENSES_HEADER = "ID,Date,Category,Amount,Description\n";
@@ -24,7 +26,7 @@ public class CsvExporter {
     private String formatExpenseAsCsvLine(ExpenseEntity expense) {
         String[] data = {
                 expense.getId().toString(),
-                expense.getDate().toString(),
+                expense.getDate() != null ? expense.getDate().toString() : "",
                 escapeCsvField(expense.getCategory().getName()),
                 expense.getAmount().toPlainString(),
                 escapeCsvField(expense.getDescription())

@@ -26,9 +26,9 @@ public class ExpenseEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryEntity category;
 
-    private String description;
     private BigDecimal amount;
-    private LocalDate date;
+    private String description;
 
+    private LocalDate date = LocalDate.now();
 
 }
