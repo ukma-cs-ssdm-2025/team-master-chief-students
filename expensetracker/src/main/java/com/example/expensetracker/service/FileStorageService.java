@@ -1,6 +1,8 @@
 package com.example.expensetracker.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -72,6 +74,25 @@ public class FileStorageService {
 
         } catch (IOException e) {
             throw new RuntimeException("Failed to delete file: " + filename, e);
+        }
+    }
+
+    public Path load(String filename) {
+        return rootLocation.resolve(filename).normalize().toAbsolutePath();
+    }
+
+    public Resource loadAsResource(String filename) {
+        try {
+            Path file = load(filename);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("Could not read file: " + filename);
+            }
+        } catch (java.net.MalformedURLException e) {
+            throw new RuntimeException("Could not read file (Malformed URL): " + filename, e);
         }
     }
 }

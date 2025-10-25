@@ -1,6 +1,9 @@
 package com.example.expensetracker.controller.v1;
 
 import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.ReceiptDto;
+import com.example.expensetracker.dto.ReceiptFile;
+import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
 import com.example.expensetracker.service.ExpenseService;
@@ -11,8 +14,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -336,5 +344,30 @@ public class ExpenseController {
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense deleted successfully", null)
         );
+    }
+
+    @PostMapping("/{expenseId}/receipt")
+    public ResponseEntity<ReceiptDto> uploadReceipt(
+            @PathVariable Long expenseId,
+            @RequestParam("file") MultipartFile file
+    ) {
+        ReceiptDto createdReceipt = expenseService.addReceipt(expenseId, file);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdReceipt);
+    }
+
+    @DeleteMapping("/{expenseId}/receipt")
+    public ResponseEntity<Void> deleteReceipt(@PathVariable Long expenseId) {
+        expenseService.deleteReceipt(expenseId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{expenseId}/receipt")
+    public ResponseEntity<Resource> getReceiptFile(@PathVariable Long expenseId) {
+        ReceiptFile receiptFile = expenseService.loadReceiptFile(expenseId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(receiptFile.contentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + receiptFile.resource().getFilename() + "\"")
+                .body(receiptFile.resource());
     }
 }
