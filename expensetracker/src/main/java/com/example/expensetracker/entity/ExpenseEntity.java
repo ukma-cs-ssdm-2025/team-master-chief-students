@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import lombok.*;
 
-
 @Getter
 @Setter
 @Builder
@@ -26,4 +25,7 @@ public class ExpenseEntity {
     private String description;
     private BigDecimal amount;
     private LocalDate date;
+
+    @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)
+    private ReceiptEntity receipt;
 }
