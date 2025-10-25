@@ -2,15 +2,20 @@ package com.example.expensetracker.service.impl;
 
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.entity.ExpenseEntity;
+import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.mapper.ExpenseMapper;
 import com.example.expensetracker.repository.ExpenseRepository;
+import com.example.expensetracker.repository.ReceiptRepository;
 import com.example.expensetracker.security.SecurityUser;
 import com.example.expensetracker.service.ExpenseService;
+import com.example.expensetracker.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -23,6 +28,8 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final ExpenseMapper mapper;
+    private final FileStorageService fileStorageService;
+    private final ReceiptRepository receiptRepository;
 
     @Override
     public ExpenseDto create(ExpenseDto dto) {
@@ -92,5 +99,56 @@ public class ExpenseServiceImpl implements ExpenseService {
             public final BigDecimal totalAmount = total;
             public final long count = expenseRepository.count();
         };
+    }
+
+    @Override
+    @Transactional
+    public ReceiptEntity addReceipt(Long expenseId, MultipartFile file) {
+        ExpenseEntity expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
+
+        String storedFileName = fileStorageService.store(file);
+
+        ReceiptEntity newReceipt = ReceiptEntity.builder()
+                .fileUrl(storedFileName)
+                .expense(expense)
+                .build();
+
+        expense.setReceipt(newReceipt);
+        expenseRepository.save(expense);
+
+        return newReceipt;
+    }
+
+    @Override
+    @Transactional
+    public void deleteReceipt(Long expenseId) {
+        ExpenseEntity expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
+
+        ReceiptEntity receipt = expense.getReceipt();
+        if (receipt == null) {
+            throw new NotFoundException("Receipt not found for expense with id: " + expenseId);
+        }
+
+        String filenameToDelete = receipt.getFileUrl();
+        expense.setReceipt(null);
+
+        receiptRepository.delete(receipt);
+        expenseRepository.save(expense);
+        fileStorageService.delete(filenameToDelete);
+    }
+
+    @Override
+    public ReceiptEntity getReceipt(Long expenseId) {
+        ExpenseEntity expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
+
+        ReceiptEntity receipt = expense.getReceipt();
+        if (receipt == null) {
+            throw new NotFoundException("Receipt not found for expense with id: " + expenseId);
+        }
+
+        return receipt;
     }
 }
