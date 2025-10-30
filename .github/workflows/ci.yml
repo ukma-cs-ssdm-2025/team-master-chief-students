@@ -33,6 +33,7 @@ jobs:
 
       - name: Build, test, and analyze with SonarCloud
         run: mvn -B verify sonar:sonar -Dsonar.projectKey=team-masterchief-students -Dsonar.organization=ukma-cs-ssdm-2025 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${{secrets.SONAR_TOKEN}}
+        working-directory: ./expensetracker
 
       - name: Commit and push generated docs
         if: github.event_name == 'push'
