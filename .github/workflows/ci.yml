@@ -31,9 +31,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-#      - name: Build, run tests, and generate docs
-#        run: mvn -B verify
-#        working-directory: ./expensetracker
+      - name: Build, test, and analyze with SonarCloud
+        run: mvn -B verify sonar:sonar -Dsonar.projectKey=team-masterchief-students -Dsonar.organization=ukma-cs-ssdm-2025 -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=${{secrets.SONAR_TOKEN}}
 
       - name: Commit and push generated docs
         if: github.event_name == 'push'
