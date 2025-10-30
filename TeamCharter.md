@@ -10,7 +10,7 @@
 - Repo Maintainer, Quality Lead, Backend Lead, Code Reviewer: Єрмолович Захар
 - CI Maintainer, Requirements Lead, Integration Lead, Security Analyst: Слободян Володимир
 - Documentation Lead: Загоруй Нікіта
-- Issue Tracker Lead, Traceability Lead, Quality Lead: Костенко Нікіта
+- Issue Tracker Lead, Traceability Lead, Quality Lead, Review Manager: Костенко Нікіта
 ## 3. План комунікації
 - Основний канал: Discord
 - Розклад зустрічей: 1–2 зустрічі обов’язкові, додаткові — за потребою. На вихідних, а також після пари практики.
