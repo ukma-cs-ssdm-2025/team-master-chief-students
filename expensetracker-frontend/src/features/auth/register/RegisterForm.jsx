@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 export const RegisterForm = () => {
   const { register, loading, error } = useAuth();
   const navigate = useNavigate();
+
+  const [username, setUsername] = useState(""); // 🧍‍♂️ додали username
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -17,7 +19,7 @@ export const RegisterForm = () => {
       return;
     }
 
-    const result = await register({ email, password });
+    const result = await register({ username, email, password }); // 🧠 передаємо username
 
     if (result?.data?.accessToken) {
       localStorage.setItem("accessToken", result.data.accessToken);
@@ -33,8 +35,12 @@ export const RegisterForm = () => {
   if (success) {
     return (
       <div className="flex flex-col items-center justify-center bg-white p-8 rounded-xl shadow-md w-full max-w-md mx-auto text-center">
-        <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-white text-xl mb-4">✓</div>
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Account created successfully!</h3>
+        <div className="w-12 h-12 rounded-full bg-green-600 flex items-center justify-center text-white text-xl mb-4">
+          ✓
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">
+          Account created successfully!
+        </h3>
         <p className="text-gray-500 text-sm">Redirecting to your dashboard...</p>
       </div>
     );
@@ -50,6 +56,17 @@ export const RegisterForm = () => {
       </p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {/* Username */}
+        <input
+          type="text"
+          placeholder="Username"
+          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        {/* Email */}
         <input
           type="email"
           placeholder="Email"
@@ -58,6 +75,8 @@ export const RegisterForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        {/* Password */}
         <input
           type="password"
           placeholder="Password"
@@ -66,6 +85,8 @@ export const RegisterForm = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+
+        {/* Confirm Password */}
         <input
           type="password"
           placeholder="Confirm Password"

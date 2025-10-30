@@ -7,8 +7,8 @@
 	-  Костенко Нікіта Сергійович (GitHub: @nikitakost, електронна пошта НаУКМА: n.kostenko@ukma.edu.ua)
 	-  Слободян Володимир Олександрович (GitHub: @opitral, електронна пошта НаУКМА: v.slobodian@ukma.edu.ua)
 ## 2. Ролі та відповідальності
-- Repo Maintainer, Quality Lead, Backend Lead, QA Analyst: Єрмолович Захар
-- CI Maintainer, Requirements Lead, Integration Lead, Test Planner: Слободян Володимир
+- Repo Maintainer, Quality Lead, Backend Lead, Code Reviewer: Єрмолович Захар
+- CI Maintainer, Requirements Lead, Integration Lead, Security Analyst: Слободян Володимир
 - Documentation Lead: Загоруй Нікіта
 - Issue Tracker Lead, Traceability Lead, Quality Lead, Review Manager: Костенко Нікіта
 ## 3. План комунікації
@@ -49,14 +49,82 @@
 	Загоруй Нікіта: 5 годин
 	Костенко Нікіта: 7 годин
 	Слободян Володимир: 6 годин
+
+## 7. Стандарти кодування та політика якості
+
+### Посібник зі стилю коду
+
+####  Backend (Java + Spring Boot)
+- Дотримуємося [**Google Java Style Guide**](https://google.github.io/styleguide/javaguide.html).
+- Керівні принципи: **SOLID**, **Clean Code**, **DRY**.
+- Використовуємо **DTO** для передачі даних між шарами та контролерами.
+- Контролери містять лише HTTP-логіку, бізнес-логіка розташована у сервісах.
+- Іменування класів і методів — у форматі `PascalCase` та `camelCase` відповідно.
+- Тестування контролерів — через **JUnit 5**, **MockMvc** і **Mockito**:
+#### Frontend (React + Tailwind CSS)
+- Архітектура проєкту побудована за принципами **Feature-Sliced Design (FSD)**;
+- Дотримуємось [**Airbnb JavaScript Style Guide**](https://github.com/airbnb/javascript);
+- Компоненти React — **функціональні**, без класів;
+- Стилі оформлюємо через **Tailwind CSS** з утриманням від inline-стилів;
+- Мінімізуємо повторення — винесення спільних UI-елементів у окремі `shared` компоненти.
+
+### Обов’язкові інструменти
+
+#### Backend (Java + Spring Boot)
+- **Lombok** — скорочення шаблонного коду (`@Getter`, `@Setter`, `@Builder`, конструктори тощо);
+- **JUnit 5 + Mockito + Spring MockMvc** — модульне та інтеграційне тестування контролерів і сервісів;
+- **Spring Security Test** — для тестування безпеки та аутентифікації;
+- **Swagger / OpenAPI (springdoc-openapi)** — документування REST API;
+- **Spring Boot Starter Data JPA** + **PostgreSQL** — ORM та база даних;
+- **JWT (jjwt-api, jjwt-impl, jjwt-jackson)** — робота з токенами доступу;
+
+#### Frontend (React + Tailwind CSS)
+- **React** — бібліотека для побудови UI;
+- **React Router Dom** — маршрутизація між сторінками;
+- **Vite** — швидка збірка та запуск проєкту;
+- **Tailwind CSS** + **@tailwindcss/postcss** + **PostCSS** + **Autoprefixer** — стилізація компонентів;
+- **ESLint** + **@eslint/js** + **eslint-plugin-react-hooks** + **eslint-plugin-react-refresh** — перевірка дотримання стилю коду;
+- **TypeScript типи для React** (`@types/react`, `@types/react-dom`) — допомога IDE та типізація.
+
+#### Загальні інструменти
+- **Git + GitHub** — система контролю версій та code review;
+- **CI/CD** (GitHub Actions) — автоматичне тестування і перевірка перед злиттям.
+
+### Кроки peer review
+
+1. **Створення pull request (PR)**
+    - Кожна нова функціональність або виправлення оформлюється у окремій гілці;
+    - PR створюється з гілки фічі до `develop` або релізної гілки.
+
+2. **Автоматичні перевірки CI/CD**
+    - **Check Commit Message** — перевірка формату комітів;
+    - **Generate API Docs** — генерація документації REST API;
+    - **Java CI with Maven & Docs Generation** — збірка бекенду та юніт-тести;
+    - **pages-build-deployment** — збірка фронтенду та перевірка готовності сторінок.
+
+3. **Рецензія коду іншими членами команди**
+    - Перегляд змін у коді, перевірка стилю, архітектури та логіки;
+    - Виявлення потенційних багів або технічного боргу;
+    - Коментарі та пропозиції в PR.
+
+4. **Виправлення коментарів**
+    - Автор PR вносить правки відповідно до зауважень;
+    - Повторне проходження перевірок CI/CD.
+
+5. **Затвердження та злиття**
+    - Після погодження мінімум одного (або двох) рев’юверів PR можна зливати у `develop` / `main`;
+    - Можливе squash/merge залежно від політики команди.
+
+6. **Закриття PR і оновлення локальних гілок**
+    - Після злиття кожен учасник оновлює локальні гілки (`git pull`) для синхронізації з віддаленим репо.
 		
-## 7. Етична та професійна поведінка
+## 8. Етична та професійна поведінка
 - Спільні принципи:
 	Чіткість та прозорість - всі зміни і завдання мають бути зрозумілі для команди.
 	Якість коду - дотримання кодстайлу, написання тестів, уникнення технічного боргу.
 	Відповідальність - кожен відповідає за свої зміни та завдання.
 	Колаборація - допомога один одному, обговорення рішень і підтримка в процесі роботи.
-## 8. Підписи
+## 9. Підписи
 - [x] Єрмолович Захар (GitHub: @Ermolz)
 - [x] Загоруй Нікіта (GitHub: @nikkkitosss)
 - [x] Костенко Нікіта (GitHub: @nikitakost)

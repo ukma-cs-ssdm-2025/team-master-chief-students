@@ -35,7 +35,7 @@ class ExpenseControllerTest {
 
     @Test
     void testCreateExpense() throws Exception {
-        ExpenseDto dto = new ExpenseDto(1L, "Food", "Lunch", BigDecimal.valueOf(15.5), LocalDate.now());
+        ExpenseDto dto = new ExpenseDto(1L,1L, "Food", "Lunch", BigDecimal.valueOf(15.5), LocalDate.now());
 
         when(expenseService.create(any())).thenReturn(dto);
 
@@ -51,8 +51,8 @@ class ExpenseControllerTest {
     @Test
     void testGetAllExpenses() throws Exception {
         List<ExpenseDto> expenses = List.of(
-                new ExpenseDto(1L, "Food", "Lunch", BigDecimal.valueOf(10), LocalDate.now()),
-                new ExpenseDto(2L, "Transport", "Bus", BigDecimal.valueOf(5), LocalDate.now())
+                new ExpenseDto(1L,1L, "Food", "Lunch", BigDecimal.valueOf(10), LocalDate.now()),
+                new ExpenseDto(2L,1L, "Transport", "Bus", BigDecimal.valueOf(5), LocalDate.now())
         );
 
         when(expenseService.getAll()).thenReturn(expenses);

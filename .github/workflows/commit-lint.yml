@@ -1,0 +1,46 @@
+name: Check Commit Message
+
+on:
+    pull_request:
+        types: [opened, synchronize]
+
+jobs:
+    check-commit-message:
+        name: Check Commit Message Format
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Validate All PR Commit Messages
+              run: |
+                  BASE_COMMIT=${{ github.event.pull_request.base.sha }}
+                  HEAD_COMMIT=${{ github.event.pull_request.head.sha }}
+                  
+                  REGEX="^(feat|fix|docs|chore)\(#([0-9]+)\): .+ \((closes|fixes|resolves) #\2\)$"
+                  
+                  echo "Checking commits between $BASE_COMMIT and $HEAD_COMMIT..."
+                  
+                  git log --pretty=%B $BASE_COMMIT..$HEAD_COMMIT | while read -r COMMIT_MSG; do
+                    # Пропускаємо порожні рядки, які можуть з'явитися між комітами
+                    if [ -z "$COMMIT_MSG" ]; then
+                      continue
+                    fi
+                  
+                    echo "------------------------------------------------"
+                    echo "Checking commit: $COMMIT_MSG"
+                  
+                    if [[ ! "$COMMIT_MSG" =~ $REGEX ]]; then
+                      echo "🚫 Error: The commit message does not match the required format."
+                      echo "   Expected format: type(#issue): message (closes|fixes|resolves #issue)"
+                      echo "   Example: feat(#123): add new login button (closes #123)"
+                      exit 1
+                    else
+                      echo "✅ Commit message format is correct."
+                    fi
+                  done
+                  
+                  echo "------------------------------------------------"
+                  echo "🎉 All commit messages in the PR are formatted correctly."

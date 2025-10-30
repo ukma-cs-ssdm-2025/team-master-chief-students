@@ -8,10 +8,16 @@ spring:
         password: ${POSTGRES_PASSWORD}
         driver-class-name: org.postgresql.Driver
     jpa:
-        open-in-view: false
+        open-in-view: true
         show-sql: false
         hibernate:
             ddl-auto: update
+
+    servlet:
+        multipart:
+            enabled: true
+            max-file-size: 10MB
+            max-request-size: 10MB
 
 jwt:
     secret: ${JWT_ACCESS_SECRET:change_this_secret_for_prod}
@@ -31,3 +37,16 @@ logging:
 
     pattern:
         console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level){cyan} %clr([%t]){faint} %clr(%-40.40logger{39}){yellow} : %msg%n"
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health, prometheus
+
+    server:
+        port: ${ACTUATOR_PORT:8081}
+
+
+file:
+    upload-dir: ${FILE_UPLOAD_DIR:uploads}
