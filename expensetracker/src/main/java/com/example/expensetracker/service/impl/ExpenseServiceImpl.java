@@ -5,9 +5,15 @@ import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
 import com.example.expensetracker.entity.ExpenseEntity;
 import com.example.expensetracker.entity.ReceiptEntity;
+import com.example.expensetracker.entity.CategoryEntity;
+import com.example.expensetracker.entity.ExpenseEntity;
+import com.example.expensetracker.entity.UserEntity;
+import com.example.expensetracker.exception.CategoryNotFoundException;
 import com.example.expensetracker.exception.NotFoundException;
+import com.example.expensetracker.exception.UnauthorizedException;
 import com.example.expensetracker.mapper.ExpenseMapper;
 import com.example.expensetracker.mapper.ReceiptMapper;
+import com.example.expensetracker.repository.CategoryRepository;
 import com.example.expensetracker.repository.ExpenseRepository;
 import com.example.expensetracker.repository.ReceiptRepository;
 import com.example.expensetracker.security.SecurityUser;
@@ -20,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.expensetracker.service.BaseService;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -31,9 +38,10 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class ExpenseServiceImpl implements ExpenseService {
+public class ExpenseServiceImpl extends BaseService implements ExpenseService {
 
     private final ExpenseRepository expenseRepository;
+    private final CategoryRepository categoryRepository;
     private final ExpenseMapper mapper;
     private final FileStorageService fileStorageService;
     private final ReceiptRepository receiptRepository;
@@ -41,27 +49,31 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public ExpenseDto create(ExpenseDto dto) {
-        ExpenseEntity entity = mapper.toEntity(dto);
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("User not authenticated");
-        }
+        UserEntity currentUser = getAuthenticatedUser();
+        CategoryEntity category = categoryRepository.findByIdAndUserId(dto.getCategoryId(), currentUser.getId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + dto.getCategoryId()));
 
-        SecurityUser userDetails = (SecurityUser) auth.getPrincipal();
-        entity.setUser(userDetails.getUser());
+        ExpenseEntity entity = mapper.toEntity(dto);
+        entity.setUser(currentUser);
+        entity.setCategory(category);
+
         return mapper.toDto(expenseRepository.save(entity));
     }
 
     @Override
     public ExpenseDto getById(Long id) {
-        ExpenseEntity entity = expenseRepository.findById(id)
+        Long userId = getAuthenticatedUser().getId();
+
+        ExpenseEntity entity = expenseRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException("Expense not found"));
         return mapper.toDto(entity);
     }
 
     @Override
     public List<ExpenseDto> getAll() {
-        return expenseRepository.findAll()
+        Long userId = getAuthenticatedUser().getId();
+
+        return expenseRepository.findByUserId(userId)
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
@@ -69,18 +81,27 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public ExpenseDto update(Long id, ExpenseDto dto) {
-        ExpenseEntity entity = expenseRepository.findById(id)
+        // 👇 ИЗМЕНЕНО: Полностью переписана логика обновления
+        UserEntity currentUser = getAuthenticatedUser();
+        ExpenseEntity entity = expenseRepository.findByIdAndUserId(id, currentUser.getId())
                 .orElseThrow(() -> new NotFoundException("Expense not found"));
-        entity.setCategory(dto.getCategory());
+
+        CategoryEntity category = categoryRepository.findByIdAndUserId(dto.getCategoryId(), currentUser.getId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + dto.getCategoryId()));
+
+        entity.setCategory(category);
         entity.setDescription(dto.getDescription());
         entity.setAmount(dto.getAmount());
         entity.setDate(dto.getDate());
+
         return mapper.toDto(expenseRepository.save(entity));
     }
 
     @Override
     public void delete(Long id) {
-        if (!expenseRepository.existsById(id)) {
+        Long userId = getAuthenticatedUser().getId();
+
+        if (!expenseRepository.existsByIdAndUserId(id, userId)) {
             throw new NotFoundException("Expense not found");
         }
         expenseRepository.deleteById(id);
@@ -88,8 +109,12 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public List<ExpenseDto> filter(String category, LocalDate from, LocalDate to, BigDecimal min, BigDecimal max) {
-        return expenseRepository.findAll().stream()
-                .filter(e -> category == null || e.getCategory().equalsIgnoreCase(category))
+        Long userId = getAuthenticatedUser().getId();
+
+        List<ExpenseEntity> userExpenses = expenseRepository.findByUserId(userId);
+
+        return userExpenses.stream()
+                .filter(e -> category == null || e.getCategory().getName().equalsIgnoreCase(category))
                 .filter(e -> from == null || !e.getDate().isBefore(from))
                 .filter(e -> to == null || !e.getDate().isAfter(to))
                 .filter(e -> min == null || e.getAmount().compareTo(min) >= 0)
@@ -100,12 +125,12 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     public Object getStatistics() {
-        BigDecimal total = expenseRepository.findAll().stream()
-                .map(ExpenseEntity::getAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        Long userId = getAuthenticatedUser().getId();
+        BigDecimal total = expenseRepository.sumAmountByUserId(userId);
+        long countAmount = expenseRepository.countByUserId(userId);
         return new Object() {
             public final BigDecimal totalAmount = total;
-            public final long count = expenseRepository.count();
+            public final long count = countAmount;
         };
     }
 

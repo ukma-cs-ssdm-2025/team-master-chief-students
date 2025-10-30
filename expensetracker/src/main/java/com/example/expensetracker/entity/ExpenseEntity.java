@@ -21,9 +21,12 @@ public class ExpenseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    private String category;
-    private String description;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private CategoryEntity category;
+
     private BigDecimal amount;
+    private String description;
     private LocalDate date;
 
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)

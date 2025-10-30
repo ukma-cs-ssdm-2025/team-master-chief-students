@@ -4,24 +4,29 @@ import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
 import com.example.expensetracker.entity.ReceiptEntity;
+import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
 import com.example.expensetracker.service.ExpenseService;
+import com.example.expensetracker.service.ExportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.Writer;
 import java.util.List;
 
 @RestController
@@ -32,6 +37,7 @@ import java.util.List;
 public class ExpenseController {
 
     private final ExpenseService expenseService;
+    private final ExportService exportService;
 
     @Operation(
             summary = "Create expense",
@@ -369,5 +375,16 @@ public class ExpenseController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "inline; filename=\"" + receiptFile.resource().getFilename() + "\"")
                 .body(receiptFile.resource());
+    @GetMapping("/export/csv")
+    public void exportToCsv(HttpServletResponse response) {
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"expenses.csv\"");
+
+        try (Writer writer = response.getWriter()) {
+            exportService.exportUserExpensesToCsv(writer);
+        } catch (Exception e) {
+            throw new AppException("Error exporting expenses to CSV", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

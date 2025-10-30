@@ -11,7 +11,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class ExpenseDto {
     private Long id;
-    private String category;
+
+    private Long categoryId;
+    private String categoryName;
+
     private String description;
     private BigDecimal amount;
     private LocalDate date;
