@@ -375,6 +375,7 @@ public class ExpenseController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "inline; filename=\"" + receiptFile.resource().getFilename() + "\"")
                 .body(receiptFile.resource());
+    }
     @GetMapping("/export/csv")
     public void exportToCsv(HttpServletResponse response) {
         response.setContentType("text/csv; charset=UTF-8");
