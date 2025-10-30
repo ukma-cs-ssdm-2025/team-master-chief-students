@@ -3,6 +3,7 @@ package com.example.expensetracker.controller;
 import com.example.expensetracker.controller.v1.ExpenseController;
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.service.ExpenseService;
+import com.example.expensetracker.service.ExportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ class ExpenseControllerTest {
 
     @MockBean
     private ExpenseService expenseService;
+
+    @MockBean
+    private ExportService exportService;
 
     @Autowired
     private ObjectMapper objectMapper;
