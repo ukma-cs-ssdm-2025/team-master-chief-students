@@ -1,6 +1,5 @@
-// src/entities/expense/model/hooks.js
 import { useState, useEffect } from "react";
-import { axiosInstance } from "../../../shared/api/axiosInstance";
+import { expenseApi } from "./api";
 
 export const useExpenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -14,8 +13,20 @@ export const useExpenses = () => {
   const fetchExpenses = async () => {
     setLoading(true);
     try {
-      const { data } = await axiosInstance.get("/api/v1/expenses");
-      setExpenses(Array.isArray(data.data) ? data.data : []);
+      const data = await expenseApi.getAll();
+
+      const expensesWithReceipts = await Promise.all(
+        data.map(async (exp) => {
+          try {
+            const receipt = await expenseApi.getReceipt(exp.id);
+            return { ...exp, receiptUrl: receipt || null };
+          } catch {
+            return { ...exp, receiptUrl: null };
+          }
+        })
+      );
+
+      setExpenses(expensesWithReceipts.filter(Boolean));
     } catch (err) {
       setError(err.message || "Failed to fetch expenses");
     } finally {
@@ -25,10 +36,8 @@ export const useExpenses = () => {
 
   const addExpense = async (expense) => {
     try {
-      const { data } = await axiosInstance.post("/api/v1/expenses", expense);
-      if (data?.data) {
-        setExpenses((prev) => [...prev, data.data]);
-      }
+      const data = await expenseApi.create(expense);
+      setExpenses((prev) => [...prev, { ...data, receiptUrl: null }]);
     } catch (err) {
       setError(err.message || "Failed to add expense");
     }
@@ -36,7 +45,7 @@ export const useExpenses = () => {
 
   const deleteExpense = async (id) => {
     try {
-      await axiosInstance.delete(`/api/v1/expenses/${id}`);
+      await expenseApi.delete(id);
       setExpenses((prev) => prev.filter((exp) => exp.id !== id));
     } catch (err) {
       setError(err.message || "Failed to delete expense");
@@ -45,16 +54,51 @@ export const useExpenses = () => {
 
   const updateExpense = async (id, updatedExpense) => {
     try {
-      const { data } = await axiosInstance.put(`/api/v1/expenses/${id}`, updatedExpense);
-      if (data?.data) {
-        setExpenses((prev) =>
-          prev.map((exp) => (exp.id === id ? data.data : exp))
-        );
-      }
+      const data = await expenseApi.update(id, updatedExpense);
+      setExpenses((prev) =>
+        prev.map((exp) => (exp.id === id ? { ...data, receiptUrl: exp.receiptUrl } : exp))
+      );
     } catch (err) {
       setError(err.message || "Failed to update expense");
     }
   };
 
-  return { expenses, loading, error, fetchExpenses, addExpense, deleteExpense, updateExpense };
+  const uploadReceipt = async (expenseId, file) => {
+    try {
+      await expenseApi.uploadReceipt(expenseId, file);
+      const receipt = await expenseApi.getReceipt(expenseId);
+      setExpenses((prev) =>
+        prev.map((exp) =>
+          exp.id === expenseId ? { ...exp, receiptUrl: receipt } : exp
+        )
+      );
+    } catch (err) {
+      setError(err.message || "Failed to upload receipt");
+      throw err;
+    }
+  };
+
+  const deleteReceipt = async (expenseId) => {
+    try {
+      await expenseApi.deleteReceipt(expenseId);
+      setExpenses((prev) =>
+        prev.map((exp) => (exp.id === expenseId ? { ...exp, receiptUrl: null } : exp))
+      );
+    } catch (err) {
+      setError(err.message || "Failed to delete receipt");
+      throw err;
+    }
+  };
+
+  return {
+    expenses,
+    loading,
+    error,
+    fetchExpenses,
+    addExpense,
+    deleteExpense,
+    updateExpense,
+    uploadReceipt,
+    deleteReceipt,
+  };
 };

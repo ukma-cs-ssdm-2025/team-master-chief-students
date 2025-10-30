@@ -1,4 +1,3 @@
-// src/pages/dashboard/DashboardPage.jsx
 import React from "react";
 import { useUser } from "../../entities/user/model/hooks";
 import { useExpenses } from "../../entities/expense/model/hooks";
@@ -13,7 +12,15 @@ import { ChartsSection } from "../../widgets/charts/ChartsSection";
 
 export const DashboardPage = () => {
   const { user, loading: userLoading, error: userError } = useUser();
-  const { expenses, loading: expensesLoading, addExpense, deleteExpense, updateExpense } = useExpenses();
+  const {
+    expenses,
+    loading: expensesLoading,
+    addExpense,
+    deleteExpense,
+    updateExpense,
+    uploadReceipt,
+    deleteReceipt
+  } = useExpenses();
   const { addCategory, updateCategory, deleteCategory } = useCategories();
 
   if (userLoading || expensesLoading) return <p>Loading...</p>;
@@ -21,27 +28,26 @@ export const DashboardPage = () => {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Profile */}
       <ProfileCard user={user} />
-
-      {/* Statistics Cards */}
       <StatsCards expenses={expenses} />
-
-      {/* Charts Section */}
       <ChartsSection expenses={expenses} />
 
-      {/* Categories Section */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold mb-4">Categories</h2>
         <CategoryForm onAdd={addCategory} />
         <CategoryList onUpdate={updateCategory} onDelete={deleteCategory} />
       </div>
 
-      {/* Expenses Section */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold mb-4">Expenses</h2>
         <ExpenseForm onAdd={addExpense} />
-        <ExpenseList expenses={expenses} onDelete={deleteExpense} onUpdate={updateExpense} />
+        <ExpenseList
+          expenses={expenses}
+          onDelete={deleteExpense}
+          onUpdate={updateExpense}
+          onUploadReceipt={uploadReceipt}
+          onDeleteReceipt={deleteReceipt}
+        />
       </div>
     </div>
   );
