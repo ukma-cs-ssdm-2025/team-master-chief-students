@@ -22,8 +22,13 @@ public class ExpenseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    private CategoryEntity category;
+
     private String description;
     private BigDecimal amount;
     private LocalDate date;
+
+
 }
