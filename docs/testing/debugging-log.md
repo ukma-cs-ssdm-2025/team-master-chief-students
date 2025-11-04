@@ -1,22 +1,22 @@
 # Debugging Log
 
 ## Symptom
-Під час запуску тесту `register_ShouldReturnTokens` з’являлася помилка:
-Тест падав на рядку:
+An error occurred while running the `register_ShouldReturnTokens` test:
+The test failed on the line:
 ```
 .andExpect(jsonPath("$.data.accessToken").value("access-token"))
 ```
-Попри те, що метод authService.register() повертав очікуваний AuthResponseDto.
+Even though the authService.register() method returned the expected AuthResponseDto.
 
 ## Root Cause
-Контролер AuthController повертав об’єкт AuthResponseDto без обгортки у поле data, тобто JSON мав вигляд:
+The AuthController was returning the AuthResponseDto object without wrapping it in a data field, meaning the JSON looked like this:
 ```
 {
   "accessToken": "access-token",
   "refreshToken": "refresh-token"
 }
 ```
-а не очікуваний тестом формат:
+and not the format expected by the test:
 ```
 {
   "data": {
@@ -25,16 +25,16 @@
   }
 }
 ```
-Отже, тест помилково перевіряв шлях $.data.accessToken замість $.accessToken.
+So, the test was incorrectly checking the path $.data.accessToken instead of $.accessToken.
 ## Fix
-Було вирішено оновити тест, щоб він відповідав фактичному формату відповіді API:
+It was decided to update the test to match the actual API response format:
 ```
 .andExpect(jsonPath("$.accessToken").value("access-token"))
 .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
 ```
-Після цього тест проходить успішно
+After this, the test passes successfully.
 
 ## Lesson learned
-- Перед написанням тесту потрібно звіряти очікуваний формат JSON із реальною відповіддю контролера.
-- Корисно тимчасово логувати mockMvc.perform(...).andDo(print()) для швидкого виявлення розбіжностей у структурі відповіді.
-- У подальшому — підтримувати єдиний формат відповідей через обгортку ApiResponse<T>, щоб уникати таких помилок.
+- Before writing a test, you need to check the expected JSON format against the actual controller response.
+- It is useful to temporarily log mockMvc.perform(...).andDo(print()) to quickly identify discrepancies in the response structure.
+- In the future — maintain a unified response format using an ApiResponse<T> wrapper to avoid such errors.
