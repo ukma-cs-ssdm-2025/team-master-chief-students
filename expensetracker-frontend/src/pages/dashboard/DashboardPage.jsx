@@ -1,3 +1,4 @@
+// src/pages/dashboard/DashboardPage.jsx
 import React from "react";
 import { useUser } from "../../entities/user/model/hooks";
 import { useExpenses } from "../../entities/expense/model/hooks";
@@ -9,6 +10,7 @@ import { CategoryForm } from "../../entities/category/ui/CategoryForm";
 import { CategoryList } from "../../entities/category/ui/CategoryList";
 import { StatsCards } from "../../widgets/stats/StatsCards";
 import { ChartsSection } from "../../widgets/charts/ChartsSection";
+import { ExpenseExport } from "../../features/expense/export";
 
 export const DashboardPage = () => {
   const { user, loading: userLoading, error: userError } = useUser();
@@ -22,9 +24,6 @@ export const DashboardPage = () => {
     deleteReceipt
   } = useExpenses();
   const { addCategory, updateCategory, deleteCategory } = useCategories();
-
-  if (userLoading || expensesLoading) return <p>Loading...</p>;
-  if (userError) return <p>{userError}</p>;
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
@@ -49,6 +48,8 @@ export const DashboardPage = () => {
           onDeleteReceipt={deleteReceipt}
         />
       </div>
+
+      <ExpenseExport />
     </div>
   );
 };
