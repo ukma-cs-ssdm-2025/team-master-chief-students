@@ -7,7 +7,12 @@ export const AppProvider = ({ children }) => {
   return (
     <ErrorBoundary>
       <CategoryProvider>
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           {children}
         </BrowserRouter>
       </CategoryProvider>

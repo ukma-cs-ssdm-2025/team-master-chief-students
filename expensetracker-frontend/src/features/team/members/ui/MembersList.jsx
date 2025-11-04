@@ -1,16 +1,28 @@
 import React, { useState } from "react";
+import { ChangeRoleConfirmModal } from "../../change-role";
 
 export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, canManage }) => {
   const [changingRole, setChangingRole] = useState(null);
   const [removing, setRemoving] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null);
 
-  const handleChangeRole = async (userId, currentRole) => {
-    const newRole = currentRole === "MEMBER" ? "ADMIN" : "MEMBER";
-    if (!window.confirm(`Change role to ${newRole}?`)) return;
+  const handleChangeRoleClick = (member) => {
+    const newRole = member.role === "MEMBER" ? "ADMIN" : "MEMBER";
+    setConfirmModal({
+      userId: member.userId,
+      memberName: member.email?.split('@')[0] || member.email,
+      currentRole: member.role,
+      newRole,
+    });
+  };
 
-    setChangingRole(userId);
+  const handleConfirmRoleChange = async () => {
+    if (!confirmModal) return;
+
+    setChangingRole(confirmModal.userId);
     try {
-      await onChangeRole(userId, newRole);
+      await onChangeRole(confirmModal.userId, confirmModal.newRole);
+      setConfirmModal(null);
     } catch (err) {
       alert(err.message || "Failed to change role");
     } finally {
@@ -43,7 +55,7 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
     <div className="space-y-3">
       {members.map((member) => (
         <div
-          key={member.id}
+          key={member.userId}
           className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow"
         >
           <div className="flex items-center gap-3">
@@ -52,7 +64,7 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
             </div>
             <div>
               <p className="font-medium text-gray-900">
-                {member.username}
+                {member.email?.split('@')[0] || member.email}
                 {member.userId === currentUserId && (
                   <span className="text-xs text-gray-500">(You)</span>
                 )}
@@ -77,7 +89,7 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
             {canManage && member.role !== "OWNER" && member.userId !== currentUserId && (
               <>
                 <button
-                  onClick={() => handleChangeRole(member.userId, member.role)}
+                  onClick={() => handleChangeRoleClick(member)}
                   disabled={changingRole === member.userId}
                   className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
                   title="Change role"
@@ -129,6 +141,17 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
           </div>
         </div>
       ))}
+
+      {confirmModal && (
+        <ChangeRoleConfirmModal
+          isOpen={!!confirmModal}
+          onClose={() => setConfirmModal(null)}
+          onConfirm={handleConfirmRoleChange}
+          currentRole={confirmModal.currentRole}
+          newRole={confirmModal.newRole}
+          memberName={confirmModal.memberName}
+        />
+      )}
     </div>
   );
 };
