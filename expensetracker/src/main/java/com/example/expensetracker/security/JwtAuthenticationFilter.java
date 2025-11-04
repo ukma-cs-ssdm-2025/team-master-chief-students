@@ -34,21 +34,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             String token = authHeader.substring(7);
+            
+            // First validate token, then extract email
+            if (!jwtService.isTokenValid(token, true)) {
+                throw new RuntimeException("JWT token invalid or expired. Please login again or refresh your token.");
+            }
+            
             String email = jwtService.extractEmail(token, true);
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 var userDetails = userService.loadUserByUsername(email);
-                if (jwtService.isTokenValid(token, true)) {
-                    var authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                } else {
-                    throw new RuntimeException("JWT token invalid or expired");
-                }
+                var authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                );
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
             filterChain.doFilter(request, response);
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            ErrorResponse error = ErrorResponse.of(HttpServletResponse.SC_UNAUTHORIZED, 
+                "JWT token expired. Please login again or use refresh token to get a new access token.");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            String json = String.format(
+                    "{\"status\": %d, \"message\": \"%s\", \"timestamp\": \"%s\"}",
+                    error.getStatus(),
+                    error.getMessage(),
+                    error.getTimestamp()
+            );
+            response.getWriter().write(json);
         } catch (Exception ex) {
             ErrorResponse error = ErrorResponse.of(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

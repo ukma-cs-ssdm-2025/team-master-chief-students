@@ -1,5 +1,6 @@
 package com.example.expensetracker.service;
 
+import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
@@ -14,6 +15,7 @@ public interface ExpenseService {
     ExpenseDto create(ExpenseDto dto);
     ExpenseDto getById(Long id);
     List<ExpenseDto> getAll();
+    CursorPageResponse<ExpenseDto> getAllPaginated(String cursor, int limit);
     ExpenseDto update(Long id, ExpenseDto dto);
     void delete(Long id);
 

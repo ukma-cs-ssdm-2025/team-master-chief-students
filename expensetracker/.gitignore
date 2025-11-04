@@ -36,8 +36,7 @@ build/
 node_modules/
 
 ### Environment ###
-.env
-.env.local
+.env*
+!.env.example
 
 uploads/
-.env.docker

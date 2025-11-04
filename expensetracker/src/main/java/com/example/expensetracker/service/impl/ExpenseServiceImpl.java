@@ -1,5 +1,6 @@
 package com.example.expensetracker.service.impl;
 
+import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
@@ -11,6 +12,7 @@ import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.CategoryNotFoundException;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.exception.UnauthorizedException;
+import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.mapper.ExpenseMapper;
 import com.example.expensetracker.mapper.ReceiptMapper;
 import com.example.expensetracker.repository.CategoryRepository;
@@ -19,8 +21,11 @@ import com.example.expensetracker.repository.ReceiptRepository;
 import com.example.expensetracker.security.SecurityUser;
 import com.example.expensetracker.service.ExpenseService;
 import com.example.expensetracker.service.FileStorageService;
+import com.example.expensetracker.util.CursorUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,10 +37,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExpenseServiceImpl extends BaseService implements ExpenseService {
@@ -80,8 +87,65 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public CursorPageResponse<ExpenseDto> getAllPaginated(String cursor, int limit) {
+        Long userId = getAuthenticatedUser().getId();
+        log.debug("Listing expenses for user {} with cursor: {}", userId, cursor);
+
+        int pageSize = Math.min(Math.max(limit, 1), 100);
+
+        List<ExpenseEntity> expenses;
+        
+        if (cursor != null && !cursor.isBlank()) {
+            try {
+                var cursorInfoOpt = CursorUtil.decodeCursor(cursor);
+                if (cursorInfoOpt.isPresent()) {
+                    var cursorInfo = cursorInfoOpt.get();
+                    Instant cursorCreatedAt = cursorInfo.getCreatedAt();
+                    Long cursorId = cursorInfo.getId();
+                    
+                    expenses = expenseRepository.findByUserIdWithCursor(
+                            userId,
+                            cursorCreatedAt,
+                            cursorId,
+                            PageRequest.of(0, pageSize + 1)
+                    );
+                } else {
+                    expenses = expenseRepository.findByUserIdOrdered(
+                            userId,
+                            PageRequest.of(0, pageSize + 1)
+                    );
+                }
+            } catch (ValidationException e) {
+                throw new ValidationException("Invalid cursor: " + e.getMessage());
+            }
+        } else {
+            expenses = expenseRepository.findByUserIdOrdered(
+                    userId,
+                    PageRequest.of(0, pageSize + 1)
+            );
+        }
+
+        boolean hasNext = expenses.size() > pageSize;
+        if (hasNext) {
+            expenses = expenses.subList(0, pageSize);
+        }
+
+        List<ExpenseDto> expenseDtos = expenses.stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+
+        String nextCursor = null;
+        if (hasNext && !expenses.isEmpty()) {
+            ExpenseEntity lastExpense = expenses.get(expenses.size() - 1);
+            nextCursor = CursorUtil.encodeCursor(lastExpense.getCreatedAt(), lastExpense.getId());
+        }
+
+        return CursorPageResponse.of(expenseDtos, nextCursor, hasNext);
+    }
+
+    @Override
     public ExpenseDto update(Long id, ExpenseDto dto) {
-        // 👇 ИЗМЕНЕНО: Полностью переписана логика обновления
         UserEntity currentUser = getAuthenticatedUser();
         ExpenseEntity entity = expenseRepository.findByIdAndUserId(id, currentUser.getId())
                 .orElseThrow(() -> new NotFoundException("Expense not found"));
