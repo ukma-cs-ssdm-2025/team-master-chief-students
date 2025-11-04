@@ -5,7 +5,6 @@ import com.example.expensetracker.entity.TeamEntity;
 import com.example.expensetracker.entity.TeamMemberEntity;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.enums.TeamRole;
-import com.example.expensetracker.exception.ForbiddenException;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.repository.TeamMemberRepository;
@@ -136,22 +135,22 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     public void changeRole(Long me, Long teamId, Long memberUserId, TeamRole role) {
         log.info("Changing role of user {} in team {} to {} by user {}", memberUserId, teamId, role, me);
         
-        teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
-        
         TeamMemberEntity member = teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId)
                 .orElseThrow(() -> new NotFoundException("Team member not found"));
 
+        // If changing to OWNER role, only OWNER can do that
+        if (role == TeamRole.OWNER && member.getRole() != TeamRole.OWNER) {
+            teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
+        } else {
+            // For other role changes, OWNER or ADMIN can do it
+            teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
+        }
+
+        // Prevent removing the last owner
         if (member.getRole() == TeamRole.OWNER && role != TeamRole.OWNER) {
             long ownerCount = teamMemberRepository.countByTeamIdAndRole(teamId, TeamRole.OWNER);
             if (ownerCount <= 1) {
                 throw new ValidationException("Cannot change role of the last owner");
-            }
-        }
-
-        if (role == TeamRole.OWNER && member.getRole() != TeamRole.OWNER) {
-            TeamMemberEntity currentUser = teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
-            if (currentUser.getRole() != TeamRole.OWNER) {
-                throw new ForbiddenException("Only owner can assign owner role");
             }
         }
 
