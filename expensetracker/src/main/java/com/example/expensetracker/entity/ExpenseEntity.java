@@ -34,7 +34,7 @@ public class ExpenseEntity {
     private String description;
     private LocalDate date;
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private Instant createdAt;
 
     @OneToOne(mappedBy = "expense", cascade = CascadeType.ALL)

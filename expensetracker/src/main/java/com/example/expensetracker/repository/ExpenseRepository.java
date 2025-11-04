@@ -76,4 +76,27 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+    
+    @Query("""
+        SELECT e FROM ExpenseEntity e
+        WHERE e.user.id = :userId AND e.team IS NULL
+        ORDER BY e.createdAt DESC, e.id DESC
+        """)
+    List<ExpenseEntity> findByUserIdOrdered(
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
+    
+    @Query("""
+        SELECT e FROM ExpenseEntity e
+        WHERE e.user.id = :userId AND e.team IS NULL
+        AND (e.createdAt < :cursorCreatedAt OR (e.createdAt = :cursorCreatedAt AND e.id < :cursorId))
+        ORDER BY e.createdAt DESC, e.id DESC
+        """)
+    List<ExpenseEntity> findByUserIdWithCursor(
+            @Param("userId") Long userId,
+            @Param("cursorCreatedAt") Instant cursorCreatedAt,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
 }
