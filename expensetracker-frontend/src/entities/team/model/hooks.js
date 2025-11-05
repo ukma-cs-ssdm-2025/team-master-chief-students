@@ -1,3 +1,4 @@
+// src/entities/team/model/hooks.js
 import { useState, useEffect } from "react";
 import { teamApi } from "./api";
 
@@ -158,7 +159,7 @@ export const useTeamExpenses = (teamId) => {
 
   const updateExpense = async (expenseId, expenseData) => {
     try {
-      const data = await teamApi.updateExpense(teamId, expenseId, expenseData);
+      const data = await teamApi.updateExpense(expenseId, expenseData);
       setExpenses((prev) =>
         prev.map((exp) => (exp.id === expenseId ? data : exp))
       );
@@ -171,7 +172,7 @@ export const useTeamExpenses = (teamId) => {
 
   const deleteExpense = async (expenseId) => {
     try {
-      await teamApi.deleteExpense(teamId, expenseId);
+      await teamApi.deleteExpense(expenseId);
       setExpenses((prev) => prev.filter((exp) => exp.id !== expenseId));
     } catch (err) {
       setError(err.message || "Failed to delete team expense");

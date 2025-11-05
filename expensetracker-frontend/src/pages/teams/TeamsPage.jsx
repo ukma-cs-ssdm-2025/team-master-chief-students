@@ -1,3 +1,4 @@
+// src/pages/teams/TeamsPage.jsx
 import React, { useState } from "react";
 import { useTeams } from "../../entities/team/model/hooks";
 import { TeamList } from "../../entities/team/ui/TeamList";
@@ -43,7 +44,9 @@ export const TeamsPage = () => {
             Create Team
           </button>
         </div>
+
         <TeamList teams={teams} loading={loading} error={error} />
+        
         {showCreateModal && (
           <Modal onClose={() => setShowCreateModal(false)}>
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">

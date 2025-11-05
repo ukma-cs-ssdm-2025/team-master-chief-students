@@ -1,3 +1,4 @@
+// src/entities/team/model/api.js
 import { axiosInstance } from "../../../shared/api/axiosInstance";
 
 export const teamApi = {
@@ -57,14 +58,15 @@ export const teamApi = {
   },
 
   updateExpense: async (expenseId, expenseData) => {
-    const { data } = await axiosInstance.put(`/api/v1/expenses/${expenseId}`, expense);
+    const { data } = await axiosInstance.put(
+      `/api/v1/expenses/${expenseId}`,
+      expenseData
+    );
     return data.data;
   },
 
   deleteExpense: async (expenseId) => {
-    await axiosInstance.delete(
-      `/api/v1/expenses/${expenseId}`
-    );
+    await axiosInstance.delete(`/api/v1/expenses/${expenseId}`);
   },
 
   shareExpense: async (expenseId, shareData) => {

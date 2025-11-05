@@ -1,3 +1,4 @@
+// src/entities/team/ui/TeamList.jsx
 import React from "react";
 import { TeamCard } from "./TeamCard";
 
