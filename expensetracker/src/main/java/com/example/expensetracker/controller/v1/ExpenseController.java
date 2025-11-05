@@ -1,9 +1,9 @@
 package com.example.expensetracker.controller.v1;
 
+import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
-import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -15,19 +15,19 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.OutputStream;
 import java.io.Writer;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/expenses")
@@ -159,64 +159,71 @@ public class ExpenseController {
 
     @Operation(
             summary = "Get all expenses",
-            description = "Retrieves all expense records.",
-            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth") // <-- JWT requirement
+            description = "Retrieves a paginated list of expenses using cursor-based pagination. " +
+                    "Expenses are ordered by createdAt DESC, id DESC. " +
+                    "Use the 'cursor' parameter to fetch the next page.",
+            security = @SecurityRequirement(name = "BearerAuth")
     )
-    @io.swagger.v3.oas.annotations.responses.ApiResponses(value = {
+    @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
-                    description = "All expenses retrieved successfully",
+                    description = "Expenses retrieved successfully",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ApiResponse.class),
                             examples = @ExampleObject(value = """
                 {
                   "success": true,
-                  "message": "All expenses retrieved successfully",
-                  "data": [
-                    {
-                      "id": 1,
-                      "category": "Food",
-                      "description": "Lunch",
-                      "amount": 12.5,
-                      "date": "2025-10-10"
-                    },
-                    {
-                      "id": 2,
-                      "category": "Transport",
-                      "description": "Taxi",
-                      "amount": 20.0,
-                      "date": "2025-10-09"
-                    }
-                  ],
-                  "metadata": {
-                    "timestamp": "2025-10-10T20:00:00"
+                  "message": "Expenses retrieved successfully",
+                  "data": {
+                    "items": [
+                      {
+                        "id": 1,
+                        "categoryId": 1,
+                        "categoryName": "Food",
+                        "description": "Lunch",
+                        "amount": 12.5,
+                        "date": "2025-10-10"
+                      },
+                      {
+                        "id": 2,
+                        "categoryId": 2,
+                        "categoryName": "Transport",
+                        "description": "Taxi",
+                        "amount": 20.0,
+                        "date": "2025-10-09"
+                      }
+                    ],
+                    "nextCursor": "MTczMDcwNjYyNTk2NToxMjM0NQ",
+                    "hasNext": true,
+                    "size": 2
                   }
                 }
                 """)
                     )
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid cursor format",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "500",
                     description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ErrorResponse.class),
-                            examples = @ExampleObject(value = """
-                {
-                  "status": 500,
-                  "message": "Internal server error",
-                  "timestamp": "2025-10-10T20:00:00"
-                }
-                """)
+                            schema = @Schema(implementation = ErrorResponse.class)
                     )
             )
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ExpenseDto>>> getAll() {
-        var expenses = expenseService.getAll();
+    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseDto>>> getAll(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int limit
+    ) {
+        CursorPageResponse<ExpenseDto> result = expenseService.getAllPaginated(cursor, limit);
         return ResponseEntity.ok(
-                new ApiResponse<>(true, "All expenses retrieved successfully", expenses)
+                new ApiResponse<>(true, "Expenses retrieved successfully", result)
         );
     }
 
@@ -386,6 +393,18 @@ public class ExpenseController {
             exportService.exportUserExpensesToCsv(writer);
         } catch (Exception e) {
             throw new AppException("Error exporting expenses to CSV", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/export/pdf")
+    public void exportToPdf(HttpServletResponse response) {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"expenses.pdf\"");
+
+        try (OutputStream outputStream = response.getOutputStream()) {
+            exportService.exportUserExpensesToPdf(outputStream);
+        } catch (Exception e) {
+            throw new AppException("Error exporting expenses to PDF", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

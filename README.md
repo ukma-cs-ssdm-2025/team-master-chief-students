@@ -59,7 +59,7 @@ cp env.example .env.docker
 3. Запуск сервісу:
 
 ```bash
-docker-compose up --build
+docker-compose --env-file .env.docker up --build
 ```
 
 ## 🔗 Посилання
