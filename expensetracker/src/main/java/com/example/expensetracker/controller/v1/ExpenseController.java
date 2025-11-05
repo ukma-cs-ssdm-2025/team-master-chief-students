@@ -4,7 +4,6 @@ import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
-import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -23,11 +22,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.OutputStream;
 import java.io.Writer;
 
 @RestController
@@ -394,6 +393,18 @@ public class ExpenseController {
             exportService.exportUserExpensesToCsv(writer);
         } catch (Exception e) {
             throw new AppException("Error exporting expenses to CSV", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/export/pdf")
+    public void exportToPdf(HttpServletResponse response) {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"expenses.pdf\"");
+
+        try (OutputStream outputStream = response.getOutputStream()) {
+            exportService.exportUserExpensesToPdf(outputStream);
+        } catch (Exception e) {
+            throw new AppException("Error exporting expenses to PDF", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
