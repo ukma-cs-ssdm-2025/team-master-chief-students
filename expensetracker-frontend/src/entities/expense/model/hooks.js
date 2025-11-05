@@ -10,29 +10,31 @@ export const useExpenses = () => {
     fetchExpenses();
   }, []);
 
-  const fetchExpenses = async () => {
-    setLoading(true);
-    try {
-      const data = await expenseApi.getAll();
+const fetchExpenses = async () => {
+  setLoading(true);
+  try {
+    const data = await expenseApi.getAll();
 
-      const expensesWithReceipts = await Promise.all(
-        data.map(async (exp) => {
-          try {
-            const receipt = await expenseApi.getReceipt(exp.id);
-            return { ...exp, receiptUrl: receipt || null };
-          } catch {
-            return { ...exp, receiptUrl: null };
-          }
-        })
-      );
+    const expensesToProcess = data.items || [];
 
-      setExpenses(expensesWithReceipts.filter(Boolean));
-    } catch (err) {
-      setError(err.message || "Failed to fetch expenses");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const expensesWithReceipts = await Promise.all(
+      expensesToProcess.map(async (exp) => {
+        try {
+          const receipt = await expenseApi.getReceipt(exp.id);
+          return { ...exp, receiptUrl: receipt || null };
+        } catch {
+          return { ...exp, receiptUrl: null };
+        }
+      })
+    );
+
+    setExpenses(expensesWithReceipts.filter(Boolean));
+  } catch (err) {
+    setError(err.message || "Failed to fetch expenses");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const addExpense = async (expense) => {
     try {

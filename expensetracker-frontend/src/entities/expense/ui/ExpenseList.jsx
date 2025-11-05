@@ -1,7 +1,9 @@
+// src/entities/expense/ui/ExpenseList.jsx (UPDATED WITH SHARE FEATURE)
 import React, { useState } from "react";
 import { useCategories } from "../../category/model/hooks";
 import { ReceiptUpload } from "../../../features/expense/receipt/ui/ReceiptUpload";
 import { ReceiptViewer } from "../../../features/expense/receipt/ui/ReceiptViewer";
+import { ShareExpenseModal } from "../../../features/team/expenses/ui/ShareExpenseModal";
 
 const INITIAL_EDIT_DATA = {
   description: "",
@@ -80,7 +82,8 @@ const ExpenseItem = ({
   onEdit,
   onDelete,
   onUploadReceipt,
-  onDeleteReceipt
+  onDeleteReceipt,
+  onShare,
 }) => {
   const [showReceipt, setShowReceipt] = useState(false);
 
@@ -128,6 +131,30 @@ const ExpenseItem = ({
                 strokeLinejoin="round"
                 strokeWidth={2}
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </button>
+
+          {/* Share to Team Button */}
+          <button
+            onClick={onShare}
+            type="button"
+            className="p-2 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
+            title="Share to team"
+            aria-label="Share to team"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
               />
             </svg>
           </button>
@@ -220,6 +247,7 @@ export const ExpenseList = ({
   const { categories, loading: categoriesLoading } = useCategories();
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(INITIAL_EDIT_DATA);
+  const [sharingExpenseId, setSharingExpenseId] = useState(null);
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this expense?")) {
@@ -281,41 +309,58 @@ export const ExpenseList = ({
     return currentCategory ? currentCategory.name : expense.categoryName;
   };
 
+  const handleShareSuccess = () => {
+    alert("Expense shared successfully!");
+    // Можна додати рефреш списку витрат
+  };
+
   if (!Array.isArray(expenses) || expenses.length === 0) {
     return <EmptyState />;
   }
 
   return (
-    <div className="space-y-3">
-      {categoriesLoading && (
-        <p className="text-gray-500">Loading categories...</p>
-      )}
+    <>
+      <div className="space-y-3">
+        {categoriesLoading && (
+          <p className="text-gray-500">Loading categories...</p>
+        )}
 
-      {expenses.map((expense) => (
-        <div
-          key={expense.id}
-          className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
-        >
-          {editingId === expense.id ? (
-            <EditForm
-              editData={editData}
-              categories={categories}
-              onChange={handleEditChange}
-              onSave={submitEdit}
-              onCancel={cancelEdit}
-            />
-          ) : (
-            <ExpenseItem
-              expense={expense}
-              categoryName={getCategoryName(expense)}
-              onEdit={() => startEdit(expense)}
-              onDelete={() => handleDelete(expense.id)}
-              onUploadReceipt={onUploadReceipt}
-              onDeleteReceipt={onDeleteReceipt}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+        {expenses.map((expense) => (
+          <div
+            key={expense.id}
+            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+          >
+            {editingId === expense.id ? (
+              <EditForm
+                editData={editData}
+                categories={categories}
+                onChange={handleEditChange}
+                onSave={submitEdit}
+                onCancel={cancelEdit}
+              />
+            ) : (
+              <ExpenseItem
+                expense={expense}
+                categoryName={getCategoryName(expense)}
+                onEdit={() => startEdit(expense)}
+                onDelete={() => handleDelete(expense.id)}
+                onUploadReceipt={onUploadReceipt}
+                onDeleteReceipt={onDeleteReceipt}
+                onShare={() => setSharingExpenseId(expense.id)}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Share Expense Modal */}
+      {sharingExpenseId && (
+        <ShareExpenseModal
+          expenseId={sharingExpenseId}
+          onClose={() => setSharingExpenseId(null)}
+          onSuccess={handleShareSuccess}
+        />
+      )}
+    </>
   );
 };

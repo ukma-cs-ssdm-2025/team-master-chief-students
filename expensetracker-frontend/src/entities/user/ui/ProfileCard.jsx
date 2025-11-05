@@ -37,6 +37,7 @@ export const ProfileCard = ({ user }) => {
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-gray-800 truncate">{user.data.username}</h3>
           <p className="text-xs text-gray-600 truncate">{user.data.email}</p>
+          <p className="text-xs text-gray-500">ID: {user.data.id}</p>
         </div>
       </div>
 
