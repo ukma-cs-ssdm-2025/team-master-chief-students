@@ -162,7 +162,8 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     @Override
     @Transactional
     public ReceiptDto addReceipt(Long expenseId, MultipartFile file) {
-        ExpenseEntity expense = expenseRepository.findById(expenseId)
+        Long userId = getAuthenticatedUser().getId();
+        ExpenseEntity expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
 
         String storedFileName = fileStorageService.store(file);
@@ -181,7 +182,8 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     @Override
     @Transactional
     public void deleteReceipt(Long expenseId) {
-        ExpenseEntity expense = expenseRepository.findById(expenseId)
+        Long userId = getAuthenticatedUser().getId();
+        ExpenseEntity expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
 
         ReceiptEntity receipt = expense.getReceipt();
@@ -198,8 +200,10 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReceiptDto getReceipt(Long expenseId) {
-        ExpenseEntity expense = expenseRepository.findById(expenseId)
+        Long userId = getAuthenticatedUser().getId();
+        ExpenseEntity expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
 
         ReceiptEntity receipt = expense.getReceipt();
@@ -211,6 +215,7 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReceiptFile loadReceiptFile(Long expenseId) {
         ReceiptDto receipt = getReceipt(expenseId);
         String filename = receipt.getFileUrl();

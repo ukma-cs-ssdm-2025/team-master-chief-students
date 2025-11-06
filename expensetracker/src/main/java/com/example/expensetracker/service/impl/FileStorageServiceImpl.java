@@ -15,10 +15,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
+
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+            "application/pdf"
+    );
+
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+            ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf"
+    );
 
     private final Path rootLocation;
 
@@ -38,11 +52,30 @@ public class FileStorageServiceImpl implements FileStorageService {
                 throw new ValidationException("Failed to store empty file.");
             }
 
+            // Validate content type
+            String contentType = file.getContentType();
+            if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+                throw new ValidationException(
+                        "File type not allowed. Allowed types: JPEG, PNG, GIF, WEBP, PDF. " +
+                        "Received: " + (contentType != null ? contentType : "unknown")
+                );
+            }
+
+            // Validate file extension
             String originalFilename = file.getOriginalFilename();
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+                if (!ALLOWED_EXTENSIONS.contains(extension)) {
+                    throw new ValidationException(
+                            "File extension not allowed. Allowed extensions: .jpg, .jpeg, .png, .gif, .webp, .pdf. " +
+                            "Received: " + extension
+                    );
+                }
+            } else {
+                throw new ValidationException("File must have a valid extension.");
             }
+
             String uniqueFilename = UUID.randomUUID() + extension;
 
             Path destinationFile = this.rootLocation.resolve(uniqueFilename).normalize().toAbsolutePath();
