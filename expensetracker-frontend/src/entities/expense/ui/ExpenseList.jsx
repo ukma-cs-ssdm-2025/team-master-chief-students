@@ -1,9 +1,9 @@
-// src/entities/expense/ui/ExpenseList.jsx (UPDATED WITH SHARE FEATURE)
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useCategories } from "../../category/model/hooks";
 import { ReceiptUpload } from "../../../features/expense/receipt/ui/ReceiptUpload";
 import { ReceiptViewer } from "../../../features/expense/receipt/ui/ReceiptViewer";
 import { ShareExpenseModal } from "../../../features/team/expenses/ui/ShareExpenseModal";
+import { SearchInput } from "../../../shared/ui/SearchInput";
 
 const INITIAL_EDIT_DATA = {
   description: "",
@@ -107,7 +107,6 @@ const ExpenseItem = ({
             <p className="text-2xl font-bold text-gray-900">${expense.amount}</p>
           </div>
 
-          {/* Receipt Toggle Button */}
           <button
             onClick={() => setShowReceipt(!showReceipt)}
             type="button"
@@ -117,45 +116,20 @@ const ExpenseItem = ({
                 : 'text-gray-400 hover:bg-gray-50'
             }`}
             title={expense.receiptUrl ? "View receipt" : "Add receipt"}
-            aria-label="Toggle receipt"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </button>
 
-          {/* Share to Team Button */}
           <button
             onClick={onShare}
             type="button"
             className="p-2 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
             title="Share to team"
-            aria-label="Share to team"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-              />
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
           </button>
 
@@ -164,21 +138,9 @@ const ExpenseItem = ({
             type="button"
             className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
             title="Edit"
-            aria-label="Edit expense"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-              />
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
           <button
@@ -186,29 +148,16 @@ const ExpenseItem = ({
             type="button"
             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete"
-            aria-label="Delete expense"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
         </div>
       </div>
 
-      {/* Receipt Section */}
       {showReceipt && (
-        <div className="border-t pt-4 mt-4 animate-fadeIn">
+        <div className="border-t pt-4 mt-4">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-medium text-gray-700">Receipt</h4>
             <button
@@ -248,6 +197,24 @@ export const ExpenseList = ({
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(INITIAL_EDIT_DATA);
   const [sharingExpenseId, setSharingExpenseId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredExpenses = useMemo(() => {
+    if (!searchQuery.trim()) return expenses;
+
+    const query = searchQuery.toLowerCase();
+    return expenses.filter((expense) => {
+      const description = expense.description?.toLowerCase() || "";
+      const category = expense.categoryName?.toLowerCase() || "";
+      const amount = expense.amount?.toString() || "";
+
+      return (
+        description.includes(query) ||
+        category.includes(query) ||
+        amount.includes(query)
+      );
+    });
+  }, [expenses, searchQuery]);
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this expense?")) {
@@ -311,7 +278,6 @@ export const ExpenseList = ({
 
   const handleShareSuccess = () => {
     alert("Expense shared successfully!");
-    // Можна додати рефреш списку витрат
   };
 
   if (!Array.isArray(expenses) || expenses.length === 0) {
@@ -320,40 +286,55 @@ export const ExpenseList = ({
 
   return (
     <>
-      <div className="space-y-3">
-        {categoriesLoading && (
-          <p className="text-gray-500">Loading categories...</p>
-        )}
-
-        {expenses.map((expense) => (
-          <div
-            key={expense.id}
-            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
-          >
-            {editingId === expense.id ? (
-              <EditForm
-                editData={editData}
-                categories={categories}
-                onChange={handleEditChange}
-                onSave={submitEdit}
-                onCancel={cancelEdit}
-              />
-            ) : (
-              <ExpenseItem
-                expense={expense}
-                categoryName={getCategoryName(expense)}
-                onEdit={() => startEdit(expense)}
-                onDelete={() => handleDelete(expense.id)}
-                onUploadReceipt={onUploadReceipt}
-                onDeleteReceipt={onDeleteReceipt}
-                onShare={() => setSharingExpenseId(expense.id)}
-              />
-            )}
-          </div>
-        ))}
+      <div className="mb-6">
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onClear={() => setSearchQuery("")}
+          placeholder="Search by description, amount, or category..."
+        />
       </div>
 
-      {/* Share Expense Modal */}
+      {filteredExpenses.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-400 text-lg">No expenses found</p>
+          <p className="text-gray-500 text-sm mt-2">Try different search terms</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {categoriesLoading && (
+            <p className="text-gray-500">Loading categories...</p>
+          )}
+
+          {filteredExpenses.map((expense) => (
+            <div
+              key={expense.id}
+              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+            >
+              {editingId === expense.id ? (
+                <EditForm
+                  editData={editData}
+                  categories={categories}
+                  onChange={handleEditChange}
+                  onSave={submitEdit}
+                  onCancel={cancelEdit}
+                />
+              ) : (
+                <ExpenseItem
+                  expense={expense}
+                  categoryName={getCategoryName(expense)}
+                  onEdit={() => startEdit(expense)}
+                  onDelete={() => handleDelete(expense.id)}
+                  onUploadReceipt={onUploadReceipt}
+                  onDeleteReceipt={onDeleteReceipt}
+                  onShare={() => setSharingExpenseId(expense.id)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {sharingExpenseId && (
         <ShareExpenseModal
           expenseId={sharingExpenseId}
