@@ -1,10 +1,8 @@
 package com.example.expensetracker.controller.v1;
 
-import com.example.expensetracker.dto.CursorPageResponse;
-import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.*;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
-import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
 import com.example.expensetracker.service.ExpenseService;
@@ -17,6 +15,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -42,7 +43,7 @@ public class ExpenseController {
     @Operation(
             summary = "Create expense",
             description = "Creates a new expense record.",
-            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth") // <-- JWT requirement
+            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth")
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -81,8 +82,8 @@ public class ExpenseController {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseDto>> create(@RequestBody ExpenseDto expenseDto) {
-        var created = expenseService.create(expenseDto);
+    public ResponseEntity<ApiResponse<ExpenseResponse>> create(@Valid @RequestBody CreateExpenseRequest request) {
+        var created = expenseService.create(request);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense created successfully", created)
         );
@@ -91,7 +92,7 @@ public class ExpenseController {
     @Operation(
             summary = "Get expense by ID",
             description = "Retrieves a specific expense record by its ID.",
-            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth") // <-- JWT requirement
+            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth")
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -150,7 +151,7 @@ public class ExpenseController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ExpenseDto>> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ExpenseResponse>> getById(@PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id) {
         var expense = expenseService.getById(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense retrieved successfully", expense)
@@ -217,11 +218,11 @@ public class ExpenseController {
             )
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseDto>>> getAll(
+    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseResponse>>> getAll(
             @RequestParam(required = false) String cursor,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") @Min(value = 1, message = "Limit must be at least 1") @Positive(message = "Limit must be positive") int limit
     ) {
-        CursorPageResponse<ExpenseDto> result = expenseService.getAllPaginated(cursor, limit);
+        CursorPageResponse<ExpenseResponse> result = expenseService.getAllPaginated(cursor, limit);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expenses retrieved successfully", result)
         );
@@ -230,7 +231,7 @@ public class ExpenseController {
     @Operation(
             summary = "Update expense",
             description = "Updates an existing expense record by its ID.",
-            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth") // <-- JWT requirement
+            security = @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "BearerAuth")
     )
     @io.swagger.v3.oas.annotations.responses.ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -289,8 +290,10 @@ public class ExpenseController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ExpenseDto>> update(@PathVariable Long id, @RequestBody ExpenseDto expenseDto) {
-        var updated = expenseService.update(id, expenseDto);
+    public ResponseEntity<ApiResponse<ExpenseResponse>> update(
+            @PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id,
+            @Valid @RequestBody UpdateExpenseRequest request) {
+        var updated = expenseService.update(id, request);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense updated successfully", updated)
         );
@@ -352,7 +355,7 @@ public class ExpenseController {
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> delete(@PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id) {
         expenseService.delete(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense deleted successfully", null)
@@ -361,7 +364,7 @@ public class ExpenseController {
 
     @PostMapping("/{expenseId}/receipt")
     public ResponseEntity<ReceiptDto> uploadReceipt(
-            @PathVariable Long expenseId,
+            @PathVariable @Min(value = 1, message = "Expense ID must be greater than 0") Long expenseId,
             @RequestParam("file") MultipartFile file
     ) {
         ReceiptDto createdReceipt = expenseService.addReceipt(expenseId, file);
@@ -369,13 +372,13 @@ public class ExpenseController {
     }
 
     @DeleteMapping("/{expenseId}/receipt")
-    public ResponseEntity<Void> deleteReceipt(@PathVariable Long expenseId) {
+    public ResponseEntity<Void> deleteReceipt(@PathVariable @Min(value = 1, message = "Expense ID must be greater than 0") Long expenseId) {
         expenseService.deleteReceipt(expenseId);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{expenseId}/receipt")
-    public ResponseEntity<Resource> getReceiptFile(@PathVariable Long expenseId) {
+    public ResponseEntity<Resource> getReceiptFile(@PathVariable @Min(value = 1, message = "Expense ID must be greater than 0") Long expenseId) {
         ReceiptFile receiptFile = expenseService.loadReceiptFile(expenseId);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(receiptFile.contentType()))
@@ -392,7 +395,7 @@ public class ExpenseController {
         try (Writer writer = response.getWriter()) {
             exportService.exportUserExpensesToCsv(writer);
         } catch (Exception e) {
-            throw new AppException("Error exporting expenses to CSV", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new com.example.expensetracker.exception.ExportException("Error exporting expenses to CSV", e);
         }
     }
 
@@ -404,7 +407,7 @@ public class ExpenseController {
         try (OutputStream outputStream = response.getOutputStream()) {
             exportService.exportUserExpensesToPdf(outputStream);
         } catch (Exception e) {
-            throw new AppException("Error exporting expenses to PDF", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new com.example.expensetracker.exception.ExportException("Error exporting expenses to PDF", e);
         }
     }
 }

@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -110,7 +112,7 @@ public class UserController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserDto>> getUserById(@PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id) {
         UserDto user = userService.getUserById(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "User fetched successfully", user)
@@ -141,7 +143,7 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserDto>> updateCurrentUser(
             Authentication auth,
-            @RequestBody UserDto dto
+            @Valid @RequestBody UserDto dto
     ) {
         UserDto current = userService.getCurrentUser(auth);
         UserDto updated = userService.updateUser(current.getId(), dto);
@@ -169,7 +171,7 @@ public class UserController {
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "User deleted successfully", null)
