@@ -205,5 +205,23 @@ public class TeamServiceImpl extends BaseService implements TeamService {
                 .name(team.getName())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void deleteTeam(Long me, Long teamId) {
+        log.info("Deleting team {} by user {}", teamId, me);
+        
+        teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
+        
+        TeamEntity team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found"));
+        if (!team.getOwner().getId().equals(me)) {
+            throw new ValidationException("Only team owner can delete the team");
+        }
+        
+        teamRepository.delete(team);
+        
+        log.info("Team {} deleted by user {}", teamId, me);
+    }
 }
 

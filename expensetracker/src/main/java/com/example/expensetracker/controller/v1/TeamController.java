@@ -190,5 +190,29 @@ public class TeamController extends BaseService {
         TeamDto team = teamService.updateTeamName(me, teamId, dto);
         return ResponseEntity.ok(new ApiResponse<>(true, "Team name updated successfully", team));
     }
+
+    @Operation(summary = "Delete team", description = "Deletes a team. Only the team owner can delete the team. All team members will be removed automatically.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Team deleted successfully"
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "Insufficient permissions - only team owner can delete the team",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @DeleteMapping("/{teamId}")
+    public ResponseEntity<ApiResponse<Void>> deleteTeam(@PathVariable Long teamId) {
+        Long me = getAuthenticatedUser().getId();
+        teamService.deleteTeam(me, teamId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Team deleted successfully", null));
+    }
 }
 
