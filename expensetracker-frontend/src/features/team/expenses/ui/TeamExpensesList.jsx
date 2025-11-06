@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCategories } from "../../../../entities/category/model/hooks";
+import { SearchInput } from "../../../../shared/ui/SearchInput";
 
 export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpdate, onDelete }) => {
   const { categories, loading: categoriesLoading } = useCategories();
@@ -10,6 +11,16 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
     amount: "",
     date: "",
   });
+
+  const [search, setSearch] = useState("");
+
+ const searchLower = search.toLowerCase();
+
+ const filteredExpenses = expenses.filter((e) =>
+   e.description.toLowerCase().includes(searchLower) ||
+   e.categoryName.toLowerCase().includes(searchLower) ||
+   e.amount.toString().includes(searchLower)
+ );
 
   if (!expenses || expenses.length === 0) {
     return (
@@ -96,8 +107,16 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
 
   return (
     <div className="space-y-4">
+
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        onClear={() => setSearch("")}
+        placeholder="Search..."
+      />
+
       <div className="space-y-3">
-        {expenses.map((expense) => (
+        {filteredExpenses.map((expense) => (
           <div
             key={expense.id}
             className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"

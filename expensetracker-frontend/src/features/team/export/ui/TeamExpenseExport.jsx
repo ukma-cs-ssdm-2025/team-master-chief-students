@@ -1,17 +1,49 @@
 import React from 'react';
-import { useExpenseExport } from '../model/hooks';
+import { useTeamExpenseExport } from '../model/hooks';
 
-export const ExpenseExport = () => {
-  const { exportExpenses, exporting, error } = useExpenseExport();
+export const TeamExpenseExport = ({ teamId, userRole }) => {
+  const { exportExpenses, exporting, error } = useTeamExpenseExport();
+
+  const canExport = userRole === 'OWNER' || userRole === 'ADMIN';
 
   const handleExport = async (format) => {
-    await exportExpenses(format);
+    if (!canExport) {
+      alert('Only team OWNER and ADMIN can export reports');
+      return;
+    }
+    await exportExpenses(teamId, format);
   };
+
+  if (!canExport) {
+    return (
+      <div className="bg-gray-50 rounded-lg shadow p-6 border border-gray-200">
+        <div className="flex items-center gap-3 text-gray-500">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
+          </svg>
+          <div>
+            <h3 className="font-semibold">Export Restricted</h3>
+            <p className="text-sm">Only OWNER and ADMIN can export team reports</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-800">Export Expenses</h2>
+        <h2 className="text-xl font-bold text-gray-800">Export Team Expenses</h2>
         <svg
           className="w-6 h-6 text-blue-500"
           fill="none"
@@ -46,6 +78,24 @@ export const ExpenseExport = () => {
           <span>{error}</span>
         </div>
       )}
+
+      {/* Role Badge */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-sm text-gray-600">Your role:</span>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+          userRole === 'OWNER'
+            ? 'bg-purple-100 text-purple-700'
+            : 'bg-blue-100 text-blue-700'
+        }`}>
+          {userRole}
+        </span>
+        <span className="text-xs text-green-600 flex items-center gap-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          Can export
+        </span>
+      </div>
 
       {/* Export Buttons */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -120,11 +170,11 @@ export const ExpenseExport = () => {
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-500 mt-0.5">•</span>
-            <span>PDF format: Formatted report ready for printing or sharing</span>
+            <span>PDF format: Formatted team report ready for printing or sharing</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-blue-500 mt-0.5">•</span>
-            <span>Exports include: ID, Description, Category, Amount, Date</span>
+            <span>Exports include all team expenses with full details</span>
           </li>
         </ul>
       </div>

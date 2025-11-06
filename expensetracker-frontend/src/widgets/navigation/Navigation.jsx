@@ -16,10 +16,11 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+    <nav className="bg-white shadow-sm border border-gray-200 w-full rounded-xl">
+      <div className="w-full px-6">
+        <div className="flex items-center justify-between h-16 w-full">
+
+          {/* LEFT SIDE */}
           <div className="flex items-center gap-8">
             <Link
               to="/dashboard"
@@ -28,7 +29,7 @@ export const Navigation = () => {
               ExpenseTracker
             </Link>
 
-            {/* Navigation Links */}
+            {/* Desktop links */}
             <div className="hidden md:flex items-center gap-1">
               <Link
                 to="/dashboard"
@@ -53,7 +54,7 @@ export const Navigation = () => {
             </div>
           </div>
 
-          {/* Logout Button */}
+          {/* RIGHT SIDE */}
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -76,7 +77,7 @@ export const Navigation = () => {
         </div>
 
         {/* Mobile Navigation */}
-        <div className="md:hidden flex gap-1 pb-3">
+        <div className="md:hidden flex gap-1 pb-3 w-full">
           <Link
             to="/dashboard"
             className={`flex-1 text-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${

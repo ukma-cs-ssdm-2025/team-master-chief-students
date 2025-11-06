@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { exportApi } from './api';
+import { teamExportApi } from './api';
 
-export const useExpenseExport = () => {
+export const useTeamExpenseExport = () => {
   const [exporting, setExporting] = useState(null);
   const [error, setError] = useState(null);
 
@@ -16,7 +16,7 @@ export const useExpenseExport = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const exportExpenses = async (format) => {
+  const exportExpenses = async (teamId, format) => {
     setExporting(format);
     setError(null);
 
@@ -25,11 +25,11 @@ export const useExpenseExport = () => {
       let fileName;
 
       if (format === 'csv') {
-        blob = await exportApi.exportToCSV();
-        fileName = `expenses_export_${new Date().toISOString().split('T')[0]}.csv`;
+        blob = await teamExportApi.exportToCSV(teamId);
+        fileName = `team_${teamId}_expenses_${new Date().toISOString().split('T')[0]}.csv`;
       } else if (format === 'pdf') {
-        blob = await exportApi.exportToPDF();
-        fileName = `expenses_report_${new Date().toISOString().split('T')[0]}.pdf`;
+        blob = await teamExportApi.exportToPDF(teamId);
+        fileName = `team_${teamId}_report_${new Date().toISOString().split('T')[0]}.pdf`;
       }
 
       downloadFile(blob, fileName);

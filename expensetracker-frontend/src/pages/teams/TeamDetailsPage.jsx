@@ -1,3 +1,4 @@
+// src/pages/teams/TeamDetailsPage.jsx
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTeamDetails, useTeamExpenses } from "../../entities/team/model/hooks";
@@ -6,6 +7,7 @@ import { AddMemberForm } from "../../features/team/add-member/ui/AddMemberForm";
 import { MembersList } from "../../features/team/members/ui/MembersList";
 import { TeamExpensesList } from "../../features/team/expenses/ui/TeamExpensesList";
 import { CreateTeamExpenseForm } from "../../features/team/expenses/ui/CreateTeamExpenseForm";
+import { TeamExpenseExport } from "../../features/team/export/ui/TeamExpenseExport";
 import { Modal } from "../../shared/ui/Modal";
 
 export const TeamDetailsPage = () => {
@@ -178,6 +180,21 @@ export const TeamDetailsPage = () => {
                   Members
                 </span>
               </button>
+              <button
+                onClick={() => setActiveTab("export")}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "export"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export
+                </span>
+              </button>
             </nav>
           </div>
         </div>
@@ -254,6 +271,10 @@ export const TeamDetailsPage = () => {
                 canManage={canManage}
               />
             </div>
+          )}
+
+          {activeTab === "export" && (
+            <TeamExpenseExport teamId={parseInt(teamId)} userRole={userRole} />
           )}
         </div>
 

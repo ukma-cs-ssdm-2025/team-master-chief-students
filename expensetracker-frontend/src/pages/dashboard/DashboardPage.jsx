@@ -1,3 +1,4 @@
+// src/pages/dashboard/DashboardPage.jsx
 import React from "react";
 import { useUser } from "../../entities/user/model/hooks";
 import { useExpenses } from "../../entities/expense/model/hooks";
@@ -10,6 +11,7 @@ import { CategoryList } from "../../entities/category/ui/CategoryList";
 import { StatsCards } from "../../widgets/stats/StatsCards";
 import { ChartsSection } from "../../widgets/charts/ChartsSection";
 import { Navigation } from "../../widgets/navigation/Navigation";
+import { ExpenseExport } from "../../features/expense/export/ui/ExpenseExport";
 
 export const DashboardPage = () => {
   const { user, loading: userLoading, error: userError } = useUser();
@@ -22,20 +24,21 @@ export const DashboardPage = () => {
     uploadReceipt,
     deleteReceipt
   } = useExpenses();
+
   const { addCategory, updateCategory, deleteCategory } = useCategories();
 
   if (userLoading || expensesLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (userError) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+      <div className="w-full">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg m-4">
           {userError}
         </div>
       </div>
@@ -43,30 +46,64 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navigation />
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        <ProfileCard user={user} />
-        <StatsCards expenses={expenses} />
-        <ChartsSection expenses={expenses} />
+      <div className="flex-1 w-full min-h-0 mt-3">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full h-full overflow-hidden">
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-4">Categories</h2>
-          <CategoryForm onAdd={addCategory} />
-          <CategoryList onUpdate={updateCategory} onDelete={deleteCategory} />
-        </div>
+          {/* LEFT COLUMN */}
+          <div className="h-full overflow-y-auto space-y-4">
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-4">Personal Expenses</h2>
-          <ExpenseForm onAdd={addExpense} />
-          <ExpenseList
-            expenses={expenses}
-            onDelete={deleteExpense}
-            onUpdate={updateExpense}
-            onUploadReceipt={uploadReceipt}
-            onDeleteReceipt={deleteReceipt}
-          />
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">Categories</h2>
+              <CategoryForm onAdd={addCategory} />
+              <div className="mt-6">
+                <CategoryList
+                  onUpdate={updateCategory}
+                  onDelete={deleteCategory}
+                />
+              </div>
+            </div>
+
+
+            <ExpenseExport />
+          </div>
+
+          {/* CENTER COLUMN */}
+          <div className="lg:col-span-2 h-full overflow-y-auto space-y-4">
+
+            <StatsCards expenses={expenses} />
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <ChartsSection expenses={expenses} />
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">Personal Expenses</h2>
+
+              <ExpenseList
+                expenses={expenses}
+                onDelete={deleteExpense}
+                onUpdate={updateExpense}
+                onUploadReceipt={uploadReceipt}
+                onDeleteReceipt={deleteReceipt}
+              />
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN */}
+          <div className="h-full overflow-y-auto space-y-4">
+
+            <ProfileCard user={user} />
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <h2 className="text-xl font-bold mb-4 text-gray-900">Add Expense</h2>
+              <ExpenseForm onAdd={addExpense} />
+            </div>
+
+          </div>
+
         </div>
       </div>
     </div>
