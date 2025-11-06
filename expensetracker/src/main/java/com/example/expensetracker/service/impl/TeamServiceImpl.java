@@ -183,5 +183,45 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         
         log.info("User {} removed from team {}", memberUserId, teamId);
     }
+
+    @Override
+    @Transactional
+    public TeamDto updateTeamName(Long me, Long teamId, UpdateTeamNameDto dto) {
+        log.info("Updating team {} name to '{}' by user {}", teamId, dto.getName(), me);
+        
+        // Check that user is ADMIN or OWNER
+        teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
+        
+        TeamEntity team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found"));
+        
+        team.setName(dto.getName());
+        team = teamRepository.save(team);
+        
+        log.info("Team {} name updated to '{}'", teamId, team.getName());
+        
+        return TeamDto.builder()
+                .id(team.getId())
+                .name(team.getName())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteTeam(Long me, Long teamId) {
+        log.info("Deleting team {} by user {}", teamId, me);
+        
+        teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
+        
+        TeamEntity team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new NotFoundException("Team not found"));
+        if (!team.getOwner().getId().equals(me)) {
+            throw new ValidationException("Only team owner can delete the team");
+        }
+        
+        teamRepository.delete(team);
+        
+        log.info("Team {} deleted by user {}", teamId, me);
+    }
 }
 

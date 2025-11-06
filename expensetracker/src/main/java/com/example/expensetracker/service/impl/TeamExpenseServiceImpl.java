@@ -157,7 +157,20 @@ public class TeamExpenseServiceImpl extends BaseService implements TeamExpenseSe
             expense = expenseRepository.save(expense);
             log.info("Expense {} moved to team {}", expenseId, teamId);
         } else if (mode == ShareMode.COPY_REFERENCE) {
-            throw new ValidationException("COPY_REFERENCE mode is not yet implemented");
+            ExpenseEntity teamExpense = ExpenseEntity.builder()
+                    .user(expense.getUser())
+                    .category(expense.getCategory())
+                    .team(team)
+                    .amount(expense.getAmount())
+                    .description(expense.getDescription())
+                    .date(expense.getDate())
+                    .createdAt(Instant.now())
+                    .build();
+            
+            teamExpense = expenseRepository.save(teamExpense);
+            log.info("Expense {} copied to team {} as expense {}", expenseId, teamId, teamExpense.getId());
+            
+            return expenseMapper.toDto(teamExpense);
         }
         
         return expenseMapper.toDto(expense);

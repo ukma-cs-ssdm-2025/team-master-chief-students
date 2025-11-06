@@ -28,7 +28,9 @@ public class ExpenseSharingController extends BaseService {
 
     @Operation(
             summary = "Share expense to team",
-            description = "Shares a personal expense to a team. MOVE mode moves the expense to the team (it disappears from personal list).",
+            description = "Shares a personal expense to a team. " +
+                    "MOVE mode: moves the expense to the team (it disappears from personal list). " +
+                    "COPY_REFERENCE mode: creates a copy of the expense for the team, keeping the original in personal list.",
             security = @SecurityRequirement(name = "BearerAuth")
     )
     @ApiResponses(value = {

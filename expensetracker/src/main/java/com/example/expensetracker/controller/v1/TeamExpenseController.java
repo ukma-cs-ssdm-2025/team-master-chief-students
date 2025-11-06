@@ -3,9 +3,11 @@ package com.example.expensetracker.controller.v1;
 import com.example.expensetracker.dto.CreateExpenseDto;
 import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
 import com.example.expensetracker.service.BaseService;
+import com.example.expensetracker.service.ExportService;
 import com.example.expensetracker.service.TeamExpenseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,10 +16,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.OutputStream;
+import java.io.Writer;
 
 @RestController
 @RequestMapping("/api/v1/teams/{teamId}/expenses")
@@ -27,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 public class TeamExpenseController extends BaseService {
 
     private final TeamExpenseService teamExpenseService;
+    private final ExportService exportService;
 
     @Operation(
             summary = "List team expenses",
@@ -127,6 +135,81 @@ public class TeamExpenseController extends BaseService {
         Long me = getAuthenticatedUser().getId();
         ExpenseDto expense = teamExpenseService.createInTeam(me, teamId, dto);
         return ResponseEntity.ok(new ApiResponse<>(true, "Expense created successfully", expense));
+    }
+
+    @Operation(
+            summary = "Export team expenses to CSV",
+            description = "Exports all team expenses to CSV format. Requires OWNER or ADMIN role.",
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Team expenses exported successfully",
+                    content = @Content(mediaType = "text/csv")
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "Insufficient permissions - requires OWNER or ADMIN role",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @GetMapping("/export/csv")
+    public void exportToCsv(
+            @PathVariable Long teamId,
+            HttpServletResponse response) {
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"team-expenses.csv\"");
+
+        try (Writer writer = response.getWriter()) {
+            Long userId = getAuthenticatedUser().getId();
+            exportService.exportTeamExpensesToCsv(userId, teamId, writer);
+        } catch (Exception e) {
+            throw new AppException("Error exporting team expenses to CSV", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Operation(
+            summary = "Export team expenses to PDF",
+            description = "Exports all team expenses to PDF format. Requires OWNER or ADMIN role.",
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Team expenses exported successfully",
+                    content = @Content(mediaType = "application/pdf")
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "Insufficient permissions - requires OWNER or ADMIN role",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @GetMapping("/export/pdf")
+    public void exportToPdf(
+            @PathVariable Long teamId,
+            HttpServletResponse response) {
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=\"team-expenses.pdf\"");
+
+        try (OutputStream outputStream = response.getOutputStream()) {
+            Long userId = getAuthenticatedUser().getId();
+            exportService.exportTeamExpensesToPdf(userId, teamId, outputStream);
+        } catch (Exception e) {
+            throw new AppException("Error exporting team expenses to PDF", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
 

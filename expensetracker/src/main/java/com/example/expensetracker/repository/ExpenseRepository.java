@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long> {
     List<ExpenseEntity> findByUserId(Long userId);
-
+    
     Optional<ExpenseEntity> findByIdAndUserId(Long id, Long userId);
     boolean existsByIdAndUserId(Long id, Long userId);
     long countByUserId(Long userId);
@@ -99,4 +99,11 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long> {
             @Param("cursorId") Long cursorId,
             Pageable pageable
     );
+    
+    @Query("""
+        SELECT e FROM ExpenseEntity e
+        WHERE e.team.id = :teamId
+        ORDER BY e.createdAt DESC, e.id DESC
+        """)
+    List<ExpenseEntity> findAllByTeamId(@Param("teamId") Long teamId);
 }

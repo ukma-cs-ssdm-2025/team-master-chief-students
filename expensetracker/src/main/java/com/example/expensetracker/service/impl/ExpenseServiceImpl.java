@@ -172,33 +172,6 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     }
 
     @Override
-    public List<ExpenseDto> filter(String category, LocalDate from, LocalDate to, BigDecimal min, BigDecimal max) {
-        Long userId = getAuthenticatedUser().getId();
-
-        List<ExpenseEntity> userExpenses = expenseRepository.findByUserId(userId);
-
-        return userExpenses.stream()
-                .filter(e -> category == null || e.getCategory().getName().equalsIgnoreCase(category))
-                .filter(e -> from == null || !e.getDate().isBefore(from))
-                .filter(e -> to == null || !e.getDate().isAfter(to))
-                .filter(e -> min == null || e.getAmount().compareTo(min) >= 0)
-                .filter(e -> max == null || e.getAmount().compareTo(max) <= 0)
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public Object getStatistics() {
-        Long userId = getAuthenticatedUser().getId();
-        BigDecimal total = expenseRepository.sumAmountByUserId(userId);
-        long countAmount = expenseRepository.countByUserId(userId);
-        return new Object() {
-            public final BigDecimal totalAmount = total;
-            public final long count = countAmount;
-        };
-    }
-
-    @Override
     @Transactional
     public ReceiptDto addReceipt(Long expenseId, MultipartFile file) {
         ExpenseEntity expense = expenseRepository.findById(expenseId)
