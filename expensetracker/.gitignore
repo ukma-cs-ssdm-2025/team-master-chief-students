@@ -40,3 +40,5 @@ node_modules/
 !.env.example
 
 uploads/
+
+./node-modules
