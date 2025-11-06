@@ -5,6 +5,7 @@ import com.example.expensetracker.entity.TeamEntity;
 import com.example.expensetracker.entity.TeamMemberEntity;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.enums.TeamRole;
+import com.example.expensetracker.exception.ConflictException;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.repository.TeamMemberRepository;
@@ -36,6 +37,18 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public TeamDto createTeam(Long me, CreateTeamDto dto) {
+        if (dto == null) {
+            throw new ValidationException("Team data is required");
+        }
+        
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new ValidationException("Team name is required");
+        }
+        
+        if (dto.getName().length() > 100) {
+            throw new ValidationException("Team name must not exceed 100 characters");
+        }
+        
         logger.info("Creating team '{}' for user {}", dto.getName(), me);
         
         UserEntity owner = userRepository.findById(me)
@@ -81,6 +94,10 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional(readOnly = true)
     public TeamDetailsDto getTeam(Long me, Long teamId) {
+        if (teamId == null || teamId <= 0) {
+            throw new ValidationException("Invalid team ID");
+        }
+        
         logger.debug("Getting team {} for user {}", teamId, me);
         
         teamAcl.requireMembership(me, teamId);
@@ -107,12 +124,28 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public void addMember(Long me, Long teamId, AddMemberDto dto) {
+        if (teamId == null || teamId <= 0) {
+            throw new ValidationException("Invalid team ID");
+        }
+        
+        if (dto == null) {
+            throw new ValidationException("Member data is required");
+        }
+        
         logger.info("Adding user {} to team {} with role {} by user {}", dto.getUserId(), teamId, dto.getRole(), me);
         
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
         
         if (teamMemberRepository.existsByTeamIdAndUserId(teamId, dto.getUserId())) {
-            throw new ValidationException("User is already a member of the team");
+            throw new ConflictException("User is already a member of the team");
+        }
+        
+        if (dto.getUserId() == null) {
+            throw new ValidationException("User ID is required");
+        }
+        
+        if (dto.getRole() == null) {
+            throw new ValidationException("Role is required");
         }
 
         TeamEntity team = teamRepository.findById(teamId)
@@ -135,6 +168,18 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public void changeRole(Long me, Long teamId, Long memberUserId, TeamRole role) {
+        if (teamId == null || teamId <= 0) {
+            throw new ValidationException("Invalid team ID");
+        }
+        
+        if (memberUserId == null || memberUserId <= 0) {
+            throw new ValidationException("Invalid member user ID");
+        }
+        
+        if (role == null) {
+            throw new ValidationException("Role is required");
+        }
+        
         logger.info("Changing role of user {} in team {} to {} by user {}", memberUserId, teamId, role, me);
         
         TeamMemberEntity member = teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId)
@@ -162,6 +207,14 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public void removeMember(Long me, Long teamId, Long memberUserId) {
+        if (teamId == null || teamId <= 0) {
+            throw new ValidationException("Invalid team ID");
+        }
+        
+        if (memberUserId == null || memberUserId <= 0) {
+            throw new ValidationException("Invalid member user ID");
+        }
+        
         logger.info("Removing user {} from team {} by user {}", memberUserId, teamId, me);
         
         TeamMemberEntity member = teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId)
@@ -186,6 +239,22 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public TeamDto updateTeamName(Long me, Long teamId, UpdateTeamNameDto dto) {
+        if (teamId == null || teamId <= 0) {
+            throw new ValidationException("Invalid team ID");
+        }
+        
+        if (dto == null) {
+            throw new ValidationException("Team data is required");
+        }
+        
+        if (dto.getName() == null || dto.getName().isBlank()) {
+            throw new ValidationException("Team name is required");
+        }
+        
+        if (dto.getName().length() > 100) {
+            throw new ValidationException("Team name must not exceed 100 characters");
+        }
+        
         logger.info("Updating team {} name to '{}' by user {}", teamId, dto.getName(), me);
 
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
@@ -207,6 +276,10 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public void deleteTeam(Long me, Long teamId) {
+        if (teamId == null || teamId <= 0) {
+            throw new ValidationException("Invalid team ID");
+        }
+        
         logger.info("Deleting team {} by user {}", teamId, me);
         
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER);

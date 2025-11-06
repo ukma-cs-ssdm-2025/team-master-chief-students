@@ -8,6 +8,7 @@ import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.entity.CategoryEntity;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.CategoryNotFoundException;
+import com.example.expensetracker.exception.ConflictException;
 import com.example.expensetracker.exception.FileStorageException;
 import com.example.expensetracker.exception.NotFoundException;
 import com.example.expensetracker.exception.ValidationException;
@@ -55,8 +56,24 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     @Transactional
     public ExpenseResponse create(CreateExpenseRequest request) {
         UserEntity currentUser = getAuthenticatedUser();
+        
+        if (request.getCategoryId() == null) {
+            throw new ValidationException("Category ID is required");
+        }
+        
         CategoryEntity category = categoryRepository.findByIdAndUserId(request.getCategoryId(), currentUser.getId())
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + request.getCategoryId()));
+
+        if (request.getAmount() == null) {
+            throw new ValidationException("Amount is required");
+        }
+        if (request.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new ValidationException("Amount must be greater than 0");
+        }
+        
+        if (request.getDate() != null && request.getDate().isAfter(java.time.LocalDate.now())) {
+            throw new ValidationException("Expense date cannot be in the future");
+        }
 
         ExpenseEntity entity = mapper.toEntity(request);
         entity.setUser(currentUser);
@@ -68,6 +85,10 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     @Override
     @Transactional(readOnly = true)
     public ExpenseResponse getById(Long id) {
+        if (id == null || id <= 0) {
+            throw new ValidationException("Invalid expense ID");
+        }
+        
         Long userId = getAuthenticatedUser().getId();
 
         ExpenseEntity entity = expenseRepository.findByIdAndUserId(id, userId)
@@ -137,11 +158,30 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     @Transactional
     public ExpenseResponse update(Long id, UpdateExpenseRequest request) {
         UserEntity currentUser = getAuthenticatedUser();
+        
+        if (id == null || id <= 0) {
+            throw new ValidationException("Invalid expense ID");
+        }
+        
         ExpenseEntity entity = expenseRepository.findByIdAndUserId(id, currentUser.getId())
                 .orElseThrow(() -> new NotFoundException("Expense not found"));
 
+        if (request.getCategoryId() == null) {
+            throw new ValidationException("Category ID is required");
+        }
+        
         CategoryEntity category = categoryRepository.findByIdAndUserId(request.getCategoryId(), currentUser.getId())
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + request.getCategoryId()));
+
+        if (request.getAmount() != null) {
+            if (request.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                throw new ValidationException("Amount must be greater than 0");
+            }
+        }
+        
+        if (request.getDate() != null && request.getDate().isAfter(java.time.LocalDate.now())) {
+            throw new ValidationException("Expense date cannot be in the future");
+        }
 
         entity.setCategory(category);
         mapper.updateEntity(entity, request);
@@ -150,7 +190,12 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
+        if (id == null || id <= 0) {
+            throw new ValidationException("Invalid expense ID");
+        }
+        
         Long userId = getAuthenticatedUser().getId();
 
         if (!expenseRepository.existsByIdAndUserId(id, userId)) {
@@ -162,9 +207,21 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
     @Override
     @Transactional
     public ReceiptDto addReceipt(Long expenseId, MultipartFile file) {
+        if (expenseId == null || expenseId <= 0) {
+            throw new ValidationException("Invalid expense ID");
+        }
+        
+        if (file == null) {
+            throw new ValidationException("File is required");
+        }
+        
         Long userId = getAuthenticatedUser().getId();
         ExpenseEntity expense = expenseRepository.findByIdAndUserId(expenseId, userId)
                 .orElseThrow(() -> new NotFoundException("Expense not found with id: " + expenseId));
+            
+        if (expense.getReceipt() != null) {
+            throw new ConflictException("Expense already has a receipt. Delete existing receipt first.");
+        }
 
         String storedFileName = fileStorageService.store(file);
 
