@@ -19,9 +19,6 @@ public interface ExpenseService {
     ExpenseDto update(Long id, ExpenseDto dto);
     void delete(Long id);
 
-    List<ExpenseDto> filter(String category, LocalDate from, LocalDate to, BigDecimal min, BigDecimal max);
-    Object getStatistics();
-
     ReceiptDto addReceipt(Long expenseId, MultipartFile file);
     void deleteReceipt(Long expenseId);
     ReceiptDto getReceipt(Long expenseId);
