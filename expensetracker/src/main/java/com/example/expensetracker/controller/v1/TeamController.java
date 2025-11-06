@@ -158,5 +158,37 @@ public class TeamController extends BaseService {
         teamService.removeMember(me, teamId, userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Member removed successfully", null));
     }
+
+    @Operation(summary = "Update team name", description = "Updates the team name. Requires OWNER or ADMIN role.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Team name updated successfully",
+                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Validation error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "Insufficient permissions",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @PatchMapping("/{teamId}/name")
+    public ResponseEntity<ApiResponse<TeamDto>> updateTeamName(
+            @PathVariable Long teamId,
+            @Valid @RequestBody UpdateTeamNameDto dto) {
+        Long me = getAuthenticatedUser().getId();
+        TeamDto team = teamService.updateTeamName(me, teamId, dto);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Team name updated successfully", team));
+    }
 }
 
