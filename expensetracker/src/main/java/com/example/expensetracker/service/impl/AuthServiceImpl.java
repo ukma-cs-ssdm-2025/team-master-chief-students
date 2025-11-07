@@ -6,6 +6,7 @@ import com.example.expensetracker.dto.RegisterRequestDto;
 import com.example.expensetracker.entity.RefreshToken;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.UnauthorizedException;
+import com.example.expensetracker.exception.UserAlreadyExistsException;
 import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.repository.RefreshTokenRepository;
 import com.example.expensetracker.repository.UserRepository;
@@ -30,7 +31,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponseDto register(RegisterRequestDto request) {
         Optional<UserEntity> existing = userRepository.findByEmail(request.getEmail());
         if (existing.isPresent()) {
-            throw new ValidationException("User with this email already exists");
+            throw new UserAlreadyExistsException(request.getEmail());
         }
 
         UserEntity user = new UserEntity();
@@ -81,8 +82,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ValidationException("Refresh token is required");
+        }
+        
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new ValidationException("Refresh token not found"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid or expired refresh token"));
 
         refreshTokenRepository.delete(token);
     }
