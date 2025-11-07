@@ -3,6 +3,8 @@ package com.example.expensetracker.service.impl;
 import com.example.expensetracker.dto.*;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
+import com.example.expensetracker.dto.CreateExpenseDto;
+import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.entity.ExpenseEntity;
 import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.entity.CategoryEntity;
@@ -54,7 +56,7 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
 
     @Override
     @Transactional
-    public ExpenseResponse create(CreateExpenseRequest request) {
+    public ExpenseDto create(CreateExpenseDto request) {
         UserEntity currentUser = getAuthenticatedUser();
         
         if (request.getCategoryId() == null) {
@@ -75,16 +77,20 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
             throw new ValidationException("Expense date cannot be in the future");
         }
 
-        ExpenseEntity entity = mapper.toEntity(request);
+        ExpenseEntity entity = ExpenseEntity.builder()
+                .description(request.getDescription())
+                .amount(request.getAmount())
+                .date(request.getDate() != null ? request.getDate() : java.time.LocalDate.now())
+                .build();
         entity.setUser(currentUser);
         entity.setCategory(category);
 
-        return mapper.toResponse(expenseRepository.save(entity));
+        return mapper.toDto(expenseRepository.save(entity));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ExpenseResponse getById(Long id) {
+    public ExpenseDto getById(Long id) {
         if (id == null || id <= 0) {
             throw new ValidationException("Invalid expense ID");
         }
@@ -93,12 +99,21 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
 
         ExpenseEntity entity = expenseRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new NotFoundException("Expense not found"));
-        return mapper.toResponse(entity);
+        return mapper.toDto(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public CursorPageResponse<ExpenseResponse> getAllPaginated(String cursor, int limit) {
+    public List<ExpenseDto> getAll() {
+        Long userId = getAuthenticatedUser().getId();
+        return expenseRepository.findByUserId(userId).stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CursorPageResponse<ExpenseDto> getAllPaginated(String cursor, int limit) {
         Long userId = getAuthenticatedUser().getId();
         logger.debug("Listing expenses for user {} with cursor: {}", userId, cursor);
 
@@ -141,8 +156,8 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
             expenses = expenses.subList(0, pageSize);
         }
 
-        List<ExpenseResponse> expenseResponses = expenses.stream()
-                .map(mapper::toResponse)
+        List<ExpenseDto> expenseResponses = expenses.stream()
+                .map(mapper::toDto)
                 .collect(Collectors.toList());
 
         String nextCursor = null;
@@ -156,7 +171,7 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
 
     @Override
     @Transactional
-    public ExpenseResponse update(Long id, UpdateExpenseRequest request) {
+    public ExpenseDto update(Long id, ExpenseDto request) {
         UserEntity currentUser = getAuthenticatedUser();
         
         if (id == null || id <= 0) {
@@ -184,9 +199,17 @@ public class ExpenseServiceImpl extends BaseService implements ExpenseService {
         }
 
         entity.setCategory(category);
-        mapper.updateEntity(entity, request);
+        if (request.getDescription() != null) {
+            entity.setDescription(request.getDescription());
+        }
+        if (request.getAmount() != null) {
+            entity.setAmount(request.getAmount());
+        }
+        if (request.getDate() != null) {
+            entity.setDate(request.getDate());
+        }
 
-        return mapper.toResponse(expenseRepository.save(entity));
+        return mapper.toDto(expenseRepository.save(entity));
     }
 
     @Override

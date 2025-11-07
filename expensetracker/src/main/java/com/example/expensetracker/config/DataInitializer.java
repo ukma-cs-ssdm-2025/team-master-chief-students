@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Slf4j
 @Configuration
@@ -27,6 +29,8 @@ public class DataInitializer {
     private final TeamMemberRepository teamMemberRepository;
     private final ExpenseRepository expenseRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    
+    private final Random random = new Random(42);
 
     @Bean
     public CommandLineRunner initTestData() {
@@ -44,78 +48,78 @@ public class DataInitializer {
 
     @Transactional
     public void initializeData() {
-
+        // Create 5 users
         UserEntity alice = createUser("alice@example.com", "Alice", "password123");
         UserEntity bob = createUser("bob@example.com", "Bob", "password123");
         UserEntity charlie = createUser("charlie@example.com", "Charlie", "password123");
         UserEntity diana = createUser("diana@example.com", "Diana", "password123");
+        UserEntity eve = createUser("eve@example.com", "Eve", "password123");
 
-        CategoryEntity foodAlice = createCategory("Food", alice);
-        CategoryEntity transportAlice = createCategory("Transport", alice);
-        CategoryEntity foodBob = createCategory("Food", bob);
-        CategoryEntity transportBob = createCategory("Transport", bob);
-        CategoryEntity foodCharlie = createCategory("Food", charlie);
-        CategoryEntity transportCharlie = createCategory("Transport", charlie);
-        CategoryEntity foodDiana = createCategory("Food", diana);
-        CategoryEntity transportDiana = createCategory("Transport", diana);
+        // Create unique categories for each user (4-10 categories per user)
+        List<CategoryEntity> aliceCategories = createUserCategories(alice, List.of(
+            "Food & Dining", "Transportation", "Shopping", "Entertainment", 
+            "Bills & Utilities", "Healthcare", "Education", "Travel"
+        ));
+        List<CategoryEntity> bobCategories = createUserCategories(bob, List.of(
+            "Groceries", "Gas & Fuel", "Restaurants", "Movies", 
+            "Phone Bill", "Gym Membership", "Books"
+        ));
+        List<CategoryEntity> charlieCategories = createUserCategories(charlie, List.of(
+            "Fast Food", "Public Transport", "Clothing", "Games", 
+            "Internet", "Medical", "Courses", "Hotels", "Car Rental"
+        ));
+        List<CategoryEntity> dianaCategories = createUserCategories(diana, List.of(
+            "Supermarket", "Taxi", "Fashion", "Concerts", 
+            "Electricity", "Pharmacy", "Online Learning"
+        ));
+        List<CategoryEntity> eveCategories = createUserCategories(eve, List.of(
+            "Restaurant", "Bus", "Electronics", "Theater", 
+            "Water Bill", "Dentist", "Workshops", "Flights", "Rent a Car"
+        ));
 
+        // Create teams: Team 1 (alice, bob, charlie), Team 2 (diana, eve)
         TeamEntity team1 = createTeam("Development Team", alice);
-        TeamEntity team2 = createTeam("Marketing Team", bob);
+        TeamEntity team2 = createTeam("Marketing Team", diana);
 
+        // Add members to Team 1
         addTeamMember(team1, alice, TeamRole.OWNER);
         addTeamMember(team1, bob, TeamRole.ADMIN);
         addTeamMember(team1, charlie, TeamRole.MEMBER);
-        addTeamMember(team1, diana, TeamRole.VIEWER);
 
-        addTeamMember(team2, bob, TeamRole.OWNER);
-        addTeamMember(team2, alice, TeamRole.MEMBER);
-        addTeamMember(team2, charlie, TeamRole.MEMBER);
+        // Add members to Team 2
+        addTeamMember(team2, diana, TeamRole.OWNER);
+        addTeamMember(team2, eve, TeamRole.ADMIN);
 
-        createPersonalExpense(alice, foodAlice, "Lunch", new BigDecimal("15.50"), 
-                LocalDate.now().minusDays(5), Instant.now().minusSeconds(432000));
-        createPersonalExpense(alice, transportAlice, "Taxi", new BigDecimal("25.00"), 
-                LocalDate.now().minusDays(3), Instant.now().minusSeconds(259200));
-        createPersonalExpense(bob, foodBob, "Coffee", new BigDecimal("5.00"), 
-                LocalDate.now().minusDays(2), Instant.now().minusSeconds(172800));
-        createPersonalExpense(charlie, foodCharlie, "Dinner", new BigDecimal("30.00"), 
-                LocalDate.now().minusDays(1), Instant.now().minusSeconds(86400));
+        // Create 100+ personal expenses for each user
+        createPersonalExpenses(alice, aliceCategories, 120);
+        createPersonalExpenses(bob, bobCategories, 110);
+        createPersonalExpenses(charlie, charlieCategories, 105);
+        createPersonalExpenses(diana, dianaCategories, 115);
+        createPersonalExpenses(eve, eveCategories, 125);
 
+        // Create 300 team expenses for Team 1 (distributed among alice, bob, charlie)
+        createTeamExpenses(team1, List.of(alice, bob, charlie), 
+                          List.of(aliceCategories, bobCategories, charlieCategories), 300);
 
-        createTeamExpense(alice, team1, foodAlice, "Team lunch", new BigDecimal("150.50"), 
-                LocalDate.now().minusDays(10), Instant.now().minusSeconds(864000));
-        createTeamExpense(bob, team1, transportBob, "Team taxi", new BigDecimal("75.00"), 
-                LocalDate.now().minusDays(9), Instant.now().minusSeconds(777600));
-        createTeamExpense(charlie, team1, foodCharlie, "Team dinner", new BigDecimal("200.00"), 
-                LocalDate.now().minusDays(8), Instant.now().minusSeconds(691200));
-        createTeamExpense(alice, team1, foodAlice, "Team breakfast", new BigDecimal("80.00"), 
-                LocalDate.now().minusDays(7), Instant.now().minusSeconds(604800));
-        createTeamExpense(bob, team1, transportBob, "Team bus", new BigDecimal("40.00"), 
-                LocalDate.now().minusDays(6), Instant.now().minusSeconds(518400));
-        createTeamExpense(charlie, team1, foodCharlie, "Team snack", new BigDecimal("20.00"), 
-                LocalDate.now().minusDays(5), Instant.now().minusSeconds(432000));
-        createTeamExpense(alice, team1, foodAlice, "Team pizza", new BigDecimal("120.00"), 
-                LocalDate.now().minusDays(4), Instant.now().minusSeconds(345600));
-        createTeamExpense(bob, team1, transportBob, "Team train", new BigDecimal("60.00"), 
-                LocalDate.now().minusDays(3), Instant.now().minusSeconds(259200));
-        createTeamExpense(charlie, team1, foodCharlie, "Team drinks", new BigDecimal("90.00"), 
-                LocalDate.now().minusDays(2), Instant.now().minusSeconds(172800));
-        createTeamExpense(alice, team1, foodAlice, "Team meeting", new BigDecimal("100.00"), 
-                LocalDate.now().minusDays(1), Instant.now().minusSeconds(86400));
+        // Create 300 team expenses for Team 2 (distributed among diana, eve)
+        createTeamExpenses(team2, List.of(diana, eve), 
+                          List.of(dianaCategories, eveCategories), 300);
 
-
-        createTeamExpense(bob, team2, foodBob, "Marketing lunch", new BigDecimal("180.00"), 
-                LocalDate.now().minusDays(5), Instant.now().minusSeconds(432000));
-        createTeamExpense(alice, team2, foodAlice, "Marketing coffee", new BigDecimal("45.00"), 
-                LocalDate.now().minusDays(3), Instant.now().minusSeconds(259200));
-        createTeamExpense(charlie, team2, foodCharlie, "Marketing dinner", new BigDecimal("220.00"), 
-                LocalDate.now().minusDays(1), Instant.now().minusSeconds(86400));
-
+        long totalExpenses = expenseRepository.count();
+        // Count personal expenses (team is null) and team expenses separately
+        long personalExpenses = expenseRepository.findAll().stream()
+                .filter(e -> e.getTeam() == null)
+                .count();
+        long teamExpenses = totalExpenses - personalExpenses;
+        
         log.info("Created test data:");
-        log.info("- Users: {} (alice, bob, charlie, diana)", userRepository.count());
+        log.info("- Users: {} (alice, bob, charlie, diana, eve)", userRepository.count());
         log.info("- Teams: {} (Development Team, Marketing Team)", teamRepository.count());
         log.info("- Team members: {}", teamMemberRepository.count());
         log.info("- Categories: {}", categoryRepository.count());
-        log.info("- Expenses: {} (personal + team)", expenseRepository.count());
+        log.info("- Personal expenses: {}", personalExpenses);
+        log.info("- Team expenses: {}", teamExpenses);
+        log.info("- Total expenses: {}", totalExpenses);
     }
 
     private UserEntity createUser(String email, String username, String password) {
@@ -182,6 +186,65 @@ public class DataInitializer {
                 .createdAt(createdAt)
                 .build();
         return expenseRepository.save(expense);
+    }
+
+    private List<CategoryEntity> createUserCategories(UserEntity user, List<String> categoryNames) {
+        List<CategoryEntity> categories = new ArrayList<>();
+        for (String name : categoryNames) {
+            categories.add(createCategory(name, user));
+        }
+        return categories;
+    }
+
+    private void createPersonalExpenses(UserEntity user, List<CategoryEntity> categories, int count) {
+        LocalDate startDate = LocalDate.now().minusDays(365);
+        Instant startInstant = Instant.now().minusSeconds(31536000); // 365 days ago
+        
+        String[] descriptions = {
+            "Daily expense", "Weekly purchase", "Monthly bill", "Regular payment",
+            "Shopping trip", "Service fee", "Subscription", "One-time purchase",
+            "Regular expense", "Special purchase", "Utility payment", "Food order"
+        };
+        
+        for (int i = 0; i < count; i++) {
+            CategoryEntity category = categories.get(random.nextInt(categories.size()));
+            String description = descriptions[random.nextInt(descriptions.length)] + " #" + (i + 1);
+            BigDecimal amount = BigDecimal.valueOf(5.0 + random.nextDouble() * 495.0)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+            
+            LocalDate date = startDate.plusDays(random.nextInt(365));
+            Instant createdAt = startInstant.plusSeconds(random.nextInt(31536000));
+            
+            createPersonalExpense(user, category, description, amount, date, createdAt);
+        }
+    }
+
+    private void createTeamExpenses(TeamEntity team, List<UserEntity> users, 
+                                    List<List<CategoryEntity>> userCategories, int count) {
+        LocalDate startDate = LocalDate.now().minusDays(365);
+        Instant startInstant = Instant.now().minusSeconds(31536000);
+        
+        String[] descriptions = {
+            "Team lunch", "Team meeting", "Team event", "Team travel",
+            "Team equipment", "Team training", "Team conference", "Team dinner",
+            "Team activity", "Team project expense", "Team supplies", "Team service"
+        };
+        
+        for (int i = 0; i < count; i++) {
+            int userIndex = random.nextInt(users.size());
+            UserEntity user = users.get(userIndex);
+            List<CategoryEntity> categories = userCategories.get(userIndex);
+            CategoryEntity category = categories.get(random.nextInt(categories.size()));
+            
+            String description = descriptions[random.nextInt(descriptions.length)] + " #" + (i + 1);
+            BigDecimal amount = BigDecimal.valueOf(10.0 + random.nextDouble() * 990.0)
+                    .setScale(2, java.math.RoundingMode.HALF_UP);
+            
+            LocalDate date = startDate.plusDays(random.nextInt(365));
+            Instant createdAt = startInstant.plusSeconds(random.nextInt(31536000));
+            
+            createTeamExpense(user, team, category, description, amount, date, createdAt);
+        }
     }
 }
 

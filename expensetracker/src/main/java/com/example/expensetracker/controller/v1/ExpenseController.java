@@ -1,5 +1,6 @@
 package com.example.expensetracker.controller.v1;
 
+import com.example.expensetracker.dto.CreateExpenseDto;
 import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseDto;
 import com.example.expensetracker.dto.ReceiptDto;
@@ -17,6 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -81,7 +83,7 @@ public class ExpenseController {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseDto>> create(@RequestBody ExpenseDto expenseDto) {
+    public ResponseEntity<ApiResponse<ExpenseDto>> create(@Valid @RequestBody CreateExpenseDto expenseDto) {
         var created = expenseService.create(expenseDto);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense created successfully", created)
@@ -289,7 +291,7 @@ public class ExpenseController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ExpenseDto>> update(@PathVariable Long id, @RequestBody ExpenseDto expenseDto) {
+    public ResponseEntity<ApiResponse<ExpenseDto>> update(@PathVariable Long id, @Valid @RequestBody ExpenseDto expenseDto) {
         var updated = expenseService.update(id, expenseDto);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense updated successfully", updated)
