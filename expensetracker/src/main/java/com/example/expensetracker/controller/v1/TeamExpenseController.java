@@ -1,6 +1,9 @@
 package com.example.expensetracker.controller.v1;
 
-import com.example.expensetracker.dto.*;
+import com.example.expensetracker.dto.CreateExpenseDto;
+import com.example.expensetracker.dto.CursorPageResponse;
+import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
 import com.example.expensetracker.service.BaseService;
@@ -15,9 +18,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -96,14 +98,14 @@ public class TeamExpenseController extends BaseService {
             )
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseResponse>>> listTeamExpenses(
-            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
+    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseDto>>> listTeamExpenses(
+            @PathVariable Long teamId,
             @RequestParam(required = false) String cursor,
-            @RequestParam(defaultValue = "20") @Min(value = 1, message = "Limit must be at least 1") @Positive(message = "Limit must be positive") int limit
+            @RequestParam(defaultValue = "20") int limit
     ) {
         Long userId = getAuthenticatedUser().getId();
 
-        CursorPageResponse<ExpenseResponse> result = teamExpenseService.listTeamExpenses(userId, teamId, cursor, limit);
+        CursorPageResponse<ExpenseDto> result = teamExpenseService.listTeamExpenses(userId, teamId, cursor, limit);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Team expenses retrieved successfully", result)
@@ -127,11 +129,11 @@ public class TeamExpenseController extends BaseService {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseResponse>> createInTeam(
-            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
-            @Valid @RequestBody CreateExpenseRequest request) {
+    public ResponseEntity<ApiResponse<ExpenseDto>> createInTeam(
+            @PathVariable Long teamId,
+            @Valid @RequestBody CreateExpenseDto dto) {
         Long me = getAuthenticatedUser().getId();
-        ExpenseResponse expense = teamExpenseService.createInTeam(me, teamId, request);
+        ExpenseDto expense = teamExpenseService.createInTeam(me, teamId, dto);
         return ResponseEntity.ok(new ApiResponse<>(true, "Expense created successfully", expense));
     }
 
@@ -159,7 +161,7 @@ public class TeamExpenseController extends BaseService {
     })
     @GetMapping("/export/csv")
     public void exportToCsv(
-            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
+            @PathVariable Long teamId,
             HttpServletResponse response) {
         response.setContentType("text/csv; charset=UTF-8");
         response.setCharacterEncoding("UTF-8");
@@ -169,7 +171,7 @@ public class TeamExpenseController extends BaseService {
             Long userId = getAuthenticatedUser().getId();
             exportService.exportTeamExpensesToCsv(userId, teamId, writer);
         } catch (Exception e) {
-            throw new com.example.expensetracker.exception.ExportException("Error exporting team expenses to CSV", e);
+            throw new AppException("Error exporting team expenses to CSV", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -197,7 +199,7 @@ public class TeamExpenseController extends BaseService {
     })
     @GetMapping("/export/pdf")
     public void exportToPdf(
-            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
+            @PathVariable Long teamId,
             HttpServletResponse response) {
         response.setContentType("application/pdf");
         response.setHeader("Content-Disposition", "attachment; filename=\"team-expenses.pdf\"");
@@ -206,7 +208,7 @@ public class TeamExpenseController extends BaseService {
             Long userId = getAuthenticatedUser().getId();
             exportService.exportTeamExpensesToPdf(userId, teamId, outputStream);
         } catch (Exception e) {
-            throw new com.example.expensetracker.exception.ExportException("Error exporting team expenses to PDF", e);
+            throw new AppException("Error exporting team expenses to PDF", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

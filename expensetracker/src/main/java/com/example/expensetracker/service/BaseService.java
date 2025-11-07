@@ -1,7 +1,6 @@
 package com.example.expensetracker.service;
 
 import com.example.expensetracker.entity.UserEntity;
-import com.example.expensetracker.exception.InternalServerException;
 import com.example.expensetracker.exception.UnauthorizedException;
 import com.example.expensetracker.security.SecurityUser;
 import org.springframework.security.core.Authentication;
@@ -26,6 +25,6 @@ public class BaseService {
             return ((SecurityUser) principal).getUser();
         }
 
-        throw new InternalServerException("The principal is not an instance of SecurityUser. Unexpected authentication object.");
+        throw new IllegalStateException("The principal is not an instance of SecurityUser. Unexpected authentication object.");
     }
 }

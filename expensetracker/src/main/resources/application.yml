@@ -8,7 +8,7 @@ spring:
         password: ${POSTGRES_PASSWORD}
         driver-class-name: org.postgresql.Driver
     jpa:
-        open-in-view: false
+        open-in-view: true
         show-sql: false
         hibernate:
             ddl-auto: update
@@ -32,11 +32,15 @@ jwt:
 server:
     port: ${SERVER_PORT:8080}
 
-# Logging configuration is now handled by log4j2.xml
-# You can override log levels here if needed:
-# logging:
-#     level:
-#         root: INFO
+logging:
+    level:
+        root: INFO
+        org.flywaydb: WARN
+        com.zaxxer.hikari: WARN
+        org.hibernate: WARN
+
+    pattern:
+        console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level){cyan} %clr([%t]){faint} %clr(%-40.40logger{39}){yellow} : %msg%n"
 
 management:
     endpoints:
@@ -50,14 +54,3 @@ management:
 
 file:
     upload-dir: ${FILE_UPLOAD_DIR:uploads}
-
-app:
-    pagination:
-        default-limit: 20
-        max-limit: 100
-        min-limit: 1
-    retry:
-        max-attempts: 3
-        initial-delay-ms: 1000
-        max-delay-ms: 10000
-        multiplier: 2.0

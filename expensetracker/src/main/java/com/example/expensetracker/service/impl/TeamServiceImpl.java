@@ -14,19 +14,17 @@ import com.example.expensetracker.service.BaseService;
 import com.example.expensetracker.service.TeamService;
 import com.example.expensetracker.util.TeamAcl;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TeamServiceImpl extends BaseService implements TeamService {
-
-    private static final Logger logger = LogManager.getLogger(TeamServiceImpl.class);
 
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
@@ -36,7 +34,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public TeamDto createTeam(Long me, CreateTeamDto dto) {
-        logger.info("Creating team '{}' for user {}", dto.getName(), me);
+        log.info("Creating team '{}' for user {}", dto.getName(), me);
         
         UserEntity owner = userRepository.findById(me)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -56,7 +54,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         
         teamMemberRepository.save(ownerMember);
         
-        logger.info("Team '{}' created with id {}", team.getName(), team.getId());
+        log.info("Team '{}' created with id {}", team.getName(), team.getId());
         
         return TeamDto.builder()
                 .id(team.getId())
@@ -67,7 +65,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional(readOnly = true)
     public List<TeamDto> listMyTeams(Long me) {
-        logger.debug("Listing teams for user {}", me);
+        log.debug("Listing teams for user {}", me);
         
         return teamMemberRepository.findAllByUserId(me)
                 .stream()
@@ -81,7 +79,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional(readOnly = true)
     public TeamDetailsDto getTeam(Long me, Long teamId) {
-        logger.debug("Getting team {} for user {}", teamId, me);
+        log.debug("Getting team {} for user {}", teamId, me);
         
         teamAcl.requireMembership(me, teamId);
         
@@ -107,7 +105,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public void addMember(Long me, Long teamId, AddMemberDto dto) {
-        logger.info("Adding user {} to team {} with role {} by user {}", dto.getUserId(), teamId, dto.getRole(), me);
+        log.info("Adding user {} to team {} with role {} by user {}", dto.getUserId(), teamId, dto.getRole(), me);
         
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
         
@@ -129,23 +127,26 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         
         teamMemberRepository.save(member);
         
-        logger.info("User {} added to team {} with role {}", dto.getUserId(), teamId, dto.getRole());
+        log.info("User {} added to team {} with role {}", dto.getUserId(), teamId, dto.getRole());
     }
 
     @Override
     @Transactional
     public void changeRole(Long me, Long teamId, Long memberUserId, TeamRole role) {
-        logger.info("Changing role of user {} in team {} to {} by user {}", memberUserId, teamId, role, me);
+        log.info("Changing role of user {} in team {} to {} by user {}", memberUserId, teamId, role, me);
         
         TeamMemberEntity member = teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId)
                 .orElseThrow(() -> new NotFoundException("Team member not found"));
 
+        // If changing to OWNER role, only OWNER can do that
         if (role == TeamRole.OWNER && member.getRole() != TeamRole.OWNER) {
             teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
         } else {
+            // For other role changes, OWNER or ADMIN can do it
             teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
         }
 
+        // Prevent removing the last owner
         if (member.getRole() == TeamRole.OWNER && role != TeamRole.OWNER) {
             long ownerCount = teamMemberRepository.countByTeamIdAndRole(teamId, TeamRole.OWNER);
             if (ownerCount <= 1) {
@@ -156,13 +157,13 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         member.setRole(role);
         teamMemberRepository.save(member);
         
-        logger.info("Role of user {} in team {} changed to {}", memberUserId, teamId, role);
+        log.info("Role of user {} in team {} changed to {}", memberUserId, teamId, role);
     }
 
     @Override
     @Transactional
     public void removeMember(Long me, Long teamId, Long memberUserId) {
-        logger.info("Removing user {} from team {} by user {}", memberUserId, teamId, me);
+        log.info("Removing user {} from team {} by user {}", memberUserId, teamId, me);
         
         TeamMemberEntity member = teamMemberRepository.findByTeamIdAndUserId(teamId, memberUserId)
                 .orElseThrow(() -> new NotFoundException("Team member not found"));
@@ -180,14 +181,15 @@ public class TeamServiceImpl extends BaseService implements TeamService {
 
         teamMemberRepository.delete(member);
         
-        logger.info("User {} removed from team {}", memberUserId, teamId);
+        log.info("User {} removed from team {}", memberUserId, teamId);
     }
 
     @Override
     @Transactional
     public TeamDto updateTeamName(Long me, Long teamId, UpdateTeamNameDto dto) {
-        logger.info("Updating team {} name to '{}' by user {}", teamId, dto.getName(), me);
-
+        log.info("Updating team {} name to '{}' by user {}", teamId, dto.getName(), me);
+        
+        // Check that user is ADMIN or OWNER
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
         
         TeamEntity team = teamRepository.findById(teamId)
@@ -196,7 +198,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         team.setName(dto.getName());
         team = teamRepository.save(team);
         
-        logger.info("Team {} name updated to '{}'", teamId, team.getName());
+        log.info("Team {} name updated to '{}'", teamId, team.getName());
         
         return TeamDto.builder()
                 .id(team.getId())
@@ -207,7 +209,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
     @Override
     @Transactional
     public void deleteTeam(Long me, Long teamId) {
-        logger.info("Deleting team {} by user {}", teamId, me);
+        log.info("Deleting team {} by user {}", teamId, me);
         
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
         
@@ -219,7 +221,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         
         teamRepository.delete(team);
         
-        logger.info("Team {} deleted by user {}", teamId, me);
+        log.info("Team {} deleted by user {}", teamId, me);
     }
 }
 

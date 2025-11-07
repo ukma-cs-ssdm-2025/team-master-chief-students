@@ -35,8 +35,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String token = authHeader.substring(7);
             
+            // First validate token, then extract email
             if (!jwtService.isTokenValid(token, true)) {
-                throw new com.example.expensetracker.exception.JwtException("JWT token invalid or expired. Please login again or refresh your token.");
+                throw new RuntimeException("JWT token invalid or expired. Please login again or refresh your token.");
             }
             
             String email = jwtService.extractEmail(token, true);

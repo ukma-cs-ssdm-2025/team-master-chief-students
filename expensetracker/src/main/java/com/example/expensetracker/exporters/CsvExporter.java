@@ -1,7 +1,6 @@
 package com.example.expensetracker.exporters;
 
 import com.example.expensetracker.entity.ExpenseEntity;
-import com.example.expensetracker.exception.ExportException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,7 +19,7 @@ public class CsvExporter {
                 writer.write(formatExpenseAsCsvLine(expense));
             }
         } catch (IOException e) {
-            throw new ExportException("Error writing CSV data", e);
+            throw new RuntimeException("Error writing CSV data", e);
         }
     }
 

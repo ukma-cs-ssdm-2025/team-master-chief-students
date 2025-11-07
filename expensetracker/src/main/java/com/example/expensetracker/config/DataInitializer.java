@@ -4,8 +4,7 @@ import com.example.expensetracker.entity.*;
 import com.example.expensetracker.enums.TeamRole;
 import com.example.expensetracker.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class DataInitializer {
-
-    private static final Logger logger = LogManager.getLogger(DataInitializer.class);
 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
@@ -33,13 +32,13 @@ public class DataInitializer {
     public CommandLineRunner initTestData() {
         return args -> {
             if (userRepository.count() > 0) {
-                logger.info("Database already contains data, skipping initialization");
+                log.info("Database already contains data, skipping initialization");
                 return;
             }
 
-            logger.info("Initializing test data...");
+            log.info("Initializing test data...");
             initializeData();
-            logger.info("Test data initialization completed");
+            log.info("Test data initialization completed");
         };
     }
 
@@ -111,12 +110,12 @@ public class DataInitializer {
         createTeamExpense(charlie, team2, foodCharlie, "Marketing dinner", new BigDecimal("220.00"), 
                 LocalDate.now().minusDays(1), Instant.now().minusSeconds(86400));
 
-        logger.info("Created test data:");
-        logger.info("- Users: {} (alice, bob, charlie, diana)", userRepository.count());
-        logger.info("- Teams: {} (Development Team, Marketing Team)", teamRepository.count());
-        logger.info("- Team members: {}", teamMemberRepository.count());
-        logger.info("- Categories: {}", categoryRepository.count());
-        logger.info("- Expenses: {} (personal + team)", expenseRepository.count());
+        log.info("Created test data:");
+        log.info("- Users: {} (alice, bob, charlie, diana)", userRepository.count());
+        log.info("- Teams: {} (Development Team, Marketing Team)", teamRepository.count());
+        log.info("- Team members: {}", teamMemberRepository.count());
+        log.info("- Categories: {}", categoryRepository.count());
+        log.info("- Expenses: {} (personal + team)", expenseRepository.count());
     }
 
     private UserEntity createUser(String email, String username, String password) {
