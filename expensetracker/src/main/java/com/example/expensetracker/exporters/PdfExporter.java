@@ -1,7 +1,6 @@
 package com.example.expensetracker.exporters;
 
 import com.example.expensetracker.entity.ExpenseEntity;
-import com.example.expensetracker.exception.ExportException;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
@@ -62,7 +61,7 @@ public class PdfExporter {
             document.add(table);
 
         } catch (IOException e) {
-            throw new ExportException("Error writing PDF data", e);
+            throw new RuntimeException("Error writing PDF data", e);
         }
     }
 

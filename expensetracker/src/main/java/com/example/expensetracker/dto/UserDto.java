@@ -1,7 +1,5 @@
 package com.example.expensetracker.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Data
@@ -10,12 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 public class UserDto {
     private Long id;
-    
-    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
-    
-    @Email(message = "Email must be a valid email address")
     private String email;
-    
     private boolean active;
 }

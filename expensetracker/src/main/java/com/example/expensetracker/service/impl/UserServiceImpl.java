@@ -15,6 +15,7 @@ import com.example.expensetracker.exception.UnauthorizedException;
 import com.example.expensetracker.mapper.UserMapper;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -68,6 +69,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         userRepository.delete(user);
+    }
+
+    @Override
+    public Optional<UserEntity> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     @Override
