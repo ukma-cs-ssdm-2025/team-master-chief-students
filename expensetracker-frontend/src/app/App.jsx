@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthPage } from "../pages/auth/AuthPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
@@ -7,9 +7,19 @@ import { TeamDetailsPage } from "../pages/teams/TeamDetailsPage";
 import { ProtectedRoute } from "../shared/ui/ProtectedRoute";
 import { NotFoundPage } from "../pages/not-found/NotFoundPage";
 import { Layout } from "../widgets/layout/Layout";
+import { getActiveAccount } from "../shared/lib/multiAccountStorage";
 
 export const App = () => {
-  const hasToken = !!localStorage.getItem("accessToken");
+  useEffect(() => {
+    const activeAccount = getActiveAccount();
+    if (activeAccount) {
+      localStorage.setItem("accessToken", activeAccount.accessToken);
+      localStorage.setItem("refreshToken", activeAccount.refreshToken);
+    }
+  }, []);
+
+  const activeAccount = getActiveAccount();
+  const hasToken = activeAccount?.accessToken || !!localStorage.getItem("accessToken");
 
   return (
     <Routes>

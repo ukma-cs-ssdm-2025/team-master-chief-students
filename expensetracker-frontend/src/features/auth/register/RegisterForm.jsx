@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useAuth } from "../model/hooks";
+import { useMultiAccount } from "../model/useMultiAccount";
 import { useNavigate } from "react-router-dom";
 
 export const RegisterForm = () => {
   const { register, loading, error } = useAuth();
+  const { addAccountAfterAuth } = useMultiAccount();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState(""); // 🧍‍♂️ додали username
@@ -22,8 +24,12 @@ export const RegisterForm = () => {
     const result = await register({ username, email, password }); // 🧠 передаємо username
 
     if (result?.data?.accessToken) {
-      localStorage.setItem("accessToken", result.data.accessToken);
-      localStorage.setItem("refreshToken", result.data.refreshToken);
+      // Добавляем аккаунт в систему множественных аккаунтов
+      await addAccountAfterAuth(
+        email,
+        result.data.accessToken,
+        result.data.refreshToken
+      );
 
       setSuccess(true);
       setTimeout(() => {

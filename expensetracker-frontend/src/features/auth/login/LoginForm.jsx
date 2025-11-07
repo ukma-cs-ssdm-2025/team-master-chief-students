@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useAuth } from "../model/hooks";
+import { useMultiAccount } from "../model/useMultiAccount";
 import { useNavigate } from "react-router-dom";
 
 export const LoginForm = ({ onSwitchToRegister }) => {
   const { login, loading, error } = useAuth();
+  const { addAccountAfterAuth } = useMultiAccount();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
@@ -18,8 +20,12 @@ export const LoginForm = ({ onSwitchToRegister }) => {
 
     if (result?.success) {
       if (result.data?.accessToken) {
-        localStorage.setItem("accessToken", result.data.accessToken);
-        localStorage.setItem("refreshToken", result.data.refreshToken);
+        // Добавляем аккаунт в систему множественных аккаунтов
+        await addAccountAfterAuth(
+          email,
+          result.data.accessToken,
+          result.data.refreshToken
+        );
       }
 
       setSuccess(true);

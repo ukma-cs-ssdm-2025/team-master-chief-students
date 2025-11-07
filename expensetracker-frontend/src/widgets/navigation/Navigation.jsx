@@ -1,14 +1,18 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AccountSwitcher } from "../../features/auth/ui/AccountSwitcher";
+import { useMultiAccount } from "../../features/auth/model/useMultiAccount";
 
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { logoutAll, activeAccount } = useMultiAccount();
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    navigate("/login");
+    if (window.confirm("Log out from all accounts?")) {
+      logoutAll();
+      navigate("/login");
+    }
   };
 
   const isActive = (path) => {
@@ -55,25 +59,28 @@ export const Navigation = () => {
           </div>
 
           {/* RIGHT SIDE */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-3">
+            {activeAccount && <AccountSwitcher />}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            <span className="hidden md:inline">Logout</span>
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              <span className="hidden md:inline">Logout</span>
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}

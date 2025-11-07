@@ -1,9 +1,10 @@
-// src/shared/ui/ProtectedRoute.jsx
 import React from "react";
 import { Navigate } from "react-router-dom";
+import { getActiveAccount } from "../lib/multiAccountStorage";
 
 export const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("accessToken");
+  const activeAccount = getActiveAccount();
+  const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
 
   if (!token) {
     return <Navigate to="/login" replace />;
