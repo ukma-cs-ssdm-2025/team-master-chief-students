@@ -60,14 +60,12 @@
         </RollingFile>
 
         <!-- Async Appender for better performance -->
-        <Async name="AsyncRollingFile" bufferSize="512">
+        <Async name="AsyncRollingFile" bufferSize="512" blocking="false">
             <AppenderRef ref="RollingFile"/>
-            <BlockingPolicy/>
         </Async>
 
-        <Async name="AsyncErrorFile" bufferSize="256">
+        <Async name="AsyncErrorFile" bufferSize="256" blocking="false">
             <AppenderRef ref="ErrorFile"/>
-            <BlockingPolicy/>
         </Async>
     </Appenders>
 
