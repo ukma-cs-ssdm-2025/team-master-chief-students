@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -141,7 +142,7 @@ public class UserController {
     @PutMapping("/me")
     public ResponseEntity<ApiResponse<UserDto>> updateCurrentUser(
             Authentication auth,
-            @RequestBody UserDto dto
+            @Valid @RequestBody UserDto dto
     ) {
         UserDto current = userService.getCurrentUser(auth);
         UserDto updated = userService.updateUser(current.getId(), dto);
