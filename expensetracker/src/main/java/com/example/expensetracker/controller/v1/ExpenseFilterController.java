@@ -15,8 +15,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/expenses/filter-service")
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ import java.time.LocalDate;
 @SecurityRequirement(name = "BearerAuth")
 public class ExpenseFilterController extends BaseService {
 
+    private static final Logger logger = LogManager.getLogger(ExpenseFilterController.class);
     private final ExpenseFilterService filterService;
 
     @Operation(
@@ -120,7 +123,7 @@ public class ExpenseFilterController extends BaseService {
             @RequestParam(required = false) Long teamId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String cursor,
-            @RequestParam(required = false, defaultValue = "20") Integer limit
+            @RequestParam(required = false, defaultValue = "20") @Min(value = 1, message = "Limit must be at least 1") @Positive(message = "Limit must be positive") Integer limit
     ) {
         Long userId = getAuthenticatedUser().getId();
 

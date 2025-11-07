@@ -18,7 +18,6 @@ target/
 *.iws
 *.iml
 *.ipr
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -42,3 +41,6 @@ node_modules/
 uploads/
 
 ./node-modules
+# Log files
+logs/
+*.log

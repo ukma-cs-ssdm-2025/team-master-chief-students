@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,7 +67,7 @@ public class CategoryController {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<CategoryDto>> create(@RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<ApiResponse<CategoryDto>> create(@Valid @RequestBody CategoryDto categoryDto) {
         CategoryDto createdCategory = categoryService.create(categoryDto);
         return new ResponseEntity<>(
                 new ApiResponse<>(true, "Category created successfully", createdCategory),
@@ -162,7 +164,9 @@ public class CategoryController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryDto>> update(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<ApiResponse<CategoryDto>> update(
+            @PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id,
+            @Valid @RequestBody CategoryDto categoryDto) {
         CategoryDto updatedCategory = categoryService.update(id, categoryDto);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Category updated successfully", updatedCategory)
@@ -209,7 +213,7 @@ public class CategoryController {
             )
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<String>> delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<String>> delete(@PathVariable @Min(value = 1, message = "ID must be greater than 0") Long id) {
         categoryService.delete(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Category deleted successfully", null)

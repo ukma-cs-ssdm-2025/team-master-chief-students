@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -74,7 +75,7 @@ public class TeamController extends BaseService {
             )
     })
     @GetMapping("/{teamId}")
-    public ResponseEntity<ApiResponse<TeamDetailsDto>> getTeam(@PathVariable Long teamId) {
+    public ResponseEntity<ApiResponse<TeamDetailsDto>> getTeam(@PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId) {
         Long me = getAuthenticatedUser().getId();
         TeamDetailsDto team = teamService.getTeam(me, teamId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Team details retrieved successfully", team));
@@ -99,7 +100,7 @@ public class TeamController extends BaseService {
     })
     @PostMapping("/{teamId}/members")
     public ResponseEntity<ApiResponse<Void>> addMember(
-            @PathVariable Long teamId,
+            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
             @Valid @RequestBody AddMemberDto dto) {
         Long me = getAuthenticatedUser().getId();
         teamService.addMember(me, teamId, dto);
@@ -125,8 +126,8 @@ public class TeamController extends BaseService {
     })
     @PatchMapping("/{teamId}/members/{userId}")
     public ResponseEntity<ApiResponse<Void>> changeRole(
-            @PathVariable Long teamId,
-            @PathVariable Long userId,
+            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
+            @PathVariable @Min(value = 1, message = "User ID must be greater than 0") Long userId,
             @RequestParam TeamRole role) {
         Long me = getAuthenticatedUser().getId();
         teamService.changeRole(me, teamId, userId, role);
@@ -152,8 +153,8 @@ public class TeamController extends BaseService {
     })
     @DeleteMapping("/{teamId}/members/{userId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
-            @PathVariable Long teamId,
-            @PathVariable Long userId) {
+            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
+            @PathVariable @Min(value = 1, message = "User ID must be greater than 0") Long userId) {
         Long me = getAuthenticatedUser().getId();
         teamService.removeMember(me, teamId, userId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Member removed successfully", null));
@@ -184,7 +185,7 @@ public class TeamController extends BaseService {
     })
     @PatchMapping("/{teamId}/name")
     public ResponseEntity<ApiResponse<TeamDto>> updateTeamName(
-            @PathVariable Long teamId,
+            @PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId,
             @Valid @RequestBody UpdateTeamNameDto dto) {
         Long me = getAuthenticatedUser().getId();
         TeamDto team = teamService.updateTeamName(me, teamId, dto);
@@ -209,7 +210,7 @@ public class TeamController extends BaseService {
             )
     })
     @DeleteMapping("/{teamId}")
-    public ResponseEntity<ApiResponse<Void>> deleteTeam(@PathVariable Long teamId) {
+    public ResponseEntity<ApiResponse<Void>> deleteTeam(@PathVariable @Min(value = 1, message = "Team ID must be greater than 0") Long teamId) {
         Long me = getAuthenticatedUser().getId();
         teamService.deleteTeam(me, teamId);
         return ResponseEntity.ok(new ApiResponse<>(true, "Team deleted successfully", null));

@@ -1,6 +1,6 @@
 package com.example.expensetracker.controller.v1;
 
-import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.*;
 import com.example.expensetracker.dto.ShareToTeamDto;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -55,11 +56,11 @@ public class ExpenseSharingController extends BaseService {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseDto>> shareToTeam(
-            @PathVariable Long expenseId,
+    public ResponseEntity<ApiResponse<ExpenseResponse>> shareToTeam(
+            @PathVariable @Min(value = 1, message = "Expense ID must be greater than 0") Long expenseId,
             @Valid @RequestBody ShareToTeamDto dto) {
         Long me = getAuthenticatedUser().getId();
-        ExpenseDto expense = teamExpenseService.sharePersonalToTeam(me, expenseId, dto.getTeamId(), dto.getMode());
+        ExpenseResponse expense = teamExpenseService.sharePersonalToTeam(me, expenseId, dto.getTeamId(), dto.getMode());
         return ResponseEntity.ok(new ApiResponse<>(true, "Expense shared successfully", expense));
     }
 }

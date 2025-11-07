@@ -13,8 +13,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,7 +50,7 @@ public class AuthController {
             )
     })
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@RequestBody RegisterRequestDto request) {
+    public ResponseEntity<ApiResponse<AuthResponseDto>> register(@Valid @RequestBody RegisterRequestDto request) {
         AuthResponseDto response = authService.register(request);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "User registered successfully", response)
@@ -100,7 +100,7 @@ public class AuthController {
             )
     })
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@RequestBody AuthRequestDto request) {
+    public ResponseEntity<ApiResponse<AuthResponseDto>> login(@Valid @RequestBody AuthRequestDto request) {
         AuthResponseDto response = authService.login(request);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Login successful", response)
@@ -167,7 +167,7 @@ public class AuthController {
             )
     })
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@RequestBody LogoutRequestDto request) {
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody LogoutRequestDto request) {
         authService.logout(request.getRefreshToken());
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Logout successful", null)

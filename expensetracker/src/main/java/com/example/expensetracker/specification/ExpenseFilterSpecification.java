@@ -4,15 +4,17 @@ import com.example.expensetracker.entity.ExpenseEntity;
 import com.example.expensetracker.entity.ReceiptEntity;
 import com.example.expensetracker.dto.ExpenseFilterRequest;
 import jakarta.persistence.criteria.*;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 public class ExpenseFilterSpecification {
+
+    private static final Logger logger = LogManager.getLogger(ExpenseFilterSpecification.class);
 
     public static Specification<ExpenseEntity> buildSpecification(
             Long userId, 
@@ -96,7 +98,7 @@ public class ExpenseFilterSpecification {
 
             Predicate finalPredicate = cb.and(predicates.toArray(new Predicate[0]));
             
-            log.debug("Expense filter applied: userId={}, filters={}, cursor={}", 
+            logger.debug("Expense filter applied: userId={}, filters={}, cursor={}", 
                     userId, 
                     request,
                     cursorCreatedAt != null ? "present" : "none");
