@@ -1,8 +1,8 @@
 package com.example.expensetracker.controller.v1;
 
-import com.example.expensetracker.dto.CreateExpenseDto;
+import com.example.expensetracker.dto.CreateExpenseRequest;
 import com.example.expensetracker.dto.CursorPageResponse;
-import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.ExpenseResponse;
 import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -98,14 +98,14 @@ public class TeamExpenseController extends BaseService {
             )
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseDto>>> listTeamExpenses(
+    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseResponse>>> listTeamExpenses(
             @PathVariable Long teamId,
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") int limit
     ) {
         Long userId = getAuthenticatedUser().getId();
 
-        CursorPageResponse<ExpenseDto> result = teamExpenseService.listTeamExpenses(userId, teamId, cursor, limit);
+        CursorPageResponse<ExpenseResponse> result = teamExpenseService.listTeamExpenses(userId, teamId, cursor, limit);
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Team expenses retrieved successfully", result)
@@ -129,11 +129,11 @@ public class TeamExpenseController extends BaseService {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseDto>> createInTeam(
+    public ResponseEntity<ApiResponse<ExpenseResponse>> createInTeam(
             @PathVariable Long teamId,
-            @Valid @RequestBody CreateExpenseDto dto) {
+            @Valid @RequestBody CreateExpenseRequest request) {
         Long me = getAuthenticatedUser().getId();
-        ExpenseDto expense = teamExpenseService.createInTeam(me, teamId, dto);
+        ExpenseResponse expense = teamExpenseService.createInTeam(me, teamId, request);
         return ResponseEntity.ok(new ApiResponse<>(true, "Expense created successfully", expense));
     }
 

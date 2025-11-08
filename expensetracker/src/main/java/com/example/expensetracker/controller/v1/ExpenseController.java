@@ -1,8 +1,9 @@
 package com.example.expensetracker.controller.v1;
 
-import com.example.expensetracker.dto.CreateExpenseDto;
+import com.example.expensetracker.dto.CreateExpenseRequest;
 import com.example.expensetracker.dto.CursorPageResponse;
-import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.ExpenseResponse;
+import com.example.expensetracker.dto.UpdateExpenseRequest;
 import com.example.expensetracker.dto.ReceiptDto;
 import com.example.expensetracker.dto.ReceiptFile;
 import com.example.expensetracker.exception.AppException;
@@ -83,8 +84,8 @@ public class ExpenseController {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseDto>> create(@Valid @RequestBody CreateExpenseDto expenseDto) {
-        var created = expenseService.create(expenseDto);
+    public ResponseEntity<ApiResponse<ExpenseResponse>> create(@Valid @RequestBody CreateExpenseRequest request) {
+        var created = expenseService.create(request);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense created successfully", created)
         );
@@ -152,7 +153,7 @@ public class ExpenseController {
             )
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ExpenseDto>> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ExpenseResponse>> getById(@PathVariable Long id) {
         var expense = expenseService.getById(id);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense retrieved successfully", expense)
@@ -219,11 +220,11 @@ public class ExpenseController {
             )
     })
     @GetMapping
-    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseDto>>> getAll(
+    public ResponseEntity<ApiResponse<CursorPageResponse<ExpenseResponse>>> getAll(
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") int limit
     ) {
-        CursorPageResponse<ExpenseDto> result = expenseService.getAllPaginated(cursor, limit);
+        CursorPageResponse<ExpenseResponse> result = expenseService.getAllPaginated(cursor, limit);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expenses retrieved successfully", result)
         );
@@ -291,8 +292,8 @@ public class ExpenseController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ExpenseDto>> update(@PathVariable Long id, @Valid @RequestBody ExpenseDto expenseDto) {
-        var updated = expenseService.update(id, expenseDto);
+    public ResponseEntity<ApiResponse<ExpenseResponse>> update(@PathVariable Long id, @Valid @RequestBody UpdateExpenseRequest request) {
+        var updated = expenseService.update(id, request);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Expense updated successfully", updated)
         );
