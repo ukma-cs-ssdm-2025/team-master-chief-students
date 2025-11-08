@@ -1,6 +1,6 @@
 package com.example.expensetracker.controller.v1;
 
-import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.ExpenseResponse;
 import com.example.expensetracker.dto.ShareToTeamDto;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -55,11 +55,11 @@ public class ExpenseSharingController extends BaseService {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<ExpenseDto>> shareToTeam(
+    public ResponseEntity<ApiResponse<ExpenseResponse>> shareToTeam(
             @PathVariable Long expenseId,
             @Valid @RequestBody ShareToTeamDto dto) {
         Long me = getAuthenticatedUser().getId();
-        ExpenseDto expense = teamExpenseService.sharePersonalToTeam(me, expenseId, dto.getTeamId(), dto.getMode());
+        ExpenseResponse expense = teamExpenseService.sharePersonalToTeam(me, expenseId, dto.getTeamId(), dto.getMode());
         return ResponseEntity.ok(new ApiResponse<>(true, "Expense shared successfully", expense));
     }
 }
