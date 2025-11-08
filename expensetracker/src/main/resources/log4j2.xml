@@ -6,11 +6,15 @@
         <Property name="LOG_FILE_NAME">expense-tracker</Property>
         <Property name="ARCHIVE_PATH">${LOG_PATH}/archive</Property>
         
+        <!-- Pattern for masking sensitive data -->
+        <!-- Masks: Bearer tokens, passwords, refresh tokens -->
+        <Property name="MASKED_MSG">%replace{%replace{%replace{%msg}{Bearer [A-Za-z0-9_-]+}{Bearer ***}}{"password"\s*:\s*"[^"]*"}{"password":"***"}}{"refreshToken"\s*:\s*"[^"]*"}{"refreshToken":"***"}</Property>
+        
         <!-- Console pattern -->
-        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue} [%t] %style{%logger{36}}{cyan} - %msg%n%throwable</Property>
+        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue} [%t] %style{%logger{36}}{cyan} - ${MASKED_MSG}%n%throwable</Property>
         
         <!-- File pattern -->
-        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %logger{36} - %msg%n%throwable</Property>
+        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %logger{36} - ${MASKED_MSG}%n%throwable</Property>
     </Properties>
 
     <Appenders>

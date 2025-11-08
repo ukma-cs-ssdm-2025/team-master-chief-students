@@ -338,7 +338,7 @@ class CategoryControllerWebMvcTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value(containsString("must not exceed 100 characters")));
+                .andExpect(jsonPath("$.message").value(containsString("Category name must be between 1 and 100 characters")));
     }
 }
 

@@ -108,6 +108,10 @@ public class JwtService {
         return getClaims(token, isAccessToken).getPayload().getSubject();
     }
 
+    public long getRefreshExpiration() {
+        return refreshExpiration;
+    }
+
     private Jws<Claims> getClaims(String token, boolean isAccessToken) {
         SecretKey key = isAccessToken ? accessSecretKey : refreshSecretKey;
 

@@ -9,14 +9,21 @@ import java.time.LocalDate;
 @Component
 public class ExpenseMapper {
     public ExpenseResponse toResponse(ExpenseEntity e) {
-        return ExpenseResponse.builder()
+        ExpenseResponse.ExpenseResponseBuilder builder = ExpenseResponse.builder()
                 .id(e.getId())
-                .categoryId(e.getCategory().getId())
-                .categoryName(e.getCategory().getName())
                 .description(e.getDescription())
                 .amount(e.getAmount())
-                .date(e.getDate())
-                .build();
+                .date(e.getDate());
+        
+        if (e.getCategory() != null) {
+            builder.categoryId(e.getCategory().getId())
+                   .categoryName(e.getCategory().getName());
+        } else {
+            builder.categoryId(null)
+                   .categoryName(null);
+        }
+        
+        return builder.build();
     }
 
     public ExpenseEntity toEntity(CreateExpenseRequest request) {
@@ -42,13 +49,20 @@ public class ExpenseMapper {
     // Legacy methods for backward compatibility
     @Deprecated
     public ExpenseDto toDto(ExpenseEntity e) {
-        return ExpenseDto.builder()
+        ExpenseDto.ExpenseDtoBuilder builder = ExpenseDto.builder()
                 .id(e.getId())
-                .categoryId(e.getCategory().getId())
-                .categoryName(e.getCategory().getName())
                 .description(e.getDescription())
                 .amount(e.getAmount())
-                .date(e.getDate())
-                .build();
+                .date(e.getDate());
+        
+        if (e.getCategory() != null) {
+            builder.categoryId(e.getCategory().getId())
+                   .categoryName(e.getCategory().getName());
+        } else {
+            builder.categoryId(null)
+                   .categoryName(null);
+        }
+        
+        return builder.build();
     }
 }

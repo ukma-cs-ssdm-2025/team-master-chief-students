@@ -4,8 +4,8 @@ spring:
 
     datasource:
         url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/expense_tracker}
-        username: ${POSTGRES_USER}
-        password: ${POSTGRES_PASSWORD}
+        username: ${SPRING_DATASOURCE_USERNAME:${POSTGRES_USER:postgres}}
+        password: ${SPRING_DATASOURCE_PASSWORD:${POSTGRES_PASSWORD:postgres}}
         driver-class-name: org.postgresql.Driver
     jpa:
         open-in-view: true
@@ -26,8 +26,8 @@ spring:
 jwt:
     secret: ${JWT_ACCESS_SECRET:}
     refresh-secret: ${JWT_REFRESH_SECRET:}
-    expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
-    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:2592000000}
+    expiration-ms: ${JWT_ACCESS_EXPIRATION:${JWT_ACCESS_EXPIRATION_MS:900000}}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION:${JWT_REFRESH_EXPIRATION_MS:2592000000}}
 
 server:
     port: ${SERVER_PORT:8080}

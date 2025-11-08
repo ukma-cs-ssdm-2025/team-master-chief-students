@@ -24,22 +24,17 @@ public abstract class AbstractPostgresContainerTest {
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
-        boolean dockerAvailable = DockerClientFactory.instance().isDockerAvailable();
-        
-        if (dockerAvailable) {
-            registry.add("spring.datasource.url", postgres::getJdbcUrl);
-            registry.add("spring.datasource.username", postgres::getUsername);
-            registry.add("spring.datasource.password", postgres::getPassword);
-            registry.add("spring.flyway.enabled", () -> "true");
-            registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
-        } else {
-            registry.add("spring.datasource.url", () -> "jdbc:h2:mem:testdb");
-            registry.add("spring.datasource.username", () -> "sa");
-            registry.add("spring.datasource.password", () -> "");
-            registry.add("spring.datasource.driver-class-name", () -> "org.h2.Driver");
-            registry.add("spring.flyway.enabled", () -> "false");
-            registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        // Ensure container is started before accessing its properties
+        // Testcontainers should start it automatically, but we ensure it's running
+        if (!postgres.isRunning()) {
+            postgres.start();
         }
+        
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.flyway.enabled", () -> "true");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "validate");
         
         registry.add("jwt.secret", () -> "test-access-secret-key-for-integration-tests-min-32-chars");
         registry.add("jwt.refresh-secret", () -> "test-refresh-secret-key-for-integration-tests-min-32-chars");
