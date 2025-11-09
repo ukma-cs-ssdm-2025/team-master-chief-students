@@ -17,12 +17,14 @@ export const DashboardPage = () => {
   const { user, loading: userLoading, error: userError } = useUser();
   const {
     expenses,
+    hasNext,
     loading: expensesLoading,
     addExpense,
     deleteExpense,
     updateExpense,
     uploadReceipt,
-    deleteReceipt
+    deleteReceipt,
+    loadMore,
   } = useExpenses();
 
   const { addCategory, updateCategory, deleteCategory } = useCategories();
@@ -66,7 +68,6 @@ export const DashboardPage = () => {
               </div>
             </div>
 
-
             <ExpenseExport />
           </div>
 
@@ -84,10 +85,13 @@ export const DashboardPage = () => {
 
               <ExpenseList
                 expenses={expenses}
+                hasNext={hasNext}
+                loading={expensesLoading}
                 onDelete={deleteExpense}
                 onUpdate={updateExpense}
                 onUploadReceipt={uploadReceipt}
                 onDeleteReceipt={deleteReceipt}
+                onLoadMore={loadMore}
               />
             </div>
           </div>

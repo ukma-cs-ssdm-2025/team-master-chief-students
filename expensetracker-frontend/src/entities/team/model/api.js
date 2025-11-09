@@ -17,6 +17,10 @@ export const teamApi = {
     return data.data;
   },
 
+  delete: async (teamId) => {
+    await axiosInstance.delete(`/api/v1/teams/${teamId}`);
+  },
+
   addMember: async (teamId, memberData) => {
     const { data } = await axiosInstance.post(
       `/api/v1/teams/${teamId}/members`,

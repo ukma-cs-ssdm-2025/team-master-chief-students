@@ -8,6 +8,7 @@ import { MembersList } from "../../features/team/members/ui/MembersList";
 import { TeamExpensesList } from "../../features/team/expenses/ui/TeamExpensesList";
 import { CreateTeamExpenseForm } from "../../features/team/expenses/ui/CreateTeamExpenseForm";
 import { TeamExpenseExport } from "../../features/team/export/ui/TeamExpenseExport";
+import { DeleteTeamModal } from "../../features/team/delete/ui/DeleteTeamModal";
 import { Modal } from "../../shared/ui/Modal";
 
 export const TeamDetailsPage = () => {
@@ -22,6 +23,7 @@ export const TeamDetailsPage = () => {
     addMember,
     changeMemberRole,
     removeMember,
+    deleteTeam,
   } = useTeamDetails(parseInt(teamId));
 
   const {
@@ -37,6 +39,7 @@ export const TeamDetailsPage = () => {
 
   const [activeTab, setActiveTab] = useState("expenses");
   const [showAddMember, setShowAddMember] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const currentUserId = user?.data?.id;
 
@@ -51,6 +54,16 @@ export const TeamDetailsPage = () => {
   }, [team?.members, currentUserId]);
 
   const canManage = userRole === "OWNER" || userRole === "ADMIN";
+  const canDelete = userRole === "OWNER";
+
+  const handleDeleteTeam = async () => {
+    try {
+      await deleteTeam();
+      navigate("/teams");
+    } catch (err) {
+      alert(err.message || "Failed to delete team");
+    }
+  };
 
   if (teamLoading) {
     return (
@@ -143,6 +156,24 @@ export const TeamDetailsPage = () => {
                 )}
               </p>
             </div>
+
+            {/* Delete Team Button */}
+            {canDelete && (
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Delete Team
+              </button>
+            )}
           </div>
         </div>
 
@@ -300,6 +331,14 @@ export const TeamDetailsPage = () => {
             </div>
           </Modal>
         )}
+
+        {/* Delete Team Modal */}
+        <DeleteTeamModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteTeam}
+          teamName={team.name}
+        />
       </div>
     </div>
   );

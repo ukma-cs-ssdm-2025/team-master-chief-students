@@ -34,12 +34,23 @@ export const useTeams = () => {
     }
   };
 
+  const deleteTeam = async (teamId) => {
+    try {
+      await teamApi.delete(teamId);
+      setTeams((prev) => prev.filter((team) => team.id !== teamId));
+    } catch (err) {
+      setError(err.message || "Failed to delete team");
+      throw err;
+    }
+  };
+
   return {
     teams,
     loading,
     error,
     fetchTeams,
     createTeam,
+    deleteTeam,
   };
 };
 
@@ -63,6 +74,16 @@ export const useTeamDetails = (teamId) => {
       setError(err.message || "Failed to fetch team details");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteTeam = async () => {
+    try {
+      await teamApi.delete(teamId);
+      return { success: true };
+    } catch (err) {
+      setError(err.message || "Failed to delete team");
+      throw err;
     }
   };
 
@@ -101,6 +122,7 @@ export const useTeamDetails = (teamId) => {
     loading,
     error,
     fetchTeamDetails,
+    deleteTeam,
     addMember,
     changeMemberRole,
     removeMember,
