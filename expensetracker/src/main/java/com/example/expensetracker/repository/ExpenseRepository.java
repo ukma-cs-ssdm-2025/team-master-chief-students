@@ -103,6 +103,8 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long>, J
     List<ExpenseEntity> findAllByTeamId(@Param("teamId") Long teamId);
 
     boolean existsByIdAndUserId(Long id, Long userId);
+    
+    boolean existsByCategoryId(Long categoryId);
 
     @Deprecated
     long countByUserId(Long userId);

@@ -2,8 +2,11 @@ package com.example.expensetracker.controller.v1;
 
 import com.example.expensetracker.dto.CreateExpenseRequest;
 import com.example.expensetracker.dto.CursorPageResponse;
+import com.example.expensetracker.dto.ExpenseFilterRequest;
 import com.example.expensetracker.dto.ExpenseResponse;
+import com.example.expensetracker.dto.TimeSeriesStatsDto;
 import com.example.expensetracker.exception.AppException;
+import com.example.expensetracker.service.ExpenseFilterService;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
 import com.example.expensetracker.service.BaseService;
@@ -19,12 +22,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/v1/teams/{teamId}/expenses")
@@ -35,6 +41,7 @@ public class TeamExpenseController extends BaseService {
 
     private final TeamExpenseService teamExpenseService;
     private final ExportService exportService;
+    private final ExpenseFilterService expenseFilterService;
 
     @Operation(
             summary = "List team expenses",
@@ -210,6 +217,111 @@ public class TeamExpenseController extends BaseService {
         } catch (Exception e) {
             throw new AppException("Error exporting team expenses to PDF", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @Operation(
+            summary = "Get team time series statistics",
+            description = """
+                    Retrieves time series statistics for team expenses grouped by day.
+                    
+                    **Date filtering logic**:
+                    - No dates: Returns statistics for all team expenses
+                    - Only fromDate: Returns statistics for that specific day
+                    - Both fromDate and toDate: Returns statistics for the date range (inclusive)
+                    
+                    **Response format**:
+                    - totalAmount: Total sum of all expenses in the period
+                    - count: Total number of expenses
+                    - byPeriod: Array of daily statistics (date, totalAmount, count), sorted by date ascending
+                    
+                    Requires team membership.
+                    """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Team time series statistics retrieved successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "success": true,
+                                      "message": "Team time series statistics retrieved successfully",
+                                      "data": {
+                                        "totalAmount": 150.0,
+                                        "count": 5,
+                                        "byPeriod": [
+                                          {
+                                            "date": "2025-10-10",
+                                            "totalAmount": 50.0,
+                                            "count": 2
+                                          },
+                                          {
+                                            "date": "2025-10-11",
+                                            "totalAmount": 100.0,
+                                            "count": 3
+                                          }
+                                        ]
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid filter parameters",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "User is not a member of the team",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @GetMapping("/time-series-stats")
+    public ResponseEntity<ApiResponse<TimeSeriesStatsDto>> getTeamTimeSeriesStatistics(
+            @PathVariable Long teamId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false, defaultValue = "exact") String categoryMatch,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) Boolean hasReceipt,
+            @RequestParam(required = false) String search
+    ) {
+        Long userId = getAuthenticatedUser().getId();
+
+        LocalDate effectiveToDate = toDate;
+        if (fromDate != null && toDate == null) {
+            effectiveToDate = fromDate;
+        }
+
+        ExpenseFilterRequest request = ExpenseFilterRequest.builder()
+                .categoryId(categoryId)
+                .category(category)
+                .categoryMatch(categoryMatch)
+                .fromDate(fromDate)
+                .toDate(effectiveToDate)
+                .minAmount(minAmount)
+                .maxAmount(maxAmount)
+                .hasReceipt(hasReceipt)
+                .search(search)
+                .build();
+
+        TimeSeriesStatsDto stats = expenseFilterService.getTeamTimeSeriesStatistics(userId, teamId, request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Team time series statistics retrieved successfully", stats)
+        );
     }
 }
 

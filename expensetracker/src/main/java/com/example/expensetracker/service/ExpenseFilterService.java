@@ -7,10 +7,13 @@ import com.example.expensetracker.dto.ExpenseFilterItemDto;
 import com.example.expensetracker.dto.ExpenseFilterRequest;
 import com.example.expensetracker.dto.ExpenseStatsDto;
 import com.example.expensetracker.dto.DailyStat;
+import com.example.expensetracker.dto.PeriodStat;
+import com.example.expensetracker.dto.TimeSeriesStatsDto;
 import com.example.expensetracker.mapper.ExpenseFilterMapper;
 import com.example.expensetracker.repository.ExpenseFilterRepository;
 import com.example.expensetracker.specification.ExpenseFilterSpecification;
 import com.example.expensetracker.util.CursorUtil;
+import com.example.expensetracker.util.TeamAcl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +39,8 @@ public class ExpenseFilterService extends BaseService {
 
     private final ExpenseFilterRepository expenseRepository;
     private final ExpenseFilterMapper mapper;
-        private final EntityManager entityManager;
+    private final EntityManager entityManager;
+    private final TeamAcl teamAcl;
 
     @Transactional(readOnly = true)
     public CursorPageResponse<ExpenseFilterItemDto> getFilteredExpenses(
@@ -184,6 +188,90 @@ public class ExpenseFilterService extends BaseService {
             !request.getCategoryMatch().equalsIgnoreCase("like")) {
             throw new ValidationException("categoryMatch must be 'exact' or 'like'");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public TimeSeriesStatsDto getTimeSeriesStatistics(Long userId, ExpenseFilterRequest request) {
+        ExpenseFilterRequest statsRequest = ExpenseFilterRequest.builder()
+                .categoryId(request.getCategoryId())
+                .category(request.getCategory())
+                .categoryMatch(request.getCategoryMatch())
+                .fromDate(request.getFromDate())
+                .toDate(request.getToDate())
+                .minAmount(request.getMinAmount())
+                .maxAmount(request.getMaxAmount())
+                .hasReceipt(request.getHasReceipt())
+                .teamId(request.getTeamId())
+                .search(request.getSearch())
+                .build();
+
+        Specification<ExpenseEntity> spec = ExpenseFilterSpecification.buildStatsSpecification(
+                userId, statsRequest
+        );
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Object[]> totalQuery = cb.createQuery(Object[].class);
+        Root<ExpenseEntity> root = totalQuery.from(ExpenseEntity.class);
+        totalQuery.select(cb.array(
+                cb.coalesce(cb.sum(root.get("amount")), BigDecimal.ZERO),
+                cb.count(root)
+        ));
+        Predicate wherePredicate = spec.toPredicate(root, totalQuery, cb);
+        if (wherePredicate != null) {
+            totalQuery.where(wherePredicate);
+        }
+        Object[] totalResult = entityManager.createQuery(totalQuery).getSingleResult();
+        BigDecimal totalAmount = (BigDecimal) totalResult[0];
+        Long count = ((Number) totalResult[1]).longValue();
+
+        CriteriaQuery<Object[]> dateQuery = cb.createQuery(Object[].class);
+        Root<ExpenseEntity> dateRoot = dateQuery.from(ExpenseEntity.class);
+        dateQuery.select(cb.array(
+                dateRoot.get("date"),
+                cb.sum(dateRoot.get("amount")),
+                cb.count(dateRoot)
+        ));
+        Predicate datePredicate = spec.toPredicate(dateRoot, dateQuery, cb);
+        if (datePredicate != null) {
+            dateQuery.where(datePredicate);
+        }
+        dateQuery.groupBy(dateRoot.get("date"));
+        dateQuery.orderBy(cb.asc(dateRoot.get("date")));
+        List<Object[]> dateResults = entityManager.createQuery(dateQuery).getResultList();
+        List<PeriodStat> byPeriod = dateResults.stream()
+                .map(row -> PeriodStat.builder()
+                        .date((LocalDate) row[0])
+                        .totalAmount((BigDecimal) row[1])
+                        .count(((Number) row[2]).longValue())
+                        .build())
+                .collect(Collectors.toList());
+
+        return TimeSeriesStatsDto.builder()
+                .totalAmount(totalAmount)
+                .count(count)
+                .byPeriod(byPeriod)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public TimeSeriesStatsDto getTeamTimeSeriesStatistics(Long userId, Long teamId, ExpenseFilterRequest request) {
+        teamAcl.requireMembership(userId, teamId);
+
+        ExpenseFilterRequest statsRequest = ExpenseFilterRequest.builder()
+                .categoryId(request.getCategoryId())
+                .category(request.getCategory())
+                .categoryMatch(request.getCategoryMatch())
+                .fromDate(request.getFromDate())
+                .toDate(request.getToDate())
+                .minAmount(request.getMinAmount())
+                .maxAmount(request.getMaxAmount())
+                .hasReceipt(request.getHasReceipt())
+                .teamId(teamId)
+                .search(request.getSearch())
+                .build();
+
+        return getTimeSeriesStatistics(userId, statsRequest);
     }
 }
 

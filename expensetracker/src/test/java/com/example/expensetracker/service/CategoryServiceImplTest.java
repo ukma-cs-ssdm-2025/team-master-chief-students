@@ -5,9 +5,11 @@ import com.example.expensetracker.entity.CategoryEntity;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.CategoryAlreadyExistsException;
 import com.example.expensetracker.exception.CategoryNotFoundException;
+import com.example.expensetracker.exception.ConflictException;
 import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.mapper.CategoryMapper;
 import com.example.expensetracker.repository.CategoryRepository;
+import com.example.expensetracker.repository.ExpenseRepository;
 import com.example.expensetracker.service.impl.CategoryServiceImpl;
 import com.example.expensetracker.testutil.factory.TestDataFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +40,9 @@ class CategoryServiceImplTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private ExpenseRepository expenseRepository;
 
     @Mock
     private CategoryMapper categoryMapper;
@@ -306,6 +311,7 @@ class CategoryServiceImplTest {
         // Given
         CategoryEntity category = TestDataFactory.createCategory(1L, testUser);
         when(categoryRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(category));
+        when(expenseRepository.existsByCategoryId(1L)).thenReturn(false);
         doNothing().when(categoryRepository).delete(category);
 
         // When
@@ -313,6 +319,7 @@ class CategoryServiceImplTest {
 
         // Then
         verify(categoryRepository).findByIdAndUserId(1L, 1L);
+        verify(expenseRepository).existsByCategoryId(1L);
         verify(categoryRepository).delete(category);
     }
 
@@ -345,6 +352,24 @@ class CategoryServiceImplTest {
         assertThatThrownBy(() -> categoryService.delete(999L))
                 .isInstanceOf(CategoryNotFoundException.class)
                 .hasMessageContaining("Category not found with id: 999");
+    }
+
+    @Test
+    @DisplayName("Should throw ConflictException when deleting category with associated expenses")
+    void shouldThrowConflictExceptionWhenDeletingCategoryWithAssociatedExpenses() {
+        // Given
+        CategoryEntity category = TestDataFactory.createCategory(1L, testUser);
+        when(categoryRepository.findByIdAndUserId(1L, 1L)).thenReturn(Optional.of(category));
+        when(expenseRepository.existsByCategoryId(1L)).thenReturn(true);
+
+        // When/Then
+        assertThatThrownBy(() -> categoryService.delete(1L))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("Cannot delete category: it is associated with existing expenses");
+
+        verify(categoryRepository).findByIdAndUserId(1L, 1L);
+        verify(expenseRepository).existsByCategoryId(1L);
+        verify(categoryRepository, never()).delete(any());
     }
 }
 
