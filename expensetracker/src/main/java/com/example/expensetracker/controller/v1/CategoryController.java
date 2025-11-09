@@ -207,6 +207,21 @@ public class CategoryController {
                                 }
                                 """)
                     )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "Category cannot be deleted: it is associated with existing expenses",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                  "status": 409,
+                                  "message": "Cannot delete category: it is associated with existing expenses",
+                                  "timestamp": "2025-10-22T14:07:00"
+                                }
+                                """)
+                    )
             )
     })
     @DeleteMapping("/{id}")

@@ -1,53 +1,36 @@
-// src/entities/team/model/hooks.js
-import { useState, useEffect } from "react";
-import { teamApi } from "./api";
+import {
+  useTeamsQuery,
+  useTeamQuery,
+  useTeamExpensesQuery,
+  useTeamTimeSeriesStatsQuery,
+  useTeamCategoryStatsQuery,
+  useCreateTeam,
+  useDeleteTeam,
+  useAddTeamMember,
+  useChangeMemberRole,
+  useRemoveTeamMember,
+  useCreateTeamExpense,
+  useUpdateTeamExpense,
+  useDeleteTeamExpense,
+} from "./useTeamQueries";
 
 export const useTeams = () => {
-  const [teams, setTeams] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchTeams();
-  }, []);
-
-  const fetchTeams = async () => {
-    setLoading(true);
-    try {
-      const data = await teamApi.getAll();
-      setTeams(Array.isArray(data) ? data : []);
-    } catch (err) {
-      setError(err.message || "Failed to fetch teams");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: teams = [], isLoading: loading, error, refetch: fetchTeams } = useTeamsQuery();
+  const createMutation = useCreateTeam();
+  const deleteMutation = useDeleteTeam();
 
   const createTeam = async (teamData) => {
-    try {
-      const data = await teamApi.create(teamData);
-      setTeams((prev) => [...prev, data]);
-      return data;
-    } catch (err) {
-      setError(err.message || "Failed to create team");
-      throw err;
-    }
+    return await createMutation.mutateAsync(teamData);
   };
 
   const deleteTeam = async (teamId) => {
-    try {
-      await teamApi.delete(teamId);
-      setTeams((prev) => prev.filter((team) => team.id !== teamId));
-    } catch (err) {
-      setError(err.message || "Failed to delete team");
-      throw err;
-    }
+    await deleteMutation.mutateAsync(teamId);
   };
 
   return {
     teams,
     loading,
-    error,
+    error: error?.message || null,
     fetchTeams,
     createTeam,
     deleteTeam,
@@ -55,72 +38,33 @@ export const useTeams = () => {
 };
 
 export const useTeamDetails = (teamId) => {
-  const [team, setTeam] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (teamId) {
-      fetchTeamDetails();
-    }
-  }, [teamId]);
-
-  const fetchTeamDetails = async () => {
-    setLoading(true);
-    try {
-      const data = await teamApi.getById(teamId);
-      setTeam(data);
-    } catch (err) {
-      setError(err.message || "Failed to fetch team details");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: team, isLoading: loading, error, refetch: fetchTeamDetails } = useTeamQuery(teamId);
+  const deleteMutation = useDeleteTeam();
+  const addMemberMutation = useAddTeamMember(teamId);
+  const changeRoleMutation = useChangeMemberRole(teamId);
+  const removeMemberMutation = useRemoveTeamMember(teamId);
 
   const deleteTeam = async () => {
-    try {
-      await teamApi.delete(teamId);
-      return { success: true };
-    } catch (err) {
-      setError(err.message || "Failed to delete team");
-      throw err;
-    }
+    await deleteMutation.mutateAsync(teamId);
+    return { success: true };
   };
 
   const addMember = async (memberData) => {
-    try {
-      await teamApi.addMember(teamId, memberData);
-      await fetchTeamDetails();
-    } catch (err) {
-      setError(err.message || "Failed to add member");
-      throw err;
-    }
+    await addMemberMutation.mutateAsync(memberData);
   };
 
   const changeMemberRole = async (userId, role) => {
-    try {
-      await teamApi.changeMemberRole(teamId, userId, role);
-      await fetchTeamDetails();
-    } catch (err) {
-      setError(err.message || "Failed to change member role");
-      throw err;
-    }
+    await changeRoleMutation.mutateAsync({ userId, role });
   };
 
   const removeMember = async (userId) => {
-    try {
-      await teamApi.removeMember(teamId, userId);
-      await fetchTeamDetails();
-    } catch (err) {
-      setError(err.message || "Failed to remove member");
-      throw err;
-    }
+    await removeMemberMutation.mutateAsync(userId);
   };
 
   return {
     team,
     loading,
-    error,
+    error: error?.message || null,
     fetchTeamDetails,
     deleteTeam,
     addMember,
@@ -129,89 +73,71 @@ export const useTeamDetails = (teamId) => {
   };
 };
 
-export const useTeamExpenses = (teamId) => {
-  const [expenses, setExpenses] = useState([]);
-  const [hasNext, setHasNext] = useState(false);
-  const [nextCursor, setNextCursor] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export const useTeamExpenses = (teamId, filters = {}) => {
+  const {
+    data,
+    isLoading: loading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    refetch: fetchExpenses,
+  } = useTeamExpensesQuery(teamId, filters);
+  const createMutation = useCreateTeamExpense(teamId);
+  const updateMutation = useUpdateTeamExpense(teamId);
+  const deleteMutation = useDeleteTeamExpense(teamId);
 
-  useEffect(() => {
-    if (teamId) {
-      fetchExpenses();
-    }
-  }, [teamId]);
-
-  const fetchExpenses = async (cursor = null, limit = 20) => {
-    setLoading(true);
-    try {
-      const data = await teamApi.getExpenses(teamId, { cursor, limit });
-
-      if (cursor) {
-        setExpenses((prev) => [...prev, ...(data.items || [])]);
-      } else {
-        setExpenses(data.items || []);
-      }
-
-      setHasNext(data.hasNext || false);
-      setNextCursor(data.nextCursor || null);
-    } catch (err) {
-      setError(err.message || "Failed to fetch team expenses");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const expenses = data?.pages.flatMap((page) => page.items || []) || [];
+  const hasNext = hasNextPage || false;
 
   const loadMore = () => {
-    if (hasNext && nextCursor && !loading) {
-      fetchExpenses(nextCursor);
+    if (hasNext && !loading) {
+      fetchNextPage();
     }
   };
 
   const createExpense = async (expenseData) => {
-    try {
-      const data = await teamApi.createExpense(teamId, expenseData);
-      setExpenses((prev) => [data, ...prev]);
-      return data;
-    } catch (err) {
-      setError(err.message || "Failed to create team expense");
-      throw err;
-    }
+    return await createMutation.mutateAsync(expenseData);
   };
 
   const updateExpense = async (expenseId, expenseData) => {
-    try {
-      const data = await teamApi.updateExpense(expenseId, expenseData);
-      setExpenses((prev) =>
-        prev.map((exp) => (exp.id === expenseId ? data : exp))
-      );
-      return data;
-    } catch (err) {
-      setError(err.message || "Failed to update team expense");
-      throw err;
-    }
+    return await updateMutation.mutateAsync({ expenseId, expenseData });
   };
 
   const deleteExpense = async (expenseId) => {
-    try {
-      await teamApi.deleteExpense(expenseId);
-      setExpenses((prev) => prev.filter((exp) => exp.id !== expenseId));
-    } catch (err) {
-      setError(err.message || "Failed to delete team expense");
-      throw err;
-    }
+    await deleteMutation.mutateAsync(expenseId);
   };
 
   return {
     expenses,
     hasNext,
-    nextCursor,
     loading,
-    error,
+    error: error?.message || null,
     fetchExpenses,
     loadMore,
     createExpense,
     updateExpense,
     deleteExpense,
+  };
+};
+
+export const useTeamTimeSeriesStats = (teamId, params = {}) => {
+  const { data: stats, isLoading: loading, error, refetch } = useTeamTimeSeriesStatsQuery(teamId, params);
+
+  return {
+    stats,
+    loading,
+    error: error?.message || null,
+    refetch,
+  };
+};
+
+export const useTeamCategoryStats = (teamId, params = {}) => {
+  const { data: stats, isLoading: loading, error, refetch } = useTeamCategoryStatsQuery(teamId, params);
+
+  return {
+    stats,
+    loading,
+    error: error?.message || null,
+    refetch,
   };
 };

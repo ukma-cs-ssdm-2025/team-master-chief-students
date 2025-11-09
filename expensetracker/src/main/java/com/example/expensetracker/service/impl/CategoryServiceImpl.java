@@ -5,9 +5,11 @@ import com.example.expensetracker.entity.CategoryEntity;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.CategoryAlreadyExistsException;
 import com.example.expensetracker.exception.CategoryNotFoundException;
+import com.example.expensetracker.exception.ConflictException;
 import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.mapper.CategoryMapper;
 import com.example.expensetracker.repository.CategoryRepository;
+import com.example.expensetracker.repository.ExpenseRepository;
 import com.example.expensetracker.service.BaseService;
 import com.example.expensetracker.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl extends BaseService implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ExpenseRepository expenseRepository;
     private final CategoryMapper categoryMapper;
 
 
@@ -95,6 +98,11 @@ public class CategoryServiceImpl extends BaseService implements CategoryService 
         UserEntity currentUser = getAuthenticatedUser();
         CategoryEntity category = categoryRepository.findByIdAndUserId(id, currentUser.getId())
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found with id: " + id));
+        
+        if (expenseRepository.existsByCategoryId(id)) {
+            throw new ConflictException("Cannot delete category: it is associated with existing expenses");
+        }
+        
         categoryRepository.delete(category);
     }
 }

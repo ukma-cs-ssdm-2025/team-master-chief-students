@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Icon, LoadingSpinner } from "@shared/ui";
+import { logger } from "@shared/lib";
 
 export const AddMemberForm = ({ onAdd, onCancel }) => {
   const [userId, setUserId] = useState("");
@@ -24,26 +26,22 @@ export const AddMemberForm = ({ onAdd, onCancel }) => {
     setError(null);
 
     try {
-      // Передаємо правильний формат даних
       await onAdd({
         userId: userIdNumber,
         role: role
       });
 
-      // Очищаємо форму тільки після успішного додавання
       setUserId("");
       setRole("MEMBER");
 
-      // Закриваємо форму
       onCancel?.();
     } catch (err) {
-      // Обробляємо різні типи помилок
       const errorMessage = err.response?.data?.message
         || err.message
         || "Failed to add member";
 
       setError(errorMessage);
-      console.error("Add member error:", err);
+      logger.error("Add member error:", err);
     } finally {
       setLoading(false);
     }
@@ -92,19 +90,7 @@ export const AddMemberForm = ({ onAdd, onCancel }) => {
 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
-          <svg
-            className="w-5 h-5 flex-shrink-0 mt-0.5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <Icon name="exclamation" className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
@@ -117,24 +103,12 @@ export const AddMemberForm = ({ onAdd, onCancel }) => {
         >
           {loading ? (
             <>
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <LoadingSpinner size="sm" className="text-white" />
               <span>Adding...</span>
             </>
           ) : (
             <>
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <Icon name="plus" className="w-5 h-5" />
               <span>Add Member</span>
             </>
           )}

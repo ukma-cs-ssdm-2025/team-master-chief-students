@@ -1,30 +1,62 @@
 import React, { useState } from "react";
-import { useAuth } from "../model/hooks";
-import { useMultiAccount } from "../model/useMultiAccount";
+import { useAuth } from "@features/auth/model/hooks";
+import { useMultiAccount } from "@features/auth/model/useMultiAccount";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@shared/hooks/useToast";
+import { Toast } from "@shared/ui";
+import { env } from "@shared/config";
+import { validateForm, validators } from "@shared/lib";
 
 export const RegisterForm = () => {
   const { register, loading, error } = useAuth();
   const { addAccountAfterAuth } = useMultiAccount();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState(""); // 🧍‍♂️ додали username
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+  const { toast, showError, hideToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+
+    const formData = { username, email, password, confirmPassword };
+    const validationRules = {
+      username: [
+        validators.required('Username is required'),
+        validators.minLength(3)('Username must be at least 3 characters'),
+        validators.maxLength(20)('Username must be less than 20 characters'),
+      ],
+      email: [
+        validators.required('Email is required'),
+        validators.email('Invalid email format'),
+      ],
+      password: [
+        validators.required('Password is required'),
+        validators.password('Password must be at least 6 characters'),
+      ],
+      confirmPassword: [
+        validators.required('Please confirm your password'),
+        validators.passwordMatch(password)('Passwords do not match'),
+      ],
+    };
+
+    const { errors: validationErrors, isValid } = validateForm(formData, validationRules);
+
+    if (!isValid) {
+      setErrors(validationErrors);
+      showError(Object.values(validationErrors)[0]);
       return;
     }
 
-    const result = await register({ username, email, password }); // 🧠 передаємо username
+    setErrors({});
+
+    const result = await register({ username, email, password });
 
     if (result?.data?.accessToken) {
-      // Добавляем аккаунт в систему множественных аккаунтов
       await addAccountAfterAuth(
         email,
         result.data.accessToken,
@@ -34,7 +66,7 @@ export const RegisterForm = () => {
       setSuccess(true);
       setTimeout(() => {
         navigate("/dashboard");
-      }, 1500);
+      }, env.REGISTER_REDIRECT_DELAY_MS);
     }
   };
 
@@ -63,44 +95,83 @@ export const RegisterForm = () => {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Username */}
-        <input
-          type="text"
-          placeholder="Username"
-          required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              if (errors.username) setErrors({ ...errors, username: null });
+            }}
+            className={`p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+              errors.username ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.username && (
+            <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+          )}
+        </div>
 
         {/* Email */}
-        <input
-          type="email"
-          placeholder="Email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (errors.email) setErrors({ ...errors, email: null });
+            }}
+            className={`p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+              errors.email ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
+        </div>
 
         {/* Password */}
-        <input
-          type="password"
-          placeholder="Password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errors.password) setErrors({ ...errors, password: null });
+              if (errors.confirmPassword && confirmPassword) {
+                setErrors({ ...errors, confirmPassword: null });
+              }
+            }}
+            className={`p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+              errors.password ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
+        </div>
 
         {/* Confirm Password */}
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          required
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div>
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: null });
+            }}
+            className={`p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full ${
+              errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+          )}
+        </div>
 
         <button
           type="submit"
@@ -112,6 +183,12 @@ export const RegisterForm = () => {
 
         {error && <p className="text-red-500 text-center">{error}</p>}
       </form>
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </div>
   );
 };

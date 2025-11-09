@@ -1,2 +1,2 @@
 export { statsApi } from './model/api';
-export { useStats } from './model/hooks';
+export { useStats, useTimeSeriesStats, useCategoryStats } from './model/hooks';

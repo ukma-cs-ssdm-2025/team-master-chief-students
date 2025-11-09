@@ -1,10 +1,10 @@
-// src/entities/expense/ui/ExpenseList.jsx
-import React, { useState, useMemo, useEffect, useRef } from "react";
-import { useCategories } from "../../category/model/hooks";
-import { ReceiptUpload } from "../../../features/expense/receipt/ui/ReceiptUpload";
-import { ReceiptViewer } from "../../../features/expense/receipt/ui/ReceiptViewer";
-import { ShareExpenseModal } from "../../../features/team/expenses/ui/ShareExpenseModal";
-import { SearchInput } from "../../../shared/ui/SearchInput";
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+import { useCategories } from "@entities/category";
+import { ReceiptUpload } from "@features/expense/receipt/ui/ReceiptUpload";
+import { ReceiptViewer } from "@features/expense/receipt/ui/ReceiptViewer";
+import { ShareExpenseModal } from "@features/team/expenses/ui/ShareExpenseModal";
+import { Icon, ConfirmModal, Toast, LoadingSpinner } from "@shared/ui";
+import { useToast } from "@shared/hooks/useToast";
 
 const INITIAL_EDIT_DATA = {
   description: "",
@@ -20,7 +20,7 @@ const EmptyState = () => (
   </div>
 );
 
-const EditForm = ({ editData, categories, onChange, onSave, onCancel }) => (
+const EditForm = memo(({ editData, categories, onChange, onSave, onCancel }) => (
   <div className="flex flex-col gap-2">
     <input
       name="description"
@@ -75,9 +75,10 @@ const EditForm = ({ editData, categories, onChange, onSave, onCancel }) => (
       </button>
     </div>
   </div>
-);
+));
+EditForm.displayName = 'EditForm';
 
-const ExpenseItem = ({
+const ExpenseItem = memo(({
   expense,
   categoryName,
   onEdit,
@@ -85,8 +86,31 @@ const ExpenseItem = ({
   onUploadReceipt,
   onDeleteReceipt,
   onShare,
+  onLoadReceipt,
+  isReceiptLoading,
 }) => {
   const [showReceipt, setShowReceipt] = useState(false);
+  const [receiptUrl, setReceiptUrl] = useState(expense.receiptUrl);
+
+  React.useEffect(() => {
+    if (expense.receiptUrl) {
+      setReceiptUrl(expense.receiptUrl);
+    }
+  }, [expense.receiptUrl]);
+
+  const handleShowReceipt = async () => {
+    if (!showReceipt) {
+      setShowReceipt(true);
+      if (!expense.receiptLoaded && !receiptUrl && onLoadReceipt) {
+        const url = await onLoadReceipt(expense.id);
+        if (url) {
+          setReceiptUrl(url);
+        }
+      }
+    } else {
+      setShowReceipt(false);
+    }
+  };
 
   return (
     <div>
@@ -109,18 +133,21 @@ const ExpenseItem = ({
           </div>
 
           <button
-            onClick={() => setShowReceipt(!showReceipt)}
+            onClick={handleShowReceipt}
             type="button"
             className={`p-2 rounded-lg transition-colors ${
-              showReceipt || expense.receiptUrl
+              showReceipt || receiptUrl || expense.receiptUrl
                 ? 'text-green-500 hover:bg-green-50'
                 : 'text-gray-400 hover:bg-gray-50'
             }`}
-            title={expense.receiptUrl ? "View receipt" : "Add receipt"}
+            title={receiptUrl || expense.receiptUrl ? "View receipt" : "Add receipt"}
+            disabled={isReceiptLoading?.(expense.id)}
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            {isReceiptLoading?.(expense.id) ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <Icon name="receipt" className="h-5 w-5" />
+            )}
           </button>
 
           <button
@@ -129,9 +156,7 @@ const ExpenseItem = ({
             className="p-2 text-purple-500 hover:bg-purple-50 rounded-lg transition-colors"
             title="Share to team"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
+            <Icon name="share" className="h-5 w-5" />
           </button>
 
           <button
@@ -140,9 +165,7 @@ const ExpenseItem = ({
             className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
             title="Edit"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
+            <Icon name="edit" className="h-5 w-5" />
           </button>
           <button
             onClick={onDelete}
@@ -150,9 +173,7 @@ const ExpenseItem = ({
             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
+            <Icon name="delete" className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -169,10 +190,10 @@ const ExpenseItem = ({
               Hide
             </button>
           </div>
-          {expense.receiptUrl ? (
+          {receiptUrl || expense.receiptUrl ? (
             <ReceiptViewer
               expenseId={expense.id}
-              receiptUrl={expense.receiptUrl}
+              receiptUrl={receiptUrl || expense.receiptUrl}
               onDelete={onDeleteReceipt}
             />
           ) : (
@@ -185,9 +206,10 @@ const ExpenseItem = ({
       )}
     </div>
   );
-};
+});
+ExpenseItem.displayName = 'ExpenseItem';
 
-const ScrollToTopButton = ({ onClick, show }) => {
+const ScrollToTopButton = memo(({ onClick, show }) => {
   if (!show) return null;
 
   return (
@@ -196,22 +218,11 @@ const ScrollToTopButton = ({ onClick, show }) => {
       className="fixed bottom-8 right-8 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
       title="Scroll to top"
     >
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 10l7-7m0 0l7 7m-7-7v18"
-        />
-      </svg>
+      <Icon name="chevronUp" className="w-6 h-6" />
     </button>
   );
-};
+});
+ScrollToTopButton.displayName = 'ScrollToTopButton';
 
 export const ExpenseList = ({
   expenses = [],
@@ -222,14 +233,17 @@ export const ExpenseList = ({
   onUploadReceipt,
   onDeleteReceipt,
   onLoadMore,
+  onLoadReceipt,
+  isReceiptLoading,
 }) => {
   const { categories, loading: categoriesLoading } = useCategories();
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(INITIAL_EDIT_DATA);
   const [sharingExpenseId, setSharingExpenseId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const listTopRef = useRef(null);
+  const { toast, showSuccess, showError, hideToast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -240,34 +254,27 @@ export const ExpenseList = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToTop = () => {
+  const scrollToTop = useCallback(() => {
     listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  }, []);
 
-  const filteredExpenses = useMemo(() => {
-    if (!searchQuery.trim()) return expenses;
+  const filteredExpenses = useMemo(() => expenses, [expenses]);
 
-    const query = searchQuery.toLowerCase();
-    return expenses.filter((expense) => {
-      const description = expense.description?.toLowerCase() || "";
-      const category = expense.categoryName?.toLowerCase() || "";
-      const amount = expense.amount?.toString() || "";
-
-      return (
-        description.includes(query) ||
-        category.includes(query) ||
-        amount.includes(query)
-      );
+  const handleDelete = useCallback((id) => {
+    setDeleteConfirm({
+      id,
+      message: "Are you sure you want to delete this expense?",
     });
-  }, [expenses, searchQuery]);
+  }, []);
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this expense?")) {
-      onDelete?.(id);
+  const confirmDelete = useCallback(() => {
+    if (deleteConfirm) {
+      onDelete?.(deleteConfirm.id);
+      setDeleteConfirm(null);
     }
-  };
+  }, [deleteConfirm, onDelete]);
 
-  const startEdit = (expense) => {
+  const startEdit = useCallback((expense) => {
     setEditingId(expense.id);
     setEditData({
       description: expense.description,
@@ -275,18 +282,18 @@ export const ExpenseList = ({
       amount: expense.amount,
       date: expense.date,
     });
-  };
+  }, []);
 
-  const handleEditChange = (e) => {
+  const handleEditChange = useCallback((e) => {
     const { name, value } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const submitEdit = () => {
+  const submitEdit = useCallback(() => {
     const { description, categoryId, amount, date } = editData;
 
     if (!description || !categoryId || !amount || !date) {
-      alert("Please fill all fields");
+      showError("Please fill all fields");
       return;
     }
 
@@ -295,7 +302,7 @@ export const ExpenseList = ({
     );
 
     if (!selectedCategory) {
-      alert("Selected category is invalid");
+      showError("Selected category is invalid");
       return;
     }
 
@@ -308,76 +315,82 @@ export const ExpenseList = ({
     });
 
     setEditingId(null);
-  };
+  }, [editData, categories, editingId, onUpdate, showError]);
 
-  const cancelEdit = () => {
+  const cancelEdit = useCallback(() => {
     setEditingId(null);
-  };
+    setEditData(INITIAL_EDIT_DATA);
+  }, []);
 
-  const getCategoryName = (expense) => {
+  const getCategoryName = useCallback((expense) => {
     const currentCategory = categories.find(
       (cat) => cat.id === expense.categoryId
     );
     return currentCategory ? currentCategory.name : expense.categoryName;
-  };
+  }, [categories]);
 
-  const handleShareSuccess = () => {
-    alert("Expense shared successfully!");
-  };
-
-  if (!Array.isArray(expenses) || expenses.length === 0) {
-    return <EmptyState />;
-  }
+  const handleShareSuccess = useCallback(() => {
+    setSharingExpenseId(null);
+    showSuccess("Expense shared successfully!");
+  }, [showSuccess]);
 
   return (
     <>
-      <div ref={listTopRef} className="mb-6">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onClear={() => setSearchQuery("")}
-          placeholder="Search by description, amount, or category..."
-        />
-      </div>
+      <div ref={listTopRef} />
 
-      {filteredExpenses.length === 0 ? (
+      {loading && expenses.length === 0 ? (
+        <LoadingSpinner size="lg" text="Loading expenses..." />
+      ) : !Array.isArray(expenses) || expenses.length === 0 ? (
+        <EmptyState />
+      ) : filteredExpenses.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-400 text-lg">No expenses found</p>
           <p className="text-gray-500 text-sm mt-2">Try different search terms</p>
         </div>
       ) : (
         <>
+          {loading && expenses.length > 0 && (
+            <div className="flex items-center justify-center py-4 mb-4">
+              <LoadingSpinner size="sm" text="Updating..." />
+            </div>
+          )}
+          
           <div className="space-y-3">
             {categoriesLoading && (
               <p className="text-gray-500">Loading categories...</p>
             )}
 
-            {filteredExpenses.map((expense) => (
-              <div
-                key={expense.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
-              >
-                {editingId === expense.id ? (
-                  <EditForm
-                    editData={editData}
-                    categories={categories}
-                    onChange={handleEditChange}
-                    onSave={submitEdit}
-                    onCancel={cancelEdit}
-                  />
-                ) : (
-                  <ExpenseItem
-                    expense={expense}
-                    categoryName={getCategoryName(expense)}
-                    onEdit={() => startEdit(expense)}
-                    onDelete={() => handleDelete(expense.id)}
-                    onUploadReceipt={onUploadReceipt}
-                    onDeleteReceipt={onDeleteReceipt}
-                    onShare={() => setSharingExpenseId(expense.id)}
-                  />
-                )}
-              </div>
-            ))}
+            {filteredExpenses.map((expense) => {
+              const categoryName = getCategoryName(expense);
+              return (
+                <div
+                  key={expense.id}
+                  className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                >
+                  {editingId === expense.id ? (
+                    <EditForm
+                      editData={editData}
+                      categories={categories}
+                      onChange={handleEditChange}
+                      onSave={submitEdit}
+                      onCancel={cancelEdit}
+                    />
+                  ) : (
+                    <ExpenseItem
+                      expense={expense}
+                      categoryName={categoryName}
+                      onEdit={() => startEdit(expense)}
+                      onDelete={() => handleDelete(expense.id)}
+                      onUploadReceipt={onUploadReceipt}
+                      onDeleteReceipt={onDeleteReceipt}
+                      onShare={() => setSharingExpenseId(expense.id)}
+                      onLoadReceipt={onLoadReceipt}
+                      isReceiptLoading={isReceiptLoading}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Load More Button */}
@@ -390,25 +403,13 @@ export const ExpenseList = ({
               >
                 {loading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <LoadingSpinner size="sm" className="text-white" />
                     <span>Loading...</span>
                   </>
                 ) : (
                   <>
                     <span>Load More (20)</span>
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                    <Icon name="chevronDown" className="w-5 h-5" />
                   </>
                 )}
               </button>
@@ -427,6 +428,26 @@ export const ExpenseList = ({
           onSuccess={handleShareSuccess}
         />
       )}
+
+      {deleteConfirm && (
+        <ConfirmModal
+          isOpen={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={confirmDelete}
+          title="Delete Expense"
+          message={deleteConfirm.message}
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+        />
+      )}
+
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </>
   );
 };

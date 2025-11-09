@@ -1,8 +1,7 @@
-// src/widgets/charts/CategoryChart.jsx
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useMemo, useState } from 'react';
-import { useStats } from '../../entities/stats';
-import { useCategories } from '../../entities/category/model/hooks';
+import { useCategoryStats } from '@entities/stats/model/hooks';
+import { LoadingSpinner } from '@shared/ui';
 
 const COLORS = [
   '#0088FE', '#00C49F', '#FFBB28', '#FF8042',
@@ -10,29 +9,24 @@ const COLORS = [
   '#8dd1e1', '#d084d0', '#a4de6c', '#ffa07a'
 ];
 
-export const CategoryChart = () => {
+export const CategoryChart = ({ filters = {} }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const { stats, loading, error } = useStats();
-  const { categories } = useCategories();
+  const { stats, loading, error } = useCategoryStats(filters);
 
   const chartData = useMemo(() => {
-    if (!stats?.byCategory || !categories) return [];
+    if (!stats?.categories || stats.categories.length === 0) return [];
 
-    return Object.entries(stats.byCategory)
-      .map(([categoryId, amount]) => {
-        const category = categories.find(c => c.id === parseInt(categoryId));
-        return {
-          name: category?.name || `Category ${categoryId}`,
-          value: parseFloat(amount.toFixed(2))
-        };
-      })
-      .sort((a, b) => b.value - a.value);
-  }, [stats?.byCategory, categories]);
+    return stats.categories.map(category => ({
+      name: category.categoryName || `Category ${category.categoryId}`,
+      value: parseFloat(category.amount.toFixed(2)),
+      percentage: category.percentage
+    })).sort((a, b) => b.value - a.value);
+  }, [stats?.categories]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <LoadingSpinner size="md" text="Loading chart data..." />
       </div>
     );
   }
@@ -54,18 +48,15 @@ export const CategoryChart = () => {
   }
 
   const renderCustomLabel = (entry) => {
-    const total = chartData.reduce((sum, item) => sum + item.value, 0);
-    const percent = ((entry.value / total) * 100).toFixed(1);
-    return `${percent}%`;
+    return `${entry.percentage.toFixed(1)}%`;
   };
 
-  const total = chartData.reduce((sum, item) => sum + item.value, 0);
+  const total = stats?.totalAmount || chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="w-full">
-      {/* Chart */}
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="flex-shrink-0" style={{ height: '280px' }}>
+        <ResponsiveContainer width="100%" height={280} minHeight={280} minWidth={0}>
           <PieChart>
             <Pie
               data={chartData}
@@ -73,7 +64,7 @@ export const CategoryChart = () => {
               cy="50%"
               labelLine={false}
               label={renderCustomLabel}
-              outerRadius={100}
+              outerRadius={90}
               fill="#8884d8"
               dataKey="value"
               onMouseEnter={(_, index) => setHoveredIndex(index)}
@@ -99,11 +90,10 @@ export const CategoryChart = () => {
         </ResponsiveContainer>
       </div>
 
-      {/* Custom Legend with scrolling */}
-      <div className="mt-4 max-h-32 overflow-y-auto border-t pt-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="flex-shrink-0 mt-4 h-32 overflow-y-auto border-t pt-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
           {chartData.map((entry, index) => {
-            const percent = ((entry.value / total) * 100).toFixed(1);
+            const percent = entry.percentage ? entry.percentage.toFixed(1) : ((entry.value / total) * 100).toFixed(1);
             return (
               <div
                 key={`legend-${index}`}

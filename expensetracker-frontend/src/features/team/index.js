@@ -1,3 +1,10 @@
 export { CreateTeamForm } from './create/ui/CreateTeamForm';
 export { AddMemberForm } from './add-member/ui/AddMemberForm';
 export { MembersList } from './members/ui/MembersList';
+export { TeamExpensesList } from './expenses/ui/TeamExpensesList';
+export { CreateTeamExpenseForm } from './expenses/ui/CreateTeamExpenseForm';
+export { ShareExpenseModal } from './expenses/ui/ShareExpenseModal';
+export { TeamExpenseExport } from './export/ui/TeamExpenseExport';
+export { DeleteTeamModal } from './delete/ui/DeleteTeamModal';
+export { ChangeRoleConfirmModal } from './change-role/ui/ChangeRoleConfirmModal';
+export { TeamFilter } from './shared/ui/TeamFilter';

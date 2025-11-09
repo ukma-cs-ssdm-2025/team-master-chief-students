@@ -1,7 +1,8 @@
-// src/features/team/expenses/ui/TeamExpensesList.jsx
-import React, { useState, useEffect, useRef } from "react";
-import { useCategories } from "../../../../entities/category/model/hooks";
-import { SearchInput } from "../../../../shared/ui/SearchInput";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useCategories } from "@entities/category";
+import { SearchInput, Icon, ConfirmModal, Toast } from "@shared/ui";
+import { TeamExpensesFilter } from "./TeamExpensesFilter";
+import { useToast } from "@shared/hooks/useToast";
 
 const ScrollToTopButton = ({ onClick, show }) => {
   if (!show) return null;
@@ -12,19 +13,7 @@ const ScrollToTopButton = ({ onClick, show }) => {
       className="fixed bottom-8 right-8 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
       title="Scroll to top"
     >
-      <svg
-        className="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 10l7-7m0 0l7 7m-7-7v18"
-        />
-      </svg>
+      <Icon name="chevronUp" className="w-6 h-6" />
     </button>
   );
 };
@@ -40,8 +29,12 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
   });
 
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const listTopRef = useRef(null);
+  const { toast, showError, hideToast } = useToast();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,31 +49,60 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
     listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const searchLower = search.toLowerCase();
+  const filteredExpenses = useMemo(() => {
+    let result = expenses;
 
-  const filteredExpenses = expenses.filter((e) =>
-    e.description.toLowerCase().includes(searchLower) ||
-    e.categoryName.toLowerCase().includes(searchLower) ||
-    e.amount.toString().includes(searchLower)
-  );
+    // Apply search filter
+    if (search.trim()) {
+      const searchLower = search.toLowerCase();
+      result = result.filter((e) =>
+        e.description?.toLowerCase().includes(searchLower) ||
+        e.categoryName?.toLowerCase().includes(searchLower) ||
+        e.amount?.toString().includes(searchLower)
+      );
+    }
+
+    // Apply category filter
+    if (filters.categoryId) {
+      result = result.filter((e) => e.categoryId === filters.categoryId);
+    }
+
+    // Apply date range filter
+    if (filters.fromDate) {
+      result = result.filter((e) => {
+        const expenseDate = new Date(e.date);
+        const fromDate = new Date(filters.fromDate);
+        fromDate.setHours(0, 0, 0, 0);
+        return expenseDate >= fromDate;
+      });
+    }
+
+    if (filters.toDate) {
+      result = result.filter((e) => {
+        const expenseDate = new Date(e.date);
+        const toDate = new Date(filters.toDate);
+        toDate.setHours(23, 59, 59, 999);
+        return expenseDate <= toDate;
+      });
+    }
+
+    // Apply amount range filter
+    if (filters.minAmount !== undefined) {
+      result = result.filter((e) => e.amount >= filters.minAmount);
+    }
+
+    if (filters.maxAmount !== undefined) {
+      result = result.filter((e) => e.amount <= filters.maxAmount);
+    }
+
+    return result;
+  }, [expenses, search, filters]);
 
   if (!expenses || expenses.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-          <svg
-            className="w-8 h-8 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"
-            />
-          </svg>
+          <Icon name="receipt" className="w-8 h-8 text-gray-400" />
         </div>
         <p className="text-gray-400 text-lg">No team expenses yet</p>
         <p className="text-gray-500 text-sm mt-2">Create your first team expense</p>
@@ -107,7 +129,7 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
     const { description, categoryId, amount, date } = editData;
 
     if (!description || !categoryId || !amount || !date) {
-      alert("Please fill all fields");
+      showError("Please fill all fields");
       return;
     }
 
@@ -116,7 +138,7 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
     );
 
     if (!selectedCategory) {
-      alert("Selected category is invalid");
+      showError("Selected category is invalid");
       return;
     }
 
@@ -129,7 +151,7 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
       });
       setEditingId(null);
     } catch (err) {
-      alert(err.message || "Failed to update expense");
+      showError(err.message || "Failed to update expense");
     }
   };
 
@@ -137,12 +159,18 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
     setEditingId(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this team expense?")) {
+  const handleDelete = (id) => {
+    setDeleteConfirm({ id });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirm) {
       try {
-        await onDelete(id);
+        await onDelete(deleteConfirm.id);
+        setDeleteConfirm(null);
       } catch (err) {
-        alert(err.message || "Failed to delete expense");
+        showError(err.message || "Failed to delete expense");
+        setDeleteConfirm(null);
       }
     }
   };
@@ -150,17 +178,35 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
   return (
     <>
       <div ref={listTopRef} className="space-y-4">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          onClear={() => setSearch("")}
-          placeholder="Search..."
+        {/* Filter Panel - expands above the content */}
+        <TeamExpensesFilter
+          filters={filters}
+          onFiltersChange={setFilters}
+          onReset={() => setFilters({})}
+          isOpen={isFilterOpen}
+          onToggle={() => setIsFilterOpen(!isFilterOpen)}
         />
+
+        {/* Search Input */}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch("")}
+              placeholder="Search..."
+            />
+          </div>
+        </div>
 
         {filteredExpenses.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">No expenses found</p>
-            <p className="text-gray-500 text-sm mt-2">Try different search terms</p>
+            <p className="text-gray-500 text-sm mt-2">
+              {search.trim() || Object.keys(filters).length > 0
+                ? "Try different search terms or filters"
+                : "Create your first team expense"}
+            </p>
           </div>
         ) : (
           <>
@@ -251,20 +297,7 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
                           className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
+                          <Icon name="edit" className="h-5 w-5" />
                         </button>
 
                         <button
@@ -273,20 +306,7 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="Delete"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
+                          <Icon name="delete" className="h-5 w-5" />
                         </button>
                       </div>
                     </div>
@@ -311,19 +331,7 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
                   ) : (
                     <>
                       <span>Load More (20)</span>
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
+                      <Icon name="chevronDown" className="w-5 h-5" />
                     </>
                   )}
                 </button>
@@ -335,6 +343,26 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
 
       {/* Scroll to Top Button */}
       <ScrollToTopButton onClick={scrollToTop} show={showScrollTop} />
+
+      {deleteConfirm && (
+        <ConfirmModal
+          isOpen={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={confirmDelete}
+          title="Delete Team Expense"
+          message="Are you sure you want to delete this team expense?"
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+        />
+      )}
+
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </>
   );
 };
