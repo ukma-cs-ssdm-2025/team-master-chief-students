@@ -50,3 +50,83 @@ export const useStats = () => {
     refetch: fetchStats
   };
 };
+
+export const useTimeSeriesStats = (params = {}) => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchStats();
+  }, [JSON.stringify(params)]);
+
+  const fetchStats = async () => {
+    const activeAccount = getActiveAccount();
+    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+
+    if (!token) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await statsApi.getTimeSeriesStats(params);
+      setStats(data);
+    } catch (err) {
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        setError(err.message || "Failed to fetch time series stats");
+      }
+      console.error("Time series stats fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    stats,
+    loading,
+    error,
+    refetch: fetchStats,
+  };
+};
+
+export const useCategoryStats = (params = {}) => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchStats();
+  }, [JSON.stringify(params)]);
+
+  const fetchStats = async () => {
+    const activeAccount = getActiveAccount();
+    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+
+    if (!token) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await statsApi.getCategoryStats(params);
+      setStats(data);
+    } catch (err) {
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        setError(err.message || "Failed to fetch category stats");
+      }
+      console.error("Category stats fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    stats,
+    loading,
+    error,
+    refetch: fetchStats,
+  };
+};

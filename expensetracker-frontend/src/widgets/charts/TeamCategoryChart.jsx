@@ -1,7 +1,7 @@
-// src/widgets/charts/CategoryChart.jsx
+// src/widgets/charts/TeamCategoryChart.jsx
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useMemo, useState } from 'react';
-import { useCategoryStats } from '../../entities/stats/model/hooks';
+import { useTeamCategoryStats } from '../../entities/team/model/hooks';
 
 const COLORS = [
   '#0088FE', '#00C49F', '#FFBB28', '#FF8042',
@@ -9,18 +9,18 @@ const COLORS = [
   '#8dd1e1', '#d084d0', '#a4de6c', '#ffa07a'
 ];
 
-export const CategoryChart = ({ filters = {} }) => {
+export const TeamCategoryChart = ({ teamId, filters = {} }) => {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const { stats, loading, error } = useCategoryStats(filters);
+  const { stats, loading, error } = useTeamCategoryStats(teamId, filters);
 
   const chartData = useMemo(() => {
     if (!stats?.categories || stats.categories.length === 0) return [];
 
-    return stats.categories.map(category => ({
+    return stats.categories.map((category) => ({
       name: category.categoryName || `Category ${category.categoryId}`,
       value: parseFloat(category.amount.toFixed(2)),
       percentage: category.percentage
-    })).sort((a, b) => b.value - a.value);
+    }));
   }, [stats?.categories]);
 
   if (loading) {
@@ -48,7 +48,8 @@ export const CategoryChart = ({ filters = {} }) => {
   }
 
   const renderCustomLabel = (entry) => {
-    return `${entry.percentage.toFixed(1)}%`;
+    const percent = entry.percentage !== undefined ? entry.percentage : 0;
+    return `${percent.toFixed(1)}%`;
   };
 
   const total = stats?.totalAmount || chartData.reduce((sum, item) => sum + item.value, 0);
@@ -134,3 +135,4 @@ export const CategoryChart = ({ filters = {} }) => {
     </div>
   );
 };
+

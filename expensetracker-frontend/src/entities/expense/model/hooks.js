@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { expenseApi } from "./api";
 
-export const useExpenses = () => {
+export const useExpenses = (filters = {}) => {
   const [expenses, setExpenses] = useState([]);
   const [hasNext, setHasNext] = useState(false);
   const [nextCursor, setNextCursor] = useState(null);
@@ -11,12 +11,12 @@ export const useExpenses = () => {
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [JSON.stringify(filters)]);
 
   const fetchExpenses = async (cursor = null, limit = 20) => {
     setLoading(true);
     try {
-      const data = await expenseApi.getAll({ cursor, limit });
+      const data = await expenseApi.getAll({ cursor, limit, ...filters });
 
       const expensesToProcess = data.items || [];
 

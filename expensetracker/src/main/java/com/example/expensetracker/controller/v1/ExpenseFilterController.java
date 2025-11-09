@@ -5,6 +5,7 @@ import com.example.expensetracker.dto.ExpenseFilterItemDto;
 import com.example.expensetracker.dto.ExpenseFilterRequest;
 import com.example.expensetracker.dto.ExpenseStatsDto;
 import com.example.expensetracker.dto.TimeSeriesStatsDto;
+import com.example.expensetracker.dto.CategoryPieStatsDto;
 import com.example.expensetracker.service.ExpenseFilterService;
 import com.example.expensetracker.response.ApiResponse;
 import com.example.expensetracker.response.ErrorResponse;
@@ -337,6 +338,100 @@ public class ExpenseFilterController extends BaseService {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Time series statistics retrieved successfully", stats)
+        );
+    }
+
+    @Operation(
+            summary = "Get category pie chart statistics",
+            description = """
+                    Retrieves category statistics with percentages for pie chart visualization.
+                    
+                    **Response format**:
+                    - totalAmount: Total sum of all expenses
+                    - totalCount: Total number of expenses
+                    - categories: Array of category statistics (categoryId, categoryName, amount, percentage)
+                    
+                    Categories are sorted by amount descending.
+                    Supports all existing filter parameters (date range, amount range, search, etc.).
+                    """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Category pie chart statistics retrieved successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "success": true,
+                                      "message": "Category pie chart statistics retrieved successfully",
+                                      "data": {
+                                        "totalAmount": 500.0,
+                                        "totalCount": 10,
+                                        "categories": [
+                                          {
+                                            "categoryId": 1,
+                                            "categoryName": "Food",
+                                            "amount": 300.0,
+                                            "percentage": 60.00
+                                          },
+                                          {
+                                            "categoryId": 2,
+                                            "categoryName": "Transport",
+                                            "amount": 200.0,
+                                            "percentage": 40.00
+                                          }
+                                        ]
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid filter parameters",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "401",
+                    description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @GetMapping("/category-pie-stats")
+    public ResponseEntity<ApiResponse<CategoryPieStatsDto>> getCategoryPieStatistics(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false, defaultValue = "exact") String categoryMatch,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) Boolean hasReceipt,
+            @RequestParam(required = false) Long teamId,
+            @RequestParam(required = false) String search
+    ) {
+        Long userId = getAuthenticatedUser().getId();
+
+        ExpenseFilterRequest request = ExpenseFilterRequest.builder()
+                .categoryId(categoryId)
+                .category(category)
+                .categoryMatch(categoryMatch)
+                .fromDate(fromDate)
+                .toDate(toDate)
+                .minAmount(minAmount)
+                .maxAmount(maxAmount)
+                .hasReceipt(hasReceipt)
+                .teamId(teamId)
+                .search(search)
+                .build();
+
+        CategoryPieStatsDto stats = filterService.getCategoryPieStatistics(userId, request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Category pie chart statistics retrieved successfully", stats)
         );
     }
 }

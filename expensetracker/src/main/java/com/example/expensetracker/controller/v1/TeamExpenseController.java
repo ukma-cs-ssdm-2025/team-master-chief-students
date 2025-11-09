@@ -5,6 +5,7 @@ import com.example.expensetracker.dto.CursorPageResponse;
 import com.example.expensetracker.dto.ExpenseFilterRequest;
 import com.example.expensetracker.dto.ExpenseResponse;
 import com.example.expensetracker.dto.TimeSeriesStatsDto;
+import com.example.expensetracker.dto.CategoryPieStatsDto;
 import com.example.expensetracker.exception.AppException;
 import com.example.expensetracker.service.ExpenseFilterService;
 import com.example.expensetracker.response.ApiResponse;
@@ -321,6 +322,105 @@ public class TeamExpenseController extends BaseService {
 
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Team time series statistics retrieved successfully", stats)
+        );
+    }
+
+    @Operation(
+            summary = "Get team category pie chart statistics",
+            description = """
+                    Retrieves category statistics with percentages for pie chart visualization for team expenses.
+                    
+                    **Response format**:
+                    - totalAmount: Total sum of all team expenses
+                    - totalCount: Total number of expenses
+                    - categories: Array of category statistics (categoryId, categoryName, amount, percentage)
+                    
+                    Categories are sorted by amount descending.
+                    Supports all existing filter parameters (date range, amount range, search, etc.).
+                    Requires team membership.
+                    """,
+            security = @SecurityRequirement(name = "BearerAuth")
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "200",
+                    description = "Team category pie chart statistics retrieved successfully",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ApiResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                      "success": true,
+                                      "message": "Team category pie chart statistics retrieved successfully",
+                                      "data": {
+                                        "totalAmount": 500.0,
+                                        "totalCount": 10,
+                                        "categories": [
+                                          {
+                                            "categoryId": 1,
+                                            "categoryName": "Food",
+                                            "amount": 300.0,
+                                            "percentage": 60.00
+                                          },
+                                          {
+                                            "categoryId": 2,
+                                            "categoryName": "Transport",
+                                            "amount": 200.0,
+                                            "percentage": 40.00
+                                          }
+                                        ]
+                                      }
+                                    }
+                                    """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "400",
+                    description = "Invalid filter parameters",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "403",
+                    description = "User is not a member of the team",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "404",
+                    description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))
+            )
+    })
+    @GetMapping("/category-pie-stats")
+    public ResponseEntity<ApiResponse<CategoryPieStatsDto>> getTeamCategoryPieStatistics(
+            @PathVariable Long teamId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false, defaultValue = "exact") String categoryMatch,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) BigDecimal minAmount,
+            @RequestParam(required = false) BigDecimal maxAmount,
+            @RequestParam(required = false) Boolean hasReceipt,
+            @RequestParam(required = false) String search
+    ) {
+        Long userId = getAuthenticatedUser().getId();
+
+        ExpenseFilterRequest request = ExpenseFilterRequest.builder()
+                .categoryId(categoryId)
+                .category(category)
+                .categoryMatch(categoryMatch)
+                .fromDate(fromDate)
+                .toDate(toDate)
+                .minAmount(minAmount)
+                .maxAmount(maxAmount)
+                .hasReceipt(hasReceipt)
+                .search(search)
+                .build();
+
+        CategoryPieStatsDto stats = expenseFilterService.getTeamCategoryPieStatistics(userId, teamId, request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Team category pie chart statistics retrieved successfully", stats)
         );
     }
 }

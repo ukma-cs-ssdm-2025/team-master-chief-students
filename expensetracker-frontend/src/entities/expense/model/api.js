@@ -3,13 +3,24 @@ import { axiosInstance } from "../../../shared/api/axiosInstance";
 
 export const expenseApi = {
   getAll: async (params = {}) => {
-    const { cursor, limit = 20 } = params;
+    const { cursor, limit = 20, ...filters } = params;
     const queryParams = new URLSearchParams();
 
     if (cursor) queryParams.append('cursor', cursor);
     queryParams.append('limit', limit.toString());
 
-    const { data } = await axiosInstance.get(`/api/v1/expenses?${queryParams.toString()}`);
+    // Add filter parameters
+    if (filters.categoryId) queryParams.append('categoryId', filters.categoryId);
+    if (filters.category) queryParams.append('category', filters.category);
+    if (filters.categoryMatch) queryParams.append('categoryMatch', filters.categoryMatch);
+    if (filters.fromDate) queryParams.append('fromDate', filters.fromDate);
+    if (filters.toDate) queryParams.append('toDate', filters.toDate);
+    if (filters.minAmount !== undefined) queryParams.append('minAmount', filters.minAmount);
+    if (filters.maxAmount !== undefined) queryParams.append('maxAmount', filters.maxAmount);
+    if (filters.hasReceipt !== undefined) queryParams.append('hasReceipt', filters.hasReceipt);
+    if (filters.search) queryParams.append('search', filters.search);
+
+    const { data } = await axiosInstance.get(`/api/v1/expenses/filter-service/items?${queryParams.toString()}`);
     return data.data || { items: [], hasNext: false, nextCursor: null };
   },
 

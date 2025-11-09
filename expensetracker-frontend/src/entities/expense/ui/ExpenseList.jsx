@@ -1,10 +1,9 @@
 // src/entities/expense/ui/ExpenseList.jsx
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useCategories } from "../../category/model/hooks";
 import { ReceiptUpload } from "../../../features/expense/receipt/ui/ReceiptUpload";
 import { ReceiptViewer } from "../../../features/expense/receipt/ui/ReceiptViewer";
 import { ShareExpenseModal } from "../../../features/team/expenses/ui/ShareExpenseModal";
-import { SearchInput } from "../../../shared/ui/SearchInput";
 
 const INITIAL_EDIT_DATA = {
   description: "",
@@ -227,7 +226,6 @@ export const ExpenseList = ({
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(INITIAL_EDIT_DATA);
   const [sharingExpenseId, setSharingExpenseId] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const listTopRef = useRef(null);
 
@@ -244,22 +242,8 @@ export const ExpenseList = ({
     listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const filteredExpenses = useMemo(() => {
-    if (!searchQuery.trim()) return expenses;
-
-    const query = searchQuery.toLowerCase();
-    return expenses.filter((expense) => {
-      const description = expense.description?.toLowerCase() || "";
-      const category = expense.categoryName?.toLowerCase() || "";
-      const amount = expense.amount?.toString() || "";
-
-      return (
-        description.includes(query) ||
-        category.includes(query) ||
-        amount.includes(query)
-      );
-    });
-  }, [expenses, searchQuery]);
+  // Expenses are already filtered by API, no need for local filtering
+  const filteredExpenses = expenses;
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this expense?")) {
@@ -325,28 +309,30 @@ export const ExpenseList = ({
     alert("Expense shared successfully!");
   };
 
-  if (!Array.isArray(expenses) || expenses.length === 0) {
-    return <EmptyState />;
-  }
-
   return (
     <>
-      <div ref={listTopRef} className="mb-6">
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          onClear={() => setSearchQuery("")}
-          placeholder="Search by description, amount, or category..."
-        />
-      </div>
+      <div ref={listTopRef} />
 
-      {filteredExpenses.length === 0 ? (
+      {loading && expenses.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : !Array.isArray(expenses) || expenses.length === 0 ? (
+        <EmptyState />
+      ) : filteredExpenses.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-400 text-lg">No expenses found</p>
           <p className="text-gray-500 text-sm mt-2">Try different search terms</p>
         </div>
       ) : (
         <>
+          {loading && expenses.length > 0 && (
+            <div className="flex items-center justify-center py-4 mb-4">
+              <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <span className="ml-2 text-sm text-gray-500">Updating...</span>
+            </div>
+          )}
+          
           <div className="space-y-3">
             {categoriesLoading && (
               <p className="text-gray-500">Loading categories...</p>

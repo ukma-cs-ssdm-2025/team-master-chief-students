@@ -215,3 +215,67 @@ export const useTeamExpenses = (teamId) => {
     deleteExpense,
   };
 };
+
+export const useTeamTimeSeriesStats = (teamId, params = {}) => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (teamId) {
+      fetchStats();
+    }
+  }, [teamId, JSON.stringify(params)]);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await teamApi.getTimeSeriesStats(teamId, params);
+      setStats(data);
+    } catch (err) {
+      setError(err.message || "Failed to fetch team time series stats");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    stats,
+    loading,
+    error,
+    refetch: fetchStats,
+  };
+};
+
+export const useTeamCategoryStats = (teamId, params = {}) => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (teamId) {
+      fetchStats();
+    }
+  }, [teamId, JSON.stringify(params)]);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await teamApi.getCategoryStats(teamId, params);
+      setStats(data);
+    } catch (err) {
+      setError(err.message || "Failed to fetch team category stats");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    stats,
+    loading,
+    error,
+    refetch: fetchStats,
+  };
+};

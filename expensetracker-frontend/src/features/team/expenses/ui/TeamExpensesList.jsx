@@ -1,7 +1,8 @@
 // src/features/team/expenses/ui/TeamExpensesList.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useCategories } from "../../../../entities/category/model/hooks";
 import { SearchInput } from "../../../../shared/ui/SearchInput";
+import { TeamExpensesFilter } from "./TeamExpensesFilter";
 
 const ScrollToTopButton = ({ onClick, show }) => {
   if (!show) return null;
@@ -40,6 +41,8 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
   });
 
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const listTopRef = useRef(null);
 
@@ -56,13 +59,54 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
     listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const searchLower = search.toLowerCase();
+  const filteredExpenses = useMemo(() => {
+    let result = expenses;
 
-  const filteredExpenses = expenses.filter((e) =>
-    e.description.toLowerCase().includes(searchLower) ||
-    e.categoryName.toLowerCase().includes(searchLower) ||
-    e.amount.toString().includes(searchLower)
-  );
+    // Apply search filter
+    if (search.trim()) {
+      const searchLower = search.toLowerCase();
+      result = result.filter((e) =>
+        e.description?.toLowerCase().includes(searchLower) ||
+        e.categoryName?.toLowerCase().includes(searchLower) ||
+        e.amount?.toString().includes(searchLower)
+      );
+    }
+
+    // Apply category filter
+    if (filters.categoryId) {
+      result = result.filter((e) => e.categoryId === filters.categoryId);
+    }
+
+    // Apply date range filter
+    if (filters.fromDate) {
+      result = result.filter((e) => {
+        const expenseDate = new Date(e.date);
+        const fromDate = new Date(filters.fromDate);
+        fromDate.setHours(0, 0, 0, 0);
+        return expenseDate >= fromDate;
+      });
+    }
+
+    if (filters.toDate) {
+      result = result.filter((e) => {
+        const expenseDate = new Date(e.date);
+        const toDate = new Date(filters.toDate);
+        toDate.setHours(23, 59, 59, 999);
+        return expenseDate <= toDate;
+      });
+    }
+
+    // Apply amount range filter
+    if (filters.minAmount !== undefined) {
+      result = result.filter((e) => e.amount >= filters.minAmount);
+    }
+
+    if (filters.maxAmount !== undefined) {
+      result = result.filter((e) => e.amount <= filters.maxAmount);
+    }
+
+    return result;
+  }, [expenses, search, filters]);
 
   if (!expenses || expenses.length === 0) {
     return (
@@ -150,17 +194,35 @@ export const TeamExpensesList = ({ expenses, hasNext, onLoadMore, loading, onUpd
   return (
     <>
       <div ref={listTopRef} className="space-y-4">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          onClear={() => setSearch("")}
-          placeholder="Search..."
+        {/* Filter Panel - expands above the content */}
+        <TeamExpensesFilter
+          filters={filters}
+          onFiltersChange={setFilters}
+          onReset={() => setFilters({})}
+          isOpen={isFilterOpen}
+          onToggle={() => setIsFilterOpen(!isFilterOpen)}
         />
+
+        {/* Search Input */}
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              onClear={() => setSearch("")}
+              placeholder="Search..."
+            />
+          </div>
+        </div>
 
         {filteredExpenses.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-400 text-lg">No expenses found</p>
-            <p className="text-gray-500 text-sm mt-2">Try different search terms</p>
+            <p className="text-gray-500 text-sm mt-2">
+              {search.trim() || Object.keys(filters).length > 0
+                ? "Try different search terms or filters"
+                : "Create your first team expense"}
+            </p>
           </div>
         ) : (
           <>

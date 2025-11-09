@@ -1,7 +1,6 @@
-// src/widgets/charts/ExpenseTrendChart.jsx
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
-import { useTimeSeriesStats } from '../../entities/stats/model/hooks';
+import { useTeamTimeSeriesStats } from '../../entities/team/model/hooks';
 
 const formatDateLabel = (dateStr, period) => {
   const date = new Date(dateStr);
@@ -81,8 +80,8 @@ const groupByPeriod = (byPeriod, period) => {
     .sort((a, b) => a.rawDate.localeCompare(b.rawDate));
 };
 
-export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
-  const { stats, loading, error } = useTimeSeriesStats(filters);
+export const TeamExpenseTrendChart = ({ teamId, period = 'daily', filters = {} }) => {
+  const { stats, loading, error } = useTeamTimeSeriesStats(teamId, filters);
 
   const chartData = useMemo(() => {
     if (!stats?.byPeriod) return [];
@@ -168,3 +167,4 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
     </div>
   );
 };
+

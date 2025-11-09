@@ -1,5 +1,5 @@
 // src/pages/dashboard/DashboardPage.jsx
-import React from "react";
+import React, { useState } from "react";
 import { useUser } from "../../entities/user/model/hooks";
 import { useExpenses } from "../../entities/expense/model/hooks";
 import { useCategories } from "../../entities/category/model/hooks";
@@ -12,9 +12,18 @@ import { StatsCards } from "../../widgets/stats/StatsCards";
 import { ChartsSection } from "../../widgets/charts/ChartsSection";
 import { Navigation } from "../../widgets/navigation/Navigation";
 import { ExpenseExport } from "../../features/expense/export/ui/ExpenseExport";
+import { DashboardFilter } from "../../features/dashboard/ui/DashboardFilter";
+import { useDebounce } from "../../shared/hooks/useDebounce";
 
 export const DashboardPage = () => {
   const { user, loading: userLoading, error: userError } = useUser();
+  
+  const [filters, setFilters] = useState({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Debounce filters to avoid too many API calls while typing
+  const debouncedFilters = useDebounce(filters, 500);
+
   const {
     expenses,
     hasNext,
@@ -25,11 +34,20 @@ export const DashboardPage = () => {
     uploadReceipt,
     deleteReceipt,
     loadMore,
-  } = useExpenses();
+  } = useExpenses(debouncedFilters);
 
   const { addCategory, updateCategory, deleteCategory } = useCategories();
 
-  if (userLoading || expensesLoading) {
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({});
+  };
+
+  // Only show full screen loading for initial user load, not for expense filtering
+  if (userLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -77,11 +95,21 @@ export const DashboardPage = () => {
             <StatsCards expenses={expenses} />
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <ChartsSection expenses={expenses} />
+              <ChartsSection />
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900">Personal Expenses</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Personal Expenses</h2>
+              </div>
+              
+              <DashboardFilter
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                onReset={handleResetFilters}
+                isOpen={isFilterOpen}
+                onToggle={() => setIsFilterOpen(!isFilterOpen)}
+              />
 
               <ExpenseList
                 expenses={expenses}
