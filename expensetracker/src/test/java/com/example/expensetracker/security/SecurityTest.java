@@ -100,5 +100,83 @@ class SecurityTest extends AbstractPostgresContainerTest {
         
         assertThat(status).isIn(200, 403, 404);
     }
+
+    @Test
+    @DisplayName("Should reject invalid/malformed access token")
+    void shouldRejectInvalidAccessToken() throws Exception {
+        String invalidToken = "invalid.token.here";
+        
+        mockMvc.perform(get("/api/v1/expenses")
+                        .header("Authorization", "Bearer " + invalidToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should reject empty Bearer token")
+    void shouldRejectEmptyBearerToken() throws Exception {
+        mockMvc.perform(get("/api/v1/expenses")
+                        .header("Authorization", "Bearer "))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should reject request with invalid Authorization header format")
+    void shouldRejectInvalidAuthorizationFormat() throws Exception {
+        mockMvc.perform(get("/api/v1/expenses")
+                        .header("Authorization", "InvalidFormat token"))
+                .andExpect(status().isForbidden());
+        
+        mockMvc.perform(get("/api/v1/expenses")
+                        .header("Authorization", "NotBearer token"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Should reject malformed JWT token (wrong structure)")
+    void shouldRejectMalformedJwtToken() throws Exception {
+        String malformedToken = "not.a.valid.jwt.token.structure";
+        
+        mockMvc.perform(get("/api/v1/expenses")
+                        .header("Authorization", "Bearer " + malformedToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Should deny access to another user's expense")
+    void shouldDenyAccessToAnotherUsersExpense() throws Exception {
+        mockMvc.perform(get("/api/v1/expenses/999999")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should deny access to another user's team")
+    void shouldDenyAccessToAnotherUsersTeam() throws Exception {
+        int status = mockMvc.perform(get("/api/v1/teams/999999")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andReturn()
+                .getResponse()
+                .getStatus();
+        
+        assertThat(status).isIn(403, 404);
+    }
+
+    @Test
+    @DisplayName("Should deny modifying another user's expense")
+    void shouldDenyModifyingAnotherUsersExpense() throws Exception {
+        mockMvc.perform(put("/api/v1/expenses/999999")
+                        .header("Authorization", "Bearer " + accessToken)
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content("{\"amount\": 100.0}"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("Should deny deleting another user's expense")
+    void shouldDenyDeletingAnotherUsersExpense() throws Exception {
+        mockMvc.perform(delete("/api/v1/expenses/999999")
+                        .header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isNotFound());
+    }
 }
 
