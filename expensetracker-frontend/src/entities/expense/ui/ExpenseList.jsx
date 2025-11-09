@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+// src/entities/expense/ui/ExpenseList.jsx
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useCategories } from "../../category/model/hooks";
 import { ReceiptUpload } from "../../../features/expense/receipt/ui/ReceiptUpload";
 import { ReceiptViewer } from "../../../features/expense/receipt/ui/ReceiptViewer";
@@ -186,18 +187,62 @@ const ExpenseItem = ({
   );
 };
 
+const ScrollToTopButton = ({ onClick, show }) => {
+  if (!show) return null;
+
+  return (
+    <button
+      onClick={onClick}
+      className="fixed bottom-8 right-8 bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-110 z-50"
+      title="Scroll to top"
+    >
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 10l7-7m0 0l7 7m-7-7v18"
+        />
+      </svg>
+    </button>
+  );
+};
+
 export const ExpenseList = ({
   expenses = [],
+  hasNext = false,
+  loading = false,
   onDelete,
   onUpdate,
   onUploadReceipt,
-  onDeleteReceipt
+  onDeleteReceipt,
+  onLoadMore,
 }) => {
   const { categories, loading: categoriesLoading } = useCategories();
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState(INITIAL_EDIT_DATA);
   const [sharingExpenseId, setSharingExpenseId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const listTopRef = useRef(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    listTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const filteredExpenses = useMemo(() => {
     if (!searchQuery.trim()) return expenses;
@@ -286,7 +331,7 @@ export const ExpenseList = ({
 
   return (
     <>
-      <div className="mb-6">
+      <div ref={listTopRef} className="mb-6">
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
@@ -301,39 +346,79 @@ export const ExpenseList = ({
           <p className="text-gray-500 text-sm mt-2">Try different search terms</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {categoriesLoading && (
-            <p className="text-gray-500">Loading categories...</p>
-          )}
+        <>
+          <div className="space-y-3">
+            {categoriesLoading && (
+              <p className="text-gray-500">Loading categories...</p>
+            )}
 
-          {filteredExpenses.map((expense) => (
-            <div
-              key={expense.id}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
-            >
-              {editingId === expense.id ? (
-                <EditForm
-                  editData={editData}
-                  categories={categories}
-                  onChange={handleEditChange}
-                  onSave={submitEdit}
-                  onCancel={cancelEdit}
-                />
-              ) : (
-                <ExpenseItem
-                  expense={expense}
-                  categoryName={getCategoryName(expense)}
-                  onEdit={() => startEdit(expense)}
-                  onDelete={() => handleDelete(expense.id)}
-                  onUploadReceipt={onUploadReceipt}
-                  onDeleteReceipt={onDeleteReceipt}
-                  onShare={() => setSharingExpenseId(expense.id)}
-                />
-              )}
+            {filteredExpenses.map((expense) => (
+              <div
+                key={expense.id}
+                className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+              >
+                {editingId === expense.id ? (
+                  <EditForm
+                    editData={editData}
+                    categories={categories}
+                    onChange={handleEditChange}
+                    onSave={submitEdit}
+                    onCancel={cancelEdit}
+                  />
+                ) : (
+                  <ExpenseItem
+                    expense={expense}
+                    categoryName={getCategoryName(expense)}
+                    onEdit={() => startEdit(expense)}
+                    onDelete={() => handleDelete(expense.id)}
+                    onUploadReceipt={onUploadReceipt}
+                    onDeleteReceipt={onDeleteReceipt}
+                    onShare={() => setSharingExpenseId(expense.id)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Load More Button */}
+          {hasNext && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={onLoadMore}
+                disabled={loading}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-8 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Load More (20)</span>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </>
+                )}
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
+
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton onClick={scrollToTop} show={showScrollTop} />
 
       {sharingExpenseId && (
         <ShareExpenseModal

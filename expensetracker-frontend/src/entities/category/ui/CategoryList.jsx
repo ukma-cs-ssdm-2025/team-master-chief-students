@@ -1,11 +1,21 @@
 // src/entities/category/ui/CategoryList.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCategories } from "../model/hooks";
+import { ConfirmModal } from "../../../shared/ui/ConfirmModal";
 
 export const CategoryList = ({ onUpdate, onDelete }) => {
-  const { categories } = useCategories();
+  const { categories, errorModal, clearErrorModal } = useCategories();
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [localErrorModal, setLocalErrorModal] = useState(null);
+
+  // Sync errorModal from context to local state
+  useEffect(() => {
+    if (errorModal) {
+      setLocalErrorModal(errorModal);
+    }
+  }, [errorModal]);
 
   if (!Array.isArray(categories) || categories.length === 0) {
     return (
@@ -21,108 +31,178 @@ export const CategoryList = ({ onUpdate, onDelete }) => {
     setEditName(cat.name);
   };
 
-  const submitEdit = () => {
+  const submitEdit = async () => {
     if (!editName.trim()) {
-      alert("Category name cannot be empty");
+      setConfirmModal({
+        type: 'warning',
+        title: 'Empty Category Name',
+        message: 'Category name cannot be empty. Please enter a valid name.',
+        confirmText: 'OK',
+        onConfirm: () => {}
+      });
       return;
     }
-    onUpdate && onUpdate(editingId, { name: editName });
-    setEditingId(null);
+
+    try {
+      await onUpdate(editingId, { name: editName });
+      setEditingId(null);
+    } catch (err) {
+      // Error handled by provider
+    }
   };
 
   const cancelEdit = () => {
     setEditingId(null);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      onDelete && onDelete(id);
+  const handleDelete = (id, name) => {
+    setConfirmModal({
+      type: 'delete',
+      id,
+      title: 'Delete Category',
+      message: `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+      confirmText: 'Delete'
+    });
+  };
+
+  const handleConfirmDelete = async (id) => {
+    try {
+      await onDelete(id);
+      setConfirmModal(null); // Close confirm modal on success
+    } catch (err) {
+      // Close confirm modal first, then error modal will show
+      setConfirmModal(null);
     }
   };
 
-  return (
-    <div className="space-y-3">
-      {categories.map((cat) => (
-        <div
-          key={cat.id}
-          className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
-        >
-          {editingId === cat.id ? (
-            <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="border border-gray-300 p-2 rounded-lg"
-                placeholder="Category name"
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={submitEdit}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={cancelEdit}
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">{cat.name}</h3>
-              </div>
+  const handleCloseErrorModal = () => {
+    setLocalErrorModal(null);
+    clearErrorModal?.();
+  };
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => startEdit(cat)}
-                  className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Edit"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+  return (
+    <>
+      <div className="space-y-3">
+        {categories.map((cat) => (
+          <div
+            key={cat.id}
+            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+          >
+            {editingId === cat.id ? (
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="border border-gray-300 p-2 rounded-lg"
+                  placeholder="Category name"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={submitEdit}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => handleDelete(cat.id)}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  title="Delete"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                    Save
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
+                    Cancel
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3
+                    className="font-semibold text-gray-900 text-lg truncate"
+                    title={cat.name}
+                  >
+                    {cat.name}
+                  </h3>
+                </div>
+
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => startEdit(cat)}
+                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                    title="Edit"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(cat.id, cat.name)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Delete"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Delete confirmation modal */}
+      {confirmModal && !localErrorModal && (
+        <ConfirmModal
+          isOpen={!!confirmModal}
+          onClose={() => setConfirmModal(null)}
+          onConfirm={() => {
+            if (confirmModal.type === 'delete') {
+              handleConfirmDelete(confirmModal.id);
+            } else if (confirmModal.onConfirm) {
+              confirmModal.onConfirm();
+            }
+          }}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmText={confirmModal.confirmText}
+          type={confirmModal.type === 'delete' ? 'danger' : confirmModal.type}
+        />
+      )}
+
+      {/* Error modal from CategoryProvider */}
+      {localErrorModal && (
+        <ConfirmModal
+          isOpen={!!localErrorModal}
+          onClose={handleCloseErrorModal}
+          onConfirm={handleCloseErrorModal}
+          title={localErrorModal.title}
+          message={localErrorModal.message}
+          confirmText="OK"
+          cancelText=""
+          type={localErrorModal.type}
+        />
+      )}
+    </>
   );
 };

@@ -2,9 +2,15 @@
 import { axiosInstance } from "../../../shared/api/axiosInstance";
 
 export const expenseApi = {
-  getAll: async () => {
-    const { data } = await axiosInstance.get("/api/v1/expenses");
-    return data.data || [];
+  getAll: async (params = {}) => {
+    const { cursor, limit = 20 } = params;
+    const queryParams = new URLSearchParams();
+
+    if (cursor) queryParams.append('cursor', cursor);
+    queryParams.append('limit', limit.toString());
+
+    const { data } = await axiosInstance.get(`/api/v1/expenses?${queryParams.toString()}`);
+    return data.data || { items: [], hasNext: false, nextCursor: null };
   },
 
   create: async (expense) => {

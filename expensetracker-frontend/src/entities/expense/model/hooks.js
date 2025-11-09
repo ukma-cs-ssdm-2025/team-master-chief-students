@@ -1,8 +1,11 @@
+// src/entities/expense/model/hooks.js
 import { useState, useEffect } from "react";
 import { expenseApi } from "./api";
 
 export const useExpenses = () => {
   const [expenses, setExpenses] = useState([]);
+  const [hasNext, setHasNext] = useState(false);
+  const [nextCursor, setNextCursor] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -10,38 +13,54 @@ export const useExpenses = () => {
     fetchExpenses();
   }, []);
 
-const fetchExpenses = async () => {
-  setLoading(true);
-  try {
-    const data = await expenseApi.getAll();
+  const fetchExpenses = async (cursor = null, limit = 20) => {
+    setLoading(true);
+    try {
+      const data = await expenseApi.getAll({ cursor, limit });
 
-    const expensesToProcess = data.items || [];
+      const expensesToProcess = data.items || [];
 
-    const expensesWithReceipts = await Promise.all(
-      expensesToProcess.map(async (exp) => {
-        try {
-          const receipt = await expenseApi.getReceipt(exp.id);
-          return { ...exp, receiptUrl: receipt || null };
-        } catch {
-          return { ...exp, receiptUrl: null };
-        }
-      })
-    );
+      const expensesWithReceipts = await Promise.all(
+        expensesToProcess.map(async (exp) => {
+          try {
+            const receipt = await expenseApi.getReceipt(exp.id);
+            return { ...exp, receiptUrl: receipt || null };
+          } catch {
+            return { ...exp, receiptUrl: null };
+          }
+        })
+      );
 
-    setExpenses(expensesWithReceipts.filter(Boolean));
-  } catch (err) {
-    setError(err.message || "Failed to fetch expenses");
-  } finally {
-    setLoading(false);
-  }
-};
+      // Якщо це перше завантаження або перезавантаження - замінюємо
+      // Якщо це "Load More" - додаємо до існуючих
+      if (cursor) {
+        setExpenses((prev) => [...prev, ...expensesWithReceipts.filter(Boolean)]);
+      } else {
+        setExpenses(expensesWithReceipts.filter(Boolean));
+      }
+
+      setHasNext(data.hasNext || false);
+      setNextCursor(data.nextCursor || null);
+    } catch (err) {
+      setError(err.message || "Failed to fetch expenses");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (hasNext && nextCursor && !loading) {
+      fetchExpenses(nextCursor);
+    }
+  };
 
   const addExpense = async (expense) => {
     try {
       const data = await expenseApi.create(expense);
-      setExpenses((prev) => [...prev, { ...data, receiptUrl: null }]);
+      setExpenses((prev) => [{ ...data, receiptUrl: null }, ...prev]);
     } catch (err) {
       setError(err.message || "Failed to add expense");
+      throw err;
     }
   };
 
@@ -51,6 +70,7 @@ const fetchExpenses = async () => {
       setExpenses((prev) => prev.filter((exp) => exp.id !== id));
     } catch (err) {
       setError(err.message || "Failed to delete expense");
+      throw err;
     }
   };
 
@@ -62,6 +82,7 @@ const fetchExpenses = async () => {
       );
     } catch (err) {
       setError(err.message || "Failed to update expense");
+      throw err;
     }
   };
 
@@ -94,9 +115,12 @@ const fetchExpenses = async () => {
 
   return {
     expenses,
+    hasNext,
+    nextCursor,
     loading,
     error,
     fetchExpenses,
+    loadMore,
     addExpense,
     deleteExpense,
     updateExpense,
