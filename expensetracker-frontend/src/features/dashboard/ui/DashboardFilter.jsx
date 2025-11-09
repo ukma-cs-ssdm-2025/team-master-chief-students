@@ -1,4 +1,4 @@
-import { TeamFilter } from '../../team/shared/ui/TeamFilter';
+import { TeamFilter } from '@features/team/shared/ui/TeamFilter';
 
 export const DashboardFilter = ({ 
   filters, 

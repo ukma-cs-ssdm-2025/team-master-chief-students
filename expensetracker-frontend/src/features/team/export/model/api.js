@@ -1,4 +1,4 @@
-import { axiosInstance } from '../../../../shared/api/axiosInstance';
+import { axiosInstance } from '@shared/api/axiosInstance';
 
 export const teamExportApi = {
   exportToCSV: async (teamId) => {

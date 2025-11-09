@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 const ACCOUNTS_STORAGE_KEY = "multiAccounts";
 const ACTIVE_ACCOUNT_KEY = "activeAccountId";
 
@@ -6,7 +8,7 @@ export const getAllAccounts = () => {
     const accountsJson = localStorage.getItem(ACCOUNTS_STORAGE_KEY);
     return accountsJson ? JSON.parse(accountsJson) : [];
   } catch (error) {
-    console.error("Error reading accounts:", error);
+    logger.error("Error reading accounts:", error);
     return [];
   }
 };
@@ -15,7 +17,7 @@ const saveAllAccounts = (accounts) => {
   try {
     localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
   } catch (error) {
-    console.error("Error saving accounts:", error);
+    logger.error("Error saving accounts:", error);
   }
 };
 
@@ -64,7 +66,7 @@ export const setActiveAccount = (accountId) => {
   const account = accounts.find((acc) => acc.id === accountId);
 
   if (!account) {
-    console.error("Account not found:", accountId);
+    logger.error("Account not found:", accountId);
     return false;
   }
 
@@ -74,6 +76,8 @@ export const setActiveAccount = (accountId) => {
   localStorage.setItem(ACTIVE_ACCOUNT_KEY, accountId);
   localStorage.setItem("accessToken", account.accessToken);
   localStorage.setItem("refreshToken", account.refreshToken);
+
+  window.dispatchEvent(new Event("tokenUpdated"));
 
   return true;
 };
@@ -109,6 +113,9 @@ export const updateActiveAccountTokens = (accessToken, refreshToken) => {
     saveAllAccounts(accounts);
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
+    
+    window.dispatchEvent(new Event("tokenUpdated"));
+    
     return true;
   }
 

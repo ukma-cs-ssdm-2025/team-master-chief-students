@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { useAuth } from "../model/hooks";
-import { useMultiAccount } from "../model/useMultiAccount";
+import { useAuth } from "@features/auth/model/hooks";
+import { useMultiAccount } from "@features/auth/model/useMultiAccount";
 import { useNavigate } from "react-router-dom";
+import { LoadingSpinner, Toast } from "@shared/ui";
+import { env } from "@shared/config";
+import { validateForm, validators } from "@shared/lib";
+import { useToast } from "@shared/hooks/useToast";
 
 export const LoginForm = ({ onSwitchToRegister }) => {
   const { login, loading, error } = useAuth();
@@ -12,15 +16,38 @@ export const LoginForm = ({ onSwitchToRegister }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState({});
+  const { toast, showError, hideToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const formData = { email, password };
+    const validationRules = {
+      email: [
+        validators.required('Email is required'),
+        validators.email('Invalid email format'),
+      ],
+      password: [
+        validators.required('Password is required'),
+        validators.password('Password must be at least 6 characters'),
+      ],
+    };
+
+    const { errors: validationErrors, isValid } = validateForm(formData, validationRules);
+
+    if (!isValid) {
+      setErrors(validationErrors);
+      showError(Object.values(validationErrors)[0]);
+      return;
+    }
+
+    setErrors({});
 
     const result = await login({ email, password });
 
     if (result?.success) {
       if (result.data?.accessToken) {
-        // Добавляем аккаунт в систему множественных аккаунтов
         await addAccountAfterAuth(
           email,
           result.data.accessToken,
@@ -32,7 +59,7 @@ export const LoginForm = ({ onSwitchToRegister }) => {
 
       setTimeout(() => {
         navigate("/dashboard");
-      }, 1000);
+      }, env.LOGIN_REDIRECT_DELAY_MS);
     }
   };
 
@@ -57,11 +84,18 @@ export const LoginForm = ({ onSwitchToRegister }) => {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors({ ...errors, email: null });
+              }}
               placeholder="Email"
-              className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+              className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 ${
+                errors.email ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+            )}
           </div>
 
           {/* Password */}
@@ -70,10 +104,14 @@ export const LoginForm = ({ onSwitchToRegister }) => {
               type={showPassword ? "text" : "password"}
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) setErrors({ ...errors, password: null });
+              }}
               placeholder="Password"
-              className="w-full p-4 pr-16 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400"
+              className={`w-full p-4 pr-16 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 ${
+                errors.password ? 'border-red-500' : 'border-gray-300'
+              }`}
             />
             <button
               type="button"
@@ -82,6 +120,9 @@ export const LoginForm = ({ onSwitchToRegister }) => {
             >
               {showPassword ? "Hide" : "Show"}
             </button>
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+            )}
           </div>
 
           {/* Submit */}
@@ -92,11 +133,19 @@ export const LoginForm = ({ onSwitchToRegister }) => {
           >
             <span className={loading ? "opacity-0" : "opacity-100"}>Sign In</span>
             {loading && (
-              <span className="absolute left-1/2 top-1/2 w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin -translate-x-1/2 -translate-y-1/2"></span>
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                <LoadingSpinner size="sm" className="text-white" />
+              </span>
             )}
           </button>
 
           {error && <p className="text-red-500 text-center mt-2">{error}</p>}
+          <Toast
+            isOpen={toast.isOpen}
+            onClose={hideToast}
+            message={toast.message}
+            type={toast.type}
+          />
 
           <p className="text-center text-gray-500 text-sm">
             Don’t have an account?{" "}

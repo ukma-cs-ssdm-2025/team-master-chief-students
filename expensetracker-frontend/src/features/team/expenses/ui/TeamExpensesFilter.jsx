@@ -1,5 +1,5 @@
 // src/features/team/expenses/ui/TeamExpensesFilter.jsx
-import { TeamFilter } from '../../shared/ui/TeamFilter';
+import { TeamFilter } from '@features/team/shared/ui/TeamFilter';
 
 export const TeamExpensesFilter = ({ filters, onFiltersChange, onReset, isOpen, onToggle }) => {
   return (

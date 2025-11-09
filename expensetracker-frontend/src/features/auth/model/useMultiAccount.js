@@ -7,8 +7,10 @@ import {
   removeAccount,
   updateAccountUserInfo,
   clearAllAccounts,
-} from "../../../shared/lib/multiAccountStorage";
-import { axiosInstance } from "../../../shared/api/axiosInstance";
+  logger,
+} from "@shared/lib";
+import { axiosInstance } from "@shared/api/axiosInstance";
+import { API_ENDPOINTS } from "@shared/config";
 
 export const useMultiAccount = () => {
   const [accounts, setAccounts] = useState([]);
@@ -32,14 +34,14 @@ export const useMultiAccount = () => {
       try {
         let userInfo = null;
         try {
-          const response = await axiosInstance.get("/api/v1/users/me", {
+          const response = await axiosInstance.get(API_ENDPOINTS.AUTH.ME, {
             headers: {
               Authorization: `Bearer ${accessToken}`,
             },
           });
           userInfo = response.data;
         } catch (err) {
-          console.error("Failed to fetch user info:", err);
+          logger.error("Failed to fetch user info:", err);
         }
 
         const account = addAccount({
@@ -54,7 +56,7 @@ export const useMultiAccount = () => {
         loadAccounts();
         return account;
       } catch (error) {
-        console.error("Error adding account:", error);
+        logger.error("Error adding account:", error);
         throw error;
       } finally {
         setLoading(false);
@@ -68,10 +70,10 @@ export const useMultiAccount = () => {
       const success = setActiveAccount(accountId);
       if (success) {
         try {
-          const { data } = await axiosInstance.get("/api/v1/users/me");
+          const { data } = await axiosInstance.get(API_ENDPOINTS.AUTH.ME);
           updateAccountUserInfo(accountId, data);
         } catch (error) {
-          console.error("Error updating user info:", error);
+          logger.error("Error updating user info:", error);
         }
         loadAccounts();
         window.location.reload();
@@ -92,11 +94,11 @@ export const useMultiAccount = () => {
   const updateUserInfo = useCallback(
     async (accountId) => {
       try {
-        const { data } = await axiosInstance.get("/api/v1/users/me");
+        const { data } = await axiosInstance.get(API_ENDPOINTS.AUTH.ME);
         updateAccountUserInfo(accountId, data);
         loadAccounts();
       } catch (error) {
-        console.error("Error updating user info:", error);
+        logger.error("Error updating user info:", error);
       }
     },
     [loadAccounts]

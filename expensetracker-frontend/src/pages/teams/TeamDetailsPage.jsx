@@ -1,18 +1,18 @@
 // src/pages/teams/TeamDetailsPage.jsx
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTeamDetails, useTeamExpenses } from "../../entities/team/model/hooks";
-import { useUser } from "../../entities/user/model/hooks";
-import { AddMemberForm } from "../../features/team/add-member/ui/AddMemberForm";
-import { MembersList } from "../../features/team/members/ui/MembersList";
-import { TeamExpensesList } from "../../features/team/expenses/ui/TeamExpensesList";
-import { CreateTeamExpenseForm } from "../../features/team/expenses/ui/CreateTeamExpenseForm";
-import { TeamExpenseExport } from "../../features/team/export/ui/TeamExpenseExport";
-import { DeleteTeamModal } from "../../features/team/delete/ui/DeleteTeamModal";
-import { Modal } from "../../shared/ui/Modal";
-import { TeamExpenseTrendChart } from "../../widgets/charts/TeamExpenseTrendChart";
-import { TeamCategoryChart } from "../../widgets/charts/TeamCategoryChart";
-import { TeamAnalyticsFilter } from "../../features/team/analytics";
+import { useTeamDetails, useTeamExpenses } from "@entities/team";
+import { useUser } from "@entities/user";
+import { AddMemberForm } from "@features/team/add-member/ui/AddMemberForm";
+import { MembersList } from "@features/team/members/ui/MembersList";
+import { TeamExpensesList } from "@features/team/expenses/ui/TeamExpensesList";
+import { CreateTeamExpenseForm } from "@features/team/expenses/ui/CreateTeamExpenseForm";
+import { TeamExpenseExport } from "@features/team/export/ui/TeamExpenseExport";
+import { DeleteTeamModal } from "@features/team/delete/ui/DeleteTeamModal";
+import { Modal, Toast, LoadingSpinner } from "@shared/ui";
+import { TeamExpenseTrendChart, TeamCategoryChart } from "@widgets/charts";
+import { TeamAnalyticsFilter } from "@features/team/analytics";
+import { useToast } from "@shared/hooks/useToast";
 
 export const TeamDetailsPage = () => {
   const { teamId } = useParams();
@@ -46,6 +46,7 @@ export const TeamDetailsPage = () => {
   const [chartPeriod, setChartPeriod] = useState("daily");
   const [filters, setFilters] = useState({});
   const [isAnalyticsFilterOpen, setIsAnalyticsFilterOpen] = useState(false);
+  const { toast, showError, hideToast } = useToast();
 
   const currentUserId = user?.data?.id;
 
@@ -67,18 +68,13 @@ export const TeamDetailsPage = () => {
       await deleteTeam();
       navigate("/teams");
     } catch (err) {
-      alert(err.message || "Failed to delete team");
+      showError(err.message || "Failed to delete team");
     }
   };
 
   if (teamLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading team details...</p>
-        </div>
-      </div>
+      <LoadingSpinner size="xl" fullScreen text="Loading team details..." />
     );
   }
 
@@ -399,6 +395,13 @@ export const TeamDetailsPage = () => {
           onClose={() => setShowDeleteModal(false)}
           onConfirm={handleDeleteTeam}
           teamName={team.name}
+        />
+
+        <Toast
+          isOpen={toast.isOpen}
+          onClose={hideToast}
+          message={toast.message}
+          type={toast.type}
         />
       </div>
     </div>

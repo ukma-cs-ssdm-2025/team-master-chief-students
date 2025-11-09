@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useMultiAccount } from "../model/useMultiAccount";
+import { useMultiAccount } from "@features/auth/model/useMultiAccount";
 import { useNavigate } from "react-router-dom";
+import { Icon, ConfirmModal } from "@shared/ui";
 
 export const AccountSwitcher = () => {
   const { accounts, activeAccount, switchAccount, deleteAccount } = useMultiAccount();
   const [isOpen, setIsOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -39,7 +41,12 @@ export const AccountSwitcher = () => {
 
   const handleDeleteAccount = (e, accountId) => {
     e.stopPropagation();
-    if (window.confirm("Are you sure you want to remove this account?")) {
+    setDeleteConfirm({ accountId });
+  };
+
+  const confirmDeleteAccount = () => {
+    if (deleteConfirm) {
+      const { accountId } = deleteConfirm;
       deleteAccount(accountId);
       if (activeAccount.id === accountId && accounts.length > 1) {
         const remainingAccounts = accounts.filter((acc) => acc.id !== accountId);
@@ -47,6 +54,7 @@ export const AccountSwitcher = () => {
           switchAccount(remainingAccounts[0].id);
         }
       }
+      setDeleteConfirm(null);
     }
   };
 
@@ -70,14 +78,7 @@ export const AccountSwitcher = () => {
           </div>
           <div className="text-xs text-gray-500">{activeAccount.email}</div>
         </div>
-        <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <Icon name="chevronDown" className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
@@ -119,14 +120,7 @@ export const AccountSwitcher = () => {
                     className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                     title="Remove account"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    <Icon name="delete" className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -137,19 +131,25 @@ export const AccountSwitcher = () => {
                 onClick={handleAddAccount}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm text-gray-700"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
+                <Icon name="plus" className="w-4 h-4" />
                 Add account
               </button>
             </div>
           </div>
         </div>
+      )}
+
+      {deleteConfirm && (
+        <ConfirmModal
+          isOpen={!!deleteConfirm}
+          onClose={() => setDeleteConfirm(null)}
+          onConfirm={confirmDeleteAccount}
+          title="Remove Account"
+          message="Are you sure you want to remove this account?"
+          confirmText="Remove"
+          cancelText="Cancel"
+          type="danger"
+        />
       )}
     </div>
   );

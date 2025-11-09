@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useCategories } from "../../../../entities/category/model/hooks";
+import { useCategories } from "@entities/category";
 
 export const AddCategoryForm = () => {
   const { addCategory } = useCategories();

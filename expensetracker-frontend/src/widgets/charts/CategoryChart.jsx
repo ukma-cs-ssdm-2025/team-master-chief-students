@@ -1,7 +1,7 @@
-// src/widgets/charts/CategoryChart.jsx
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { useMemo, useState } from 'react';
-import { useCategoryStats } from '../../entities/stats/model/hooks';
+import { useCategoryStats } from '@entities/stats/model/hooks';
+import { LoadingSpinner } from '@shared/ui';
 
 const COLORS = [
   '#0088FE', '#00C49F', '#FFBB28', '#FF8042',
@@ -26,7 +26,7 @@ export const CategoryChart = ({ filters = {} }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <LoadingSpinner size="md" text="Loading chart data..." />
       </div>
     );
   }
@@ -54,10 +54,9 @@ export const CategoryChart = ({ filters = {} }) => {
   const total = stats?.totalAmount || chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <div className="w-full">
-      {/* Chart */}
-      <div className="h-80">
-        <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full flex flex-col overflow-hidden">
+      <div className="flex-shrink-0" style={{ height: '280px' }}>
+        <ResponsiveContainer width="100%" height={280} minHeight={280} minWidth={0}>
           <PieChart>
             <Pie
               data={chartData}
@@ -65,7 +64,7 @@ export const CategoryChart = ({ filters = {} }) => {
               cy="50%"
               labelLine={false}
               label={renderCustomLabel}
-              outerRadius={100}
+              outerRadius={90}
               fill="#8884d8"
               dataKey="value"
               onMouseEnter={(_, index) => setHoveredIndex(index)}
@@ -91,9 +90,8 @@ export const CategoryChart = ({ filters = {} }) => {
         </ResponsiveContainer>
       </div>
 
-      {/* Custom Legend with scrolling */}
-      <div className="mt-4 max-h-32 overflow-y-auto border-t pt-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="flex-shrink-0 mt-4 h-32 overflow-y-auto border-t pt-4">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
           {chartData.map((entry, index) => {
             const percent = entry.percentage ? entry.percentage.toFixed(1) : ((entry.value / total) * 100).toFixed(1);
             return (

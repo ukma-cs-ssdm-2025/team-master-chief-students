@@ -1,18 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { AccountSwitcher } from "../../features/auth/ui/AccountSwitcher";
-import { useMultiAccount } from "../../features/auth/model/useMultiAccount";
+import { AccountSwitcher } from "@features/auth/ui/AccountSwitcher";
+import { useMultiAccount } from "@features/auth/model/useMultiAccount";
+import { Icon, ConfirmModal } from "@shared/ui";
 
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logoutAll, activeAccount } = useMultiAccount();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = () => {
-    if (window.confirm("Log out from all accounts?")) {
-      logoutAll();
-      navigate("/login");
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logoutAll();
+    navigate("/login");
+    setShowLogoutConfirm(false);
   };
 
   const isActive = (path) => {
@@ -65,19 +70,7 @@ export const Navigation = () => {
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
+              <Icon name="logout" className="w-5 h-5" />
               <span className="hidden md:inline">Logout</span>
             </button>
           </div>
@@ -107,6 +100,19 @@ export const Navigation = () => {
           </Link>
         </div>
       </div>
+
+      {showLogoutConfirm && (
+        <ConfirmModal
+          isOpen={showLogoutConfirm}
+          onClose={() => setShowLogoutConfirm(false)}
+          onConfirm={confirmLogout}
+          title="Logout"
+          message="Log out from all accounts?"
+          confirmText="Logout"
+          cancelText="Cancel"
+          type="warning"
+        />
+      )}
     </nav>
   );
 };

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { env } from '@shared/config/env';
 
-export const useDebounce = (value, delay = 500) => {
+export const useDebounce = (value, delay = env.DEBOUNCE_DELAY_MS) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {

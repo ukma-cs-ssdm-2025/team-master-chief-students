@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { teamExportApi } from './api';
+import { logger } from '@shared/lib/logger';
 
 export const useTeamExpenseExport = () => {
   const [exporting, setExporting] = useState(null);
@@ -37,7 +38,7 @@ export const useTeamExpenseExport = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || `Failed to export to ${format.toUpperCase()}`;
       setError(errorMessage);
-      console.error('Export failed:', err);
+      logger.error('Export failed:', err);
       return { success: false, error: errorMessage };
     } finally {
       setExporting(null);

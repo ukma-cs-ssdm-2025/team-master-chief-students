@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { LoginForm } from "../../features/auth/login/LoginForm";
-import { RegisterForm } from "../../features/auth/register/RegisterForm";
+import { LoginForm } from "@features/auth/login/LoginForm";
+import { RegisterForm } from "@features/auth/register/RegisterForm";
 
 export const AuthPage = () => {
   const [isRegister, setIsRegister] = useState(false);

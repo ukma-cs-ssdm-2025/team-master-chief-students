@@ -1,66 +1,60 @@
-// src/entities/category/model/CategoryProvider.jsx
 import { useState, useEffect, useMemo } from "react";
-import { axiosInstance } from "../../../shared/api/axiosInstance";
+import { useQueryClient } from "@tanstack/react-query";
 import { CategoryContext } from "./CategoryContext";
-import { getActiveAccount } from "../../../shared/lib/multiAccountStorage";
+import { getAuthToken } from "@shared/lib";
+import {
+  useCategoriesQuery,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from "./useCategoryQueries";
 
 export const CategoryProvider = ({ children }) => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
   const [errorModal, setErrorModal] = useState(null);
 
-  const fetchCategories = async () => {
-    const activeAccount = getActiveAccount();
-    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
-
-    if (!token) {
-      console.log("No auth token, skipping categories fetch");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data } = await axiosInstance.get("/api/v1/categories");
-      setCategories(Array.isArray(data.data) ? data.data : []);
-      setError(null);
-    } catch (err) {
-      if (err.response?.status !== 401 && err.response?.status !== 403) {
-        const errorMessage = err.response?.data?.message || err.message || "Failed to fetch categories";
-        setError(errorMessage);
-        setErrorModal({
-          title: 'Error Loading Categories',
-          message: errorMessage,
-          type: 'danger'
-        });
-      } else {
-        console.log("Auth error while fetching categories, user likely not logged in yet");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: categories = [], isLoading: loading, error, refetch: fetchCategories } = useCategoriesQuery();
+  const createMutation = useCreateCategory();
+  const updateMutation = useUpdateCategory();
+  const deleteMutation = useDeleteCategory();
 
   useEffect(() => {
-    const activeAccount = getActiveAccount();
-    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+    const handleStorageChange = (e) => {
+      if (e.key === "accessToken" || e.key === "activeAccountId") {
+        const token = getAuthToken();
+        if (token) {
+          queryClient.invalidateQueries({ queryKey: ['categories'] });
+        } else {
+          queryClient.setQueryData(['categories'], []);
+        }
+      }
+    };
 
-    if (token) {
-      fetchCategories();
-    }
-  }, []);
+    const handleTokenUpdate = () => {
+      const token = getAuthToken();
+      if (token) {
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
+      } else {
+        queryClient.setQueryData(['categories'], []);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("tokenUpdated", handleTokenUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("tokenUpdated", handleTokenUpdate);
+    };
+  }, [queryClient]);
 
   const addCategory = async (category) => {
     try {
-      const { data } = await axiosInstance.post("/api/v1/categories", category);
-      if (data?.data) {
-        setCategories((prev) => [...prev, data.data]);
-      }
-      setError(null);
+      const result = await createMutation.mutateAsync(category);
       setErrorModal(null);
+      return result;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to add category";
-      setError(errorMessage);
       setErrorModal({
         title: 'Failed to Add Category',
         message: errorMessage,
@@ -72,17 +66,11 @@ export const CategoryProvider = ({ children }) => {
 
   const updateCategory = async (id, updatedCategory) => {
     try {
-      const { data } = await axiosInstance.put(`/api/v1/categories/${id}`, updatedCategory);
-      if (data?.data) {
-        setCategories((prev) =>
-          prev.map((cat) => (cat.id === id ? data.data : cat))
-        );
-      }
-      setError(null);
+      const result = await updateMutation.mutateAsync({ id, category: updatedCategory });
       setErrorModal(null);
+      return result;
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to update category";
-      setError(errorMessage);
       setErrorModal({
         title: 'Failed to Update Category',
         message: errorMessage,
@@ -94,20 +82,16 @@ export const CategoryProvider = ({ children }) => {
 
   const deleteCategory = async (id) => {
     try {
-      await axiosInstance.delete(`/api/v1/categories/${id}`);
-      setCategories((prev) => prev.filter((cat) => cat.id !== id));
-      setError(null);
+      await deleteMutation.mutateAsync(id);
       setErrorModal(null);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to delete category";
 
-      // Special handling for category with expenses
       let message = errorMessage;
       if (err.response?.status === 500 || errorMessage.includes('expense')) {
         message = "Cannot delete this category because it has associated expenses. Please delete or reassign the expenses first.";
       }
 
-      setError(message);
       setErrorModal({
         title: 'Failed to Delete Category',
         message: message,
@@ -121,17 +105,19 @@ export const CategoryProvider = ({ children }) => {
     setErrorModal(null);
   };
 
+  const errorMessage = error?.response?.data?.message || error?.message || null;
+
   const value = useMemo(() => ({
     categories,
     loading,
-    error,
+    error: errorMessage,
     errorModal,
     fetchCategories,
     addCategory,
     updateCategory,
     deleteCategory,
     clearErrorModal,
-  }), [categories, loading, error, errorModal]);
+  }), [categories, loading, errorMessage, errorModal]);
 
   return (
     <CategoryContext.Provider value={value}>

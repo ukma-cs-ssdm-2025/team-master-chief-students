@@ -1,10 +1,7 @@
-// src/pages/teams/TeamsPage.jsx
 import React, { useState } from "react";
-import { useTeams } from "../../entities/team/model/hooks";
-import { TeamList } from "../../entities/team/ui/TeamList";
-import { CreateTeamForm } from "../../features/team/create/ui/CreateTeamForm";
-import { Modal } from "../../shared/ui/Modal";
-import { Navigation } from "../../widgets/navigation/Navigation";
+import { useTeams, TeamList } from "@entities/team";
+import { CreateTeamForm } from "@features/team/create/ui/CreateTeamForm";
+import { Modal, Icon } from "@shared/ui";
 
 export const TeamsPage = () => {
   const { teams, loading, error, createTeam, fetchTeams } = useTeams();
@@ -12,13 +9,10 @@ export const TeamsPage = () => {
 
   const handleCreateTeam = async (teamData) => {
     await createTeam(teamData);
-    await fetchTeams();
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Teams</h1>
@@ -28,19 +22,7 @@ export const TeamsPage = () => {
             onClick={() => setShowCreateModal(true)}
             className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors flex items-center gap-2 shadow-md"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <Icon name="plus" className="w-5 h-5" />
             Create Team
           </button>
         </div>
@@ -58,7 +40,6 @@ export const TeamsPage = () => {
             </div>
           </Modal>
         )}
-      </div>
     </div>
   );
 };

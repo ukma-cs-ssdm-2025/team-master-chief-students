@@ -1,19 +1,15 @@
-// src/pages/dashboard/DashboardPage.jsx
 import React, { useState } from "react";
-import { useUser } from "../../entities/user/model/hooks";
-import { useExpenses } from "../../entities/expense/model/hooks";
-import { useCategories } from "../../entities/category/model/hooks";
-import { ProfileCard } from "../../entities/user/ui/ProfileCard";
-import { ExpenseForm } from "../../entities/expense/ui/ExpenseForm";
-import { ExpenseList } from "../../entities/expense/ui/ExpenseList";
-import { CategoryForm } from "../../entities/category/ui/CategoryForm";
-import { CategoryList } from "../../entities/category/ui/CategoryList";
-import { StatsCards } from "../../widgets/stats/StatsCards";
-import { ChartsSection } from "../../widgets/charts/ChartsSection";
-import { Navigation } from "../../widgets/navigation/Navigation";
-import { ExpenseExport } from "../../features/expense/export/ui/ExpenseExport";
-import { DashboardFilter } from "../../features/dashboard/ui/DashboardFilter";
-import { useDebounce } from "../../shared/hooks/useDebounce";
+import { useUser, ProfileCard } from "@entities/user";
+import { useExpenses } from "@entities/expense";
+import { useCategories } from "@entities/category";
+import { ExpenseForm, ExpenseList } from "@entities/expense";
+import { CategoryForm, CategoryList } from "@entities/category";
+import { StatsCards } from "@widgets/stats/StatsCards";
+import { ChartsSection } from "@widgets/charts";
+import { ExpenseExport } from "@features/expense/export/ui/ExpenseExport";
+import { DashboardFilter } from "@features/dashboard/ui/DashboardFilter";
+import { useDebounce } from "@shared/hooks/useDebounce";
+import { LoadingSpinner } from "@shared/ui";
 
 export const DashboardPage = () => {
   const { user, loading: userLoading, error: userError } = useUser();
@@ -21,7 +17,6 @@ export const DashboardPage = () => {
   const [filters, setFilters] = useState({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
-  // Debounce filters to avoid too many API calls while typing
   const debouncedFilters = useDebounce(filters, 500);
 
   const {
@@ -34,6 +29,8 @@ export const DashboardPage = () => {
     uploadReceipt,
     deleteReceipt,
     loadMore,
+    loadReceipt,
+    isReceiptLoading,
   } = useExpenses(debouncedFilters);
 
   const { addCategory, updateCategory, deleteCategory } = useCategories();
@@ -46,13 +43,8 @@ export const DashboardPage = () => {
     setFilters({});
   };
 
-  // Only show full screen loading for initial user load, not for expense filtering
   if (userLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <LoadingSpinner size="xl" fullScreen text="Loading dashboard..." />;
   }
 
   if (userError) {
@@ -66,10 +58,8 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navigation />
-
-      <div className="flex-1 w-full min-h-0 mt-3">
+    <div className="flex flex-col">
+      <div className="flex-1 w-full min-h-0">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 w-full h-full overflow-hidden">
 
           {/* LEFT COLUMN */}
@@ -120,6 +110,8 @@ export const DashboardPage = () => {
                 onUploadReceipt={uploadReceipt}
                 onDeleteReceipt={deleteReceipt}
                 onLoadMore={loadMore}
+                onLoadReceipt={loadReceipt}
+                isReceiptLoading={isReceiptLoading}
               />
             </div>
           </div>

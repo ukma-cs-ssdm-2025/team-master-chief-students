@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { statsApi } from "./api";
-import { getActiveAccount } from "../../../shared/lib/multiAccountStorage";
+import { getAuthToken, logger } from "@shared/lib";
 
 export const useStats = () => {
   const [stats, setStats] = useState(null);
@@ -8,12 +8,10 @@ export const useStats = () => {
   const [error, setError] = useState(null);
 
   const fetchStats = async () => {
-    // Check if user is authenticated before fetching
-    const activeAccount = getActiveAccount();
-    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+    const token = getAuthToken();
 
     if (!token) {
-      console.log("No auth token, skipping stats fetch");
+      logger.debug("No auth token, skipping stats fetch");
       return;
     }
 
@@ -23,20 +21,17 @@ export const useStats = () => {
       const data = await statsApi.getStats();
       setStats(data);
     } catch (err) {
-      // Only set error if it's not an auth error (401/403)
       if (err.response?.status !== 401 && err.response?.status !== 403) {
         setError(err.message || "Failed to fetch statistics");
       }
-      console.error("Stats fetch error:", err);
+      logger.error("Stats fetch error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Only fetch if authenticated
-    const activeAccount = getActiveAccount();
-    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+    const token = getAuthToken();
 
     if (token) {
       fetchStats();
@@ -61,8 +56,7 @@ export const useTimeSeriesStats = (params = {}) => {
   }, [JSON.stringify(params)]);
 
   const fetchStats = async () => {
-    const activeAccount = getActiveAccount();
-    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+    const token = getAuthToken();
 
     if (!token) {
       return;
@@ -77,7 +71,7 @@ export const useTimeSeriesStats = (params = {}) => {
       if (err.response?.status !== 401 && err.response?.status !== 403) {
         setError(err.message || "Failed to fetch time series stats");
       }
-      console.error("Time series stats fetch error:", err);
+      logger.error("Time series stats fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -101,8 +95,7 @@ export const useCategoryStats = (params = {}) => {
   }, [JSON.stringify(params)]);
 
   const fetchStats = async () => {
-    const activeAccount = getActiveAccount();
-    const token = activeAccount?.accessToken || localStorage.getItem("accessToken");
+    const token = getAuthToken();
 
     if (!token) {
       return;
@@ -117,7 +110,7 @@ export const useCategoryStats = (params = {}) => {
       if (err.response?.status !== 401 && err.response?.status !== 403) {
         setError(err.message || "Failed to fetch category stats");
       }
-      console.error("Category stats fetch error:", err);
+      logger.error("Category stats fetch error:", err);
     } finally {
       setLoading(false);
     }

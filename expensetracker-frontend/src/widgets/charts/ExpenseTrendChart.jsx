@@ -1,7 +1,7 @@
-// src/widgets/charts/ExpenseTrendChart.jsx
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
-import { useTimeSeriesStats } from '../../entities/stats/model/hooks';
+import { useTimeSeriesStats } from '@entities/stats/model/hooks';
+import { LoadingSpinner } from '@shared/ui';
 
 const formatDateLabel = (dateStr, period) => {
   const date = new Date(dateStr);
@@ -82,7 +82,42 @@ const groupByPeriod = (byPeriod, period) => {
 };
 
 export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
-  const { stats, loading, error } = useTimeSeriesStats(filters);
+  const effectiveFilters = useMemo(() => {
+    const today = new Date();
+    const toDate = today.toISOString().split('T')[0];
+    
+    if (period === 'daily') {
+      // Last month for daily
+      const lastMonth = new Date(today);
+      lastMonth.setMonth(today.getMonth() - 1);
+      const fromDate = lastMonth.toISOString().split('T')[0];
+      
+      return {
+        ...filters,
+        fromDate,
+        toDate
+      };
+    } else if (period === 'weekly') {
+      // Last year for weekly
+      const lastYear = new Date(today);
+      lastYear.setFullYear(today.getFullYear() - 1);
+      const fromDate = lastYear.toISOString().split('T')[0];
+      
+      return {
+        ...filters,
+        fromDate,
+        toDate
+      };
+    } else if (period === 'monthly') {
+      // All time for monthly - remove date filters if they exist
+      const { fromDate, toDate, ...restFilters } = filters;
+      return restFilters;
+    }
+    
+    return filters;
+  }, [period, filters]);
+
+  const { stats, loading, error } = useTimeSeriesStats(effectiveFilters);
 
   const chartData = useMemo(() => {
     if (!stats?.byPeriod) return [];
@@ -91,15 +126,15 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <LoadingSpinner size="lg" text="Loading chart data..." />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full text-red-500">
+      <div className="flex items-center justify-center h-full min-h-[400px] text-red-500">
         {error}
       </div>
     );
@@ -107,7 +142,7 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">
+      <div className="flex items-center justify-center h-full min-h-[400px] text-gray-500">
         No data to display
       </div>
     );
@@ -117,8 +152,8 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
   const yAxisMax = maxAmount > 0 ? Math.ceil(maxAmount * 1.1) : 100;
 
   return (
-    <div className="w-full h-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full min-h-[400px] min-w-0">
+      <ResponsiveContainer width="100%" height={400} minHeight={400} minWidth={0}>
         <LineChart
           data={chartData}
           margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
