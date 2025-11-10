@@ -1,34 +1,34 @@
-## Функціональні вимоги
+## Functional Requirements
 
-| Код        | Тип | Опис вимоги                                                  |
+| Code        | Type | Description                                                  |
 | ---------- | --- | ------------------------------------------------------------ |
-| **FR-001** | FR  | Авторизація користувачів за логіном і паролем                |
-| **FR-002** | FR  | Додавання нової витрати                                      |
-| **FR-003** | FR  | Перегляд списку витрат                                       |
-| **FR-004** | FR  | Пошук витрат за ключовим словом                              |
-| **FR-005** | FR  | Перегляд статистики витрат у вигляді діаграм                 |
-| **FR-006** | FR  | Пошук витрат за сумою                                        |
-| **FR-007** | FR  | Експорт витрат у формат CSV                                  |
-| **FR-008** | FR  | Експорт витрат у формат PDF                                  |
-| **FR-009** | FR  | Управління користувачами: додавання, блокування, видалення   |
-| **FR-010** | FR  | Відображення повідомлення при відсутності результатів пошуку |
-| **FR-011** | FR  | Оновлення діаграми при зміні періоду фільтрації              |
+| **FR-001** | FR  | User authentication by login and password                |
+| **FR-002** | FR  | Adding a new expense                                      |
+| **FR-003** | FR  | Viewing expense list                                       |
+| **FR-004** | FR  | Searching expenses by keyword                              |
+| **FR-005** | FR  | Viewing expense statistics in the form of charts                 |
+| **FR-006** | FR  | Searching expenses by amount                                        |
+| **FR-007** | FR  | Exporting expenses to CSV format                                  |
+| **FR-008** | FR  | Exporting expenses to PDF format                                  |
+| **FR-009** | FR  | User management: adding, blocking, deletion   |
+| **FR-010** | FR  | Displaying a message when search results are empty |
+| **FR-011** | FR  | Updating chart when filter period changes              |
 
-## Нефункціональні вимоги
+## Non-Functional Requirements
 
-|Код|Тип|Опис вимоги|
+|Code|Type|Description|
 |---|---|---|
-|**PERF-001**|NFR|p95 latency ≤ 300 ms при навантаженні 500 rps|
-|**PERF-002**|NFR|Час генерації експорту (CSV або PDF) ≤ 2 сек для списку до 10 000 витрат|
+|**PERF-001**|NFR|p95 latency ≤ 300 ms under load of 500 rps|
+|**PERF-002**|NFR|Export generation time (CSV or PDF) ≤ 2 sec for list up to 10,000 expenses|
 |**REL-001**|NFR|Uptime ≥ 99.5%|
-|**REL-002**|NFR|Відновлення після збою ≤ 5 хвилин|
-|**SEC-001**|NFR|Паролі зберігаються у хешованому вигляді (наприклад, bcrypt, salt ≥ 10)|
-|**SEC-002**|NFR|Використання HTTPS для всіх запитів|
-|**SEC-003**|NFR|Сесії з автоматичним завершенням після 15 хв. неактивності|
-|**USAB-001**|NFR|Інтерфейс адаптивний (підтримка мобільних, планшетів, десктопів)|
-|**USAB-002**|NFR|Локалізація українською та англійською мовами|
-|**COMP-001**|NFR|Підтримка сучасних браузерів (Chrome, Firefox, Edge, Safari, останні 2 версії)|
-|**MAINT-001**|NFR|Код покритий тестами не менше ніж на 70%|
-|**MAINT-002**|NFR|Використання CI/CD для автоматичного деплою|
-|**DATA-001**|NFR|Дані експорту відповідають формату UTF-8|
-|**DATA-002**|NFR|Усі операції з даними логуються (додавання, блокування, видалення користувачів, експорт)|
+|**REL-002**|NFR|Recovery after failure ≤ 5 minutes|
+|**SEC-001**|NFR|Passwords stored in hashed form (e.g., bcrypt, salt ≥ 10)|
+|**SEC-002**|NFR|Use of HTTPS for all requests|
+|**SEC-003**|NFR|Sessions with automatic termination after 15 min of inactivity|
+|**USAB-001**|NFR|Interface is responsive (support for mobile, tablets, desktops)|
+|**USAB-002**|NFR|Localization in Ukrainian and English|
+|**COMP-001**|NFR|Support for modern browsers (Chrome, Firefox, Edge, Safari, last 2 versions)|
+|**MAINT-001**|NFR|Code covered by tests at least 70%|
+|**MAINT-002**|NFR|Use of CI/CD for automatic deployment|
+|**DATA-001**|NFR|Export data conforms to UTF-8 format|
+|**DATA-002**|NFR|All data operations are logged (adding, blocking, deleting users, export)|

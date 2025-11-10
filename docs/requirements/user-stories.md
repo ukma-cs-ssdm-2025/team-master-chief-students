@@ -1,127 +1,127 @@
-## US-001: Авторизація за логіном та паролем
+## US-001: Authentication by Login and Password
 
-**Як** користувач,  
-**Я хочу** мати змогу увійти в систему за допомогою логіну та паролю,  
-**Щоб** отримати доступ до моїх даних та функцій сервісу.
+**As** a user,  
+**I want** to be able to log in to the system using login and password,  
+**So that** I can access my data and service functions.
 
-**Критерії прийняття:**
+**Acceptance Criteria:**
 
-1. **Given:** Неавторизований користувач на сторінці входу  
-    **When:** Користувач вводить валідний логін і пароль та натискає "Увійти"  
-    **Then:** Користувач авторизується і потрапляє на головну сторінку
+1. **Given:** Unauthenticated user on the login page  
+    **When:** User enters valid login and password and clicks "Login"  
+    **Then:** User is authenticated and lands on the main page
     
-2. **Given:** Неавторизований користувач на сторінці входу  
-    **When:** Користувач вводить некоректні дані для входу  
-    **Then:** Відображається повідомлення про помилку
+2. **Given:** Unauthenticated user on the login page  
+    **When:** User enters incorrect login credentials  
+    **Then:** An error message is displayed
     
 
 ---
 
-## US-002: Додавання витрати
+## US-002: Adding an Expense
 
-**Як** користувач,  
-**Я хочу** мати змогу додавати нову витрату в систему,  
-**Щоб** відслідковувати мої фінансові операції.
+**As** a user,  
+**I want** to be able to add a new expense to the system,  
+**So that** I can track my financial operations.
 
-**Критерії прийняття:**
+**Acceptance Criteria:**
 
-1. **Given:** Авторизований користувач знаходиться у своєму акаунті  
-    **When:** Користувач натискає "Додати витрату" та заповнює форму (сума, категорія, дата, опис)  
-    **Then:** Витрата зберігається у системі та відображається у списку витрат
+1. **Given:** Authenticated user is in their account  
+    **When:** User clicks "Add Expense" and fills out the form (amount, category, date, description)  
+    **Then:** Expense is saved in the system and displayed in the expense list
     
-2. **Given:** Авторизований користувач додає витрату  
-    **When:** Користувач залишає обов’язкове поле пустим (наприклад, сума)  
-    **Then:** Система показує повідомлення про помилку і не дозволяє зберегти
+2. **Given:** Authenticated user adds an expense  
+    **When:** User leaves a required field empty (e.g., amount)  
+    **Then:** System shows an error message and does not allow saving
     
-3. **Given:** Успішно додана витрата  
-    **When:** Користувач переглядає список витрат  
-    **Then:** Нова витрата відображається серед інших із правильною сумою, категорією та датою
-
-
-
----
-
-## US-003: Перегляд статистики витрат у вигляді діаграми
-
-**Як** користувач,
-**Я хочу** бачити витрати у вигляді діаграм за категоріями та періодами,
-**Щоб** аналізувати свої фінансові звички.
-
-**Критерії прийняття:**
-
-1. **Given:** Користувач має збережені витрати у різних категоріях
-    **When:** Він відкриває вкладку "Статистика"
-    **Then:** Система відображає діаграму з розподілом витрат за категоріями
-
-2. **Given:** Користувач змінює період фільтрації (наприклад, з "Місяць" на "Тиждень")
-    **When:** Система оновлює дані
-    **Then:** Діаграма відображає витрати лише за вибраний період
+3. **Given:** Successfully added expense  
+    **When:** User views the expense list  
+    **Then:** New expense is displayed among others with correct amount, category, and date
 
 
 
 ---
 
-## US-004: Пошук витрат
+## US-003: Viewing Expense Statistics in Chart Form
 
-**Як** користувач,
-**Я хочу** швидко знаходити витрати через пошук,
-**Щоб** не переглядати весь список вручну.
+**As** a user,
+**I want** to see expenses in the form of charts by categories and periods,
+**So that** I can analyze my financial habits.
 
-**Критерії прийняття:**
+**Acceptance Criteria:**
 
-1. **Given:** Користувач знаходиться у розділі "Витрати"
-    **When:** Він вводить ключове слово у поле пошуку (наприклад, "кава")
-    **Then:** Система відображає тільки ті витрати, що містять це слово у назві або описі
+1. **Given:** User has saved expenses in different categories
+    **When:** They open the "Statistics" tab
+    **Then:** System displays a chart with expense distribution by categories
 
-2. **Given:** Користувач вводить частину слова (наприклад, "кав")
-    **When:** Система виконує пошук
-    **Then:** Відображаються всі витрати, що підходять під цей фрагмент слова
+2. **Given:** User changes the filter period (e.g., from "Month" to "Week")
+    **When:** System updates the data
+    **Then:** Chart displays expenses only for the selected period
 
-3. **Given:** Користувач вводить слово або частину
-    **When:** Пошук не знайшов даних за цими літерами
-    **Then:** Відображається повідомлення "Немає витрат за вашим запитом"
 
-4. **Given:** Користувач очищає поле пошуку
-    **When:** Система оновлює список
-    **Then:** Відображаються всі витрати без фільтрації
+
+---
+
+## US-004: Searching Expenses
+
+**As** a user,
+**I want** to quickly find expenses through search,
+**So that** I don't have to manually browse through the entire list.
+
+**Acceptance Criteria:**
+
+1. **Given:** User is in the "Expenses" section
+    **When:** They enter a keyword in the search field (e.g., "coffee")
+    **Then:** System displays only those expenses that contain this word in the name or description
+
+2. **Given:** User enters part of a word (e.g., "coff")
+    **When:** System performs the search
+    **Then:** All expenses matching this word fragment are displayed
+
+3. **Given:** User enters a word or part of it
+    **When:** Search finds no data matching these letters
+    **Then:** Message "No expenses found for your query" is displayed
+
+4. **Given:** User clears the search field
+    **When:** System updates the list
+    **Then:** All expenses are displayed without filtering
 
 
    
 ---
 
-## US-005: Аналітика фінансів
+## US-005: Financial Analytics
 
-**Як** користувач,  
-**Я хочу** мати змогу бачити свої витрати та доходи за певний період,  
-**Щоб** мати змогу аналізувати свої фінанси та планувати бюджет ефективніше.
+**As** a user,  
+**I want** to be able to see my expenses and income for a certain period,  
+**So that** I can analyze my finances and plan my budget more effectively.
 
-**Критерії прийняття:**
+**Acceptance Criteria:**
 
-1. **Given:** Користувач увійшов в систему
-    **When:** Користувач обирає певний період (день, тиждень, місяць, рік)
-    **Then:** Система відображає всі витрати та доходи за обраний період
+1. **Given:** User is logged in
+    **When:** User selects a certain period (day, week, month, year)
+    **Then:** System displays all expenses and income for the selected period
     
-2. **Given:** Користувач обрав період
-    **When:** Дані за цей період відсутні
-    **Then:** Відображається повідомлення про відсутність данних
+2. **Given:** User selected a period
+    **When:** Data for this period is missing
+    **Then:** Message about missing data is displayed
 
 
 
 ---
 
-## US-006: Пошук витрат за сумою
+## US-006: Searching Expenses by Amount
 
-**Як** користувач,  
-**Я хочу** швидко знаходити конкретні витрати за сумою,  
-**Щоб** не витрачати час на ручний перегляд великої кількості записів..
+**As** a user,  
+**I want** to quickly find specific expenses by amount,  
+**So that** I don't waste time manually browsing through a large number of records.
 
-**Критерії прийняття:**
+**Acceptance Criteria:**
 
-1. **Given:** Користувач увійшов в систему
-    **When:** Користувач ввів суму пошуку
-    **Then:** Система відображає список витрат, що відповідають заданій сумі
+1. **Given:** User is logged in
+    **When:** User enters a search amount
+    **Then:** System displays a list of expenses matching the specified amount
     
-2. **Given:** Користувач виконав пошук за суммою
-    **When:** Дані за заданою сумою відсутні
-    **Then:** Відображається повідомлення "Немає результатів для заданої суми"
+2. **Given:** User performed a search by amount
+    **When:** Data for the specified amount is missing
+    **Then:** Message "No results for the specified amount" is displayed
     
