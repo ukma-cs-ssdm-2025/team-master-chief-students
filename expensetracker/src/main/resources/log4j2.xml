@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <!-- Define log file paths -->
+        <Property name="LOG_PATH">logs</Property>
+        <Property name="LOG_FILE_NAME">expense-tracker</Property>
+        <Property name="ARCHIVE_PATH">${LOG_PATH}/archive</Property>
+        
+        <!-- Pattern for masking sensitive data -->
+        <!-- Masks: Bearer tokens, passwords, refresh tokens -->
+        <Property name="MASKED_MSG">%replace{%replace{%replace{%msg}{Bearer [A-Za-z0-9_-]+}{Bearer ***}}{"password"\s*:\s*"[^"]*"}{"password":"***"}}{"refreshToken"\s*:\s*"[^"]*"}{"refreshToken":"***"}</Property>
+        
+        <!-- Console pattern -->
+        <Property name="CONSOLE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight{%-5level}{ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue} [%t] %style{%logger{36}}{cyan} - ${MASKED_MSG}%n%throwable</Property>
+        
+        <!-- File pattern -->
+        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%t] %logger{36} - ${MASKED_MSG}%n%throwable</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- Console Appender -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${CONSOLE_PATTERN}"/>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Console>
+
+        <!-- Rolling File Appender for all logs -->
+        <RollingFile name="RollingFile" 
+                     fileName="${LOG_PATH}/${LOG_FILE_NAME}.log"
+                     filePattern="${ARCHIVE_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${FILE_PATTERN}"/>
+            <Policies>
+                <!-- Rollover daily -->
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <!-- Rollover when file size exceeds 100MB -->
+                <SizeBasedTriggeringPolicy size="100MB"/>
+            </Policies>
+            <!-- Keep 30 days of logs, max 10 files per day -->
+            <DefaultRolloverStrategy max="10">
+                <Delete basePath="${ARCHIVE_PATH}" maxDepth="1">
+                    <IfFileName glob="${LOG_FILE_NAME}-*.log.gz"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <!-- Error File Appender - only ERROR and FATAL -->
+        <RollingFile name="ErrorFile" 
+                     fileName="${LOG_PATH}/${LOG_FILE_NAME}-error.log"
+                     filePattern="${ARCHIVE_PATH}/${LOG_FILE_NAME}-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${FILE_PATTERN}"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10">
+                <Delete basePath="${ARCHIVE_PATH}" maxDepth="1">
+                    <IfFileName glob="${LOG_FILE_NAME}-error-*.log.gz"/>
+                    <IfLastModified age="30d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+
+        <!-- Async Appender for better performance -->
+        <Async name="AsyncRollingFile" bufferSize="512" blocking="false">
+            <AppenderRef ref="RollingFile"/>
+        </Async>
+
+        <Async name="AsyncErrorFile" bufferSize="256" blocking="false">
+            <AppenderRef ref="ErrorFile"/>
+        </Async>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application package -->
+        <Logger name="com.example.expensetracker" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+            <AppenderRef ref="AsyncErrorFile"/>
+        </Logger>
+
+        <!-- Spring Framework - reduce noise -->
+        <Logger name="org.springframework" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <!-- Spring Security - reduce noise -->
+        <Logger name="org.springframework.security" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <!-- Hibernate/JPA - reduce noise -->
+        <Logger name="org.hibernate" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <Logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <Logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <!-- Flyway -->
+        <Logger name="org.flywaydb" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <!-- HikariCP Connection Pool -->
+        <Logger name="com.zaxxer.hikari" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <!-- JWT -->
+        <Logger name="io.jsonwebtoken" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+        </Logger>
+
+        <!-- Root Logger -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="AsyncRollingFile"/>
+            <AppenderRef ref="AsyncErrorFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
+

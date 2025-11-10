@@ -1,8 +1,6 @@
 package com.example.expensetracker.service.impl;
 
-import com.example.expensetracker.dto.CreateExpenseDto;
-import com.example.expensetracker.dto.CursorPageResponse;
-import com.example.expensetracker.dto.ExpenseDto;
+import com.example.expensetracker.dto.*;
 import com.example.expensetracker.entity.CategoryEntity;
 import com.example.expensetracker.entity.ExpenseEntity;
 import com.example.expensetracker.entity.TeamEntity;
@@ -43,7 +41,7 @@ public class TeamExpenseServiceImpl extends BaseService implements TeamExpenseSe
 
     @Override
     @Transactional(readOnly = true)
-    public CursorPageResponse<ExpenseDto> listTeamExpenses(Long userId, Long teamId, String cursor, int limit) {
+    public CursorPageResponse<ExpenseResponse> listTeamExpenses(Long userId, Long teamId, String cursor, int limit) {
         log.debug("Listing team expenses for user {} in team {} with cursor: {}", userId, teamId, cursor);
         
         teamAcl.requireMembership(userId, teamId);
@@ -87,8 +85,8 @@ public class TeamExpenseServiceImpl extends BaseService implements TeamExpenseSe
             expenses = expenses.subList(0, pageSize);
         }
 
-        List<ExpenseDto> expenseDtos = expenses.stream()
-                .map(expenseMapper::toDto)
+        List<ExpenseResponse> expenseResponses = expenses.stream()
+                .map(expenseMapper::toResponse)
                 .collect(Collectors.toList());
 
         String nextCursor = null;
@@ -97,12 +95,12 @@ public class TeamExpenseServiceImpl extends BaseService implements TeamExpenseSe
             nextCursor = CursorUtil.encodeCursor(lastExpense.getCreatedAt(), lastExpense.getId());
         }
 
-        return CursorPageResponse.of(expenseDtos, nextCursor, hasNext);
+        return CursorPageResponse.of(expenseResponses, nextCursor, hasNext);
     }
 
     @Override
     @Transactional
-    public ExpenseDto createInTeam(Long me, Long teamId, CreateExpenseDto dto) {
+    public ExpenseResponse createInTeam(Long me, Long teamId, CreateExpenseRequest request) {
         log.info("Creating expense in team {} by user {}", teamId, me);
         
         teamAcl.requireMembership(me, teamId, TeamRole.MEMBER, TeamRole.ADMIN, TeamRole.OWNER);
@@ -112,28 +110,24 @@ public class TeamExpenseServiceImpl extends BaseService implements TeamExpenseSe
         
         var currentUser = getAuthenticatedUser();
         
-        CategoryEntity category = categoryRepository.findById(dto.getCategoryId())
+        CategoryEntity category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new NotFoundException("Category not found"));
         
-        ExpenseEntity expense = ExpenseEntity.builder()
-                .user(currentUser)
-                .category(category)
-                .team(team)
-                .amount(dto.getAmount())
-                .description(dto.getDescription())
-                .date(dto.getDate() != null ? dto.getDate() : LocalDate.now())
-                .build();
+        ExpenseEntity expense = expenseMapper.toEntity(request);
+        expense.setUser(currentUser);
+        expense.setCategory(category);
+        expense.setTeam(team);
         
         expense = expenseRepository.save(expense);
         
         log.info("Expense {} created in team {}", expense.getId(), teamId);
         
-        return expenseMapper.toDto(expense);
+        return expenseMapper.toResponse(expense);
     }
 
     @Override
     @Transactional
-    public ExpenseDto sharePersonalToTeam(Long me, Long expenseId, Long teamId, ShareMode mode) {
+    public ExpenseResponse sharePersonalToTeam(Long me, Long expenseId, Long teamId, ShareMode mode) {
         log.info("Sharing expense {} to team {} with mode {} by user {}", expenseId, teamId, mode, me);
         
         ExpenseEntity expense = expenseRepository.findById(expenseId)
@@ -157,10 +151,23 @@ public class TeamExpenseServiceImpl extends BaseService implements TeamExpenseSe
             expense = expenseRepository.save(expense);
             log.info("Expense {} moved to team {}", expenseId, teamId);
         } else if (mode == ShareMode.COPY_REFERENCE) {
-            throw new ValidationException("COPY_REFERENCE mode is not yet implemented");
+            ExpenseEntity teamExpense = ExpenseEntity.builder()
+                    .user(expense.getUser())
+                    .category(expense.getCategory())
+                    .team(team)
+                    .amount(expense.getAmount())
+                    .description(expense.getDescription())
+                    .date(expense.getDate())
+                    .createdAt(Instant.now())
+                    .build();
+            
+            teamExpense = expenseRepository.save(teamExpense);
+            log.info("Expense {} copied to team {} as expense {}", expenseId, teamId, teamExpense.getId());
+            
+            return expenseMapper.toResponse(teamExpense);
         }
         
-        return expenseMapper.toDto(expense);
+        return expenseMapper.toResponse(expense);
     }
 }
 

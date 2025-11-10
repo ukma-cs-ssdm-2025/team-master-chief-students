@@ -1,0 +1,307 @@
+{
+	"info": {
+		"_postman_id": "filter-service-collection",
+		"name": "Expense Filter Service",
+		"description": "Collection for Expense Filter Service API - SQL-level filtering with cursor-based pagination",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get Filtered Expenses",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/api/v1/expenses/filter-service/items?limit=20",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"expenses",
+						"filter-service",
+						"items"
+					],
+					"query": [
+						{
+							"key": "categoryId",
+							"value": "",
+							"description": "Filter by category ID",
+							"disabled": true
+						},
+						{
+							"key": "category",
+							"value": "",
+							"description": "Filter by category name",
+							"disabled": true
+						},
+						{
+							"key": "categoryMatch",
+							"value": "exact",
+							"description": "Match type: 'exact' or 'like'",
+							"disabled": true
+						},
+						{
+							"key": "fromDate",
+							"value": "2025-01-01",
+							"description": "Start date (ISO format)",
+							"disabled": true
+						},
+						{
+							"key": "toDate",
+							"value": "2025-12-31",
+							"description": "End date (ISO format)",
+							"disabled": true
+						},
+						{
+							"key": "minAmount",
+							"value": "0",
+							"description": "Minimum amount",
+							"disabled": true
+						},
+						{
+							"key": "maxAmount",
+							"value": "1000",
+							"description": "Maximum amount",
+							"disabled": true
+						},
+						{
+							"key": "hasReceipt",
+							"value": "true",
+							"description": "Filter by receipt presence (true/false)",
+							"disabled": true
+						},
+						{
+							"key": "teamId",
+							"value": "",
+							"description": "Filter by team ID",
+							"disabled": true
+						},
+						{
+							"key": "search",
+							"value": "",
+							"description": "Full-text search on description",
+							"disabled": true
+						},
+						{
+							"key": "cursor",
+							"value": "",
+							"description": "Cursor for next page (base64)",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "20",
+							"description": "Page size (1-100, default: 20)"
+						}
+					]
+				},
+				"description": "Get filtered expenses with cursor-based pagination. Server does NOT sort - client handles sorting."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Filtered Expenses - With Filters",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/api/v1/expenses/filter-service/items?categoryId=5&fromDate=2025-01-01&toDate=2025-12-31&minAmount=10&maxAmount=1000&hasReceipt=true&limit=50",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"expenses",
+						"filter-service",
+						"items"
+					],
+					"query": [
+						{
+							"key": "categoryId",
+							"value": "5"
+						},
+						{
+							"key": "fromDate",
+							"value": "2025-01-01"
+						},
+						{
+							"key": "toDate",
+							"value": "2025-12-31"
+						},
+						{
+							"key": "minAmount",
+							"value": "10"
+						},
+						{
+							"key": "maxAmount",
+							"value": "1000"
+						},
+						{
+							"key": "hasReceipt",
+							"value": "true"
+						},
+						{
+							"key": "limit",
+							"value": "50"
+						}
+					]
+				},
+				"description": "Example with multiple filters applied"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Filtered Expenses - Next Page",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/api/v1/expenses/filter-service/items?cursor={{NEXT_CURSOR}}&limit=20",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"expenses",
+						"filter-service",
+						"items"
+					],
+					"query": [
+						{
+							"key": "cursor",
+							"value": "{{NEXT_CURSOR}}",
+							"description": "Cursor from previous response"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						}
+					]
+				},
+				"description": "Get next page using cursor from previous response"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Expense Statistics",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/api/v1/expenses/filter-service/stats",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"expenses",
+						"filter-service",
+						"stats"
+					],
+					"query": []
+				},
+				"description": "Get aggregated statistics for all expenses (no filters)"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Expense Statistics - With Filters",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{BASE_URL}}/api/v1/expenses/filter-service/stats?categoryId=5&fromDate=2025-01-01&toDate=2025-12-31&minAmount=10&maxAmount=1000",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"expenses",
+						"filter-service",
+						"stats"
+					],
+					"query": [
+						{
+							"key": "categoryId",
+							"value": "5"
+						},
+						{
+							"key": "fromDate",
+							"value": "2025-01-01"
+						},
+						{
+							"key": "toDate",
+							"value": "2025-12-31"
+						},
+						{
+							"key": "minAmount",
+							"value": "10"
+						},
+						{
+							"key": "maxAmount",
+							"value": "1000"
+						}
+					]
+				},
+				"description": "Get statistics with filters applied"
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "JWT_TOKEN",
+			"value": "",
+			"type": "string",
+			"description": "JWT access token from /api/v1/auth/login"
+		},
+		{
+			"key": "NEXT_CURSOR",
+			"value": "",
+			"type": "string",
+			"description": "Cursor from previous pagination response"
+		}
+	]
+}
+

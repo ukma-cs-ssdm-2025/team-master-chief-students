@@ -1,6 +1,7 @@
 package com.example.expensetracker.security;
 
 import com.example.expensetracker.entity.UserEntity;
+import com.example.expensetracker.exception.InternalServerException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -16,6 +17,8 @@ import java.util.Map;
 @Service
 public class JwtService {
 
+    private static final int MIN_SECRET_LENGTH = 32;
+
     private final SecretKey accessSecretKey;
     private final SecretKey refreshSecretKey;
 
@@ -28,10 +31,43 @@ public class JwtService {
             @Value("${jwt.expiration-ms}") long accessExpiration,
             @Value("${jwt.refresh-expiration-ms}") long refreshExpiration
     ) {
+        validateSecret(accessSecret, "JWT_ACCESS_SECRET");
+        validateSecret(refreshSecret, "JWT_REFRESH_SECRET");
+        
+        if (accessSecret.equals(refreshSecret)) {
+            throw new InternalServerException(
+                    "JWT_ACCESS_SECRET and JWT_REFRESH_SECRET must be different for security reasons."
+            );
+        }
+        
         this.accessSecretKey = Keys.hmacShaKeyFor(accessSecret.getBytes(StandardCharsets.UTF_8));
         this.refreshSecretKey = Keys.hmacShaKeyFor(refreshSecret.getBytes(StandardCharsets.UTF_8));
         this.accessExpiration = accessExpiration;
         this.refreshExpiration = refreshExpiration;
+    }
+
+    private void validateSecret(String secret, String secretName) {
+        if (secret == null || secret.isBlank()) {
+            throw new InternalServerException(
+                    String.format(
+                            "%s environment variable is required and cannot be empty. " +
+                            "Please set it in your environment or .env file.",
+                            secretName
+                    )
+            );
+        }
+        
+        if (secret.length() < MIN_SECRET_LENGTH) {
+            throw new InternalServerException(
+                    String.format(
+                            "%s must be at least %d characters long for security. " +
+                            "Current length: %d. Please generate a strong secret using: openssl rand -base64 32",
+                            secretName,
+                            MIN_SECRET_LENGTH,
+                            secret.length()
+                    )
+            );
+        }
     }
 
     // === ACCESS TOKEN ===
@@ -70,6 +106,10 @@ public class JwtService {
 
     public String extractEmail(String token, boolean isAccessToken) {
         return getClaims(token, isAccessToken).getPayload().getSubject();
+    }
+
+    public long getRefreshExpiration() {
+        return refreshExpiration;
     }
 
     private Jws<Claims> getClaims(String token, boolean isAccessToken) {

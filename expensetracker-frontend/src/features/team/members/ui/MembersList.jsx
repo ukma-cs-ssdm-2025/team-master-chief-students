@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { ChangeRoleConfirmModal } from "../../change-role";
+import { ChangeRoleConfirmModal } from "@features/team/change-role";
+import { Icon, ConfirmModal, Toast } from "@shared/ui";
+import { useToast } from "@shared/hooks/useToast";
 
 export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, canManage }) => {
   const [changingRole, setChangingRole] = useState(null);
   const [removing, setRemoving] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
+  const [removeConfirm, setRemoveConfirm] = useState(null);
+  const { toast, showError, hideToast } = useToast();
 
   const handleChangeRoleClick = (member) => {
     const newRole = member.role === "MEMBER" ? "ADMIN" : "MEMBER";
@@ -24,20 +28,25 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
       await onChangeRole(confirmModal.userId, confirmModal.newRole);
       setConfirmModal(null);
     } catch (err) {
-      alert(err.message || "Failed to change role");
+      showError(err.message || "Failed to change role");
     } finally {
       setChangingRole(null);
     }
   };
 
-  const handleRemove = async (userId) => {
-    if (!window.confirm("Are you sure you want to remove this member?")) return;
+  const handleRemove = (userId) => {
+    setRemoveConfirm({ userId });
+  };
 
-    setRemoving(userId);
+  const confirmRemove = async () => {
+    if (!removeConfirm) return;
+
+    setRemoving(removeConfirm.userId);
     try {
-      await onRemove(userId);
+      await onRemove(removeConfirm.userId);
+      setRemoveConfirm(null);
     } catch (err) {
-      alert(err.message || "Failed to remove member");
+      showError(err.message || "Failed to remove member");
     } finally {
       setRemoving(null);
     }
@@ -97,19 +106,7 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
                   {changingRole === member.userId ? (
                     <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                      />
-                    </svg>
+                    <Icon name="settings" className="w-5 h-5" />
                   )}
                 </button>
                 <button
@@ -121,19 +118,7 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
                   {removing === member.userId ? (
                     <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    <Icon name="delete" className="w-5 h-5" />
                   )}
                 </button>
               </>
@@ -152,6 +137,26 @@ export const MembersList = ({ members, currentUserId, onChangeRole, onRemove, ca
           memberName={confirmModal.memberName}
         />
       )}
+
+      {removeConfirm && (
+        <ConfirmModal
+          isOpen={!!removeConfirm}
+          onClose={() => setRemoveConfirm(null)}
+          onConfirm={confirmRemove}
+          title="Remove Member"
+          message="Are you sure you want to remove this member?"
+          confirmText="Remove"
+          cancelText="Cancel"
+          type="danger"
+        />
+      )}
+
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </div>
   );
 };

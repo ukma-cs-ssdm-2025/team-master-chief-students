@@ -6,6 +6,7 @@ import com.example.expensetracker.dto.RegisterRequestDto;
 import com.example.expensetracker.entity.RefreshToken;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.UnauthorizedException;
+import com.example.expensetracker.exception.UserAlreadyExistsException;
 import com.example.expensetracker.exception.ValidationException;
 import com.example.expensetracker.repository.RefreshTokenRepository;
 import com.example.expensetracker.repository.UserRepository;
@@ -16,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -27,10 +29,11 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
 
     @Override
+    @Transactional
     public AuthResponseDto register(RegisterRequestDto request) {
         Optional<UserEntity> existing = userRepository.findByEmail(request.getEmail());
         if (existing.isPresent()) {
-            throw new ValidationException("User with this email already exists");
+            throw new UserAlreadyExistsException(request.getEmail());
         }
 
         UserEntity user = new UserEntity();
@@ -42,6 +45,14 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
+        Instant expiryDate = Instant.now().plusMillis(jwtService.getRefreshExpiration());
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
+                .token(refreshToken)
+                .user(user)
+                .expiryDate(expiryDate)
+                .build();
+        refreshTokenRepository.save(refreshTokenEntity);
+
         return AuthResponseDto.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -49,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthResponseDto login(AuthRequestDto dto) {
         UserEntity user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
@@ -60,11 +72,29 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
+        Instant expiryDate = Instant.now().plusMillis(jwtService.getRefreshExpiration());
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
+                .token(refreshToken)
+                .user(user)
+                .expiryDate(expiryDate)
+                .build();
+        refreshTokenRepository.save(refreshTokenEntity);
+
         return new AuthResponseDto(accessToken, refreshToken);
     }
 
+    @Transactional(noRollbackFor = UnauthorizedException.class)
     public AuthResponseDto refresh(String refreshToken) {
         if (!jwtService.isTokenValid(refreshToken, false)) {
+            throw new UnauthorizedException("Invalid or expired refresh token");
+        }
+
+        RefreshToken existingToken = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new UnauthorizedException("Invalid or expired refresh token"));
+
+        if (existingToken.getExpiryDate().isBefore(Instant.now())) {
+            refreshTokenRepository.delete(existingToken);
+            refreshTokenRepository.flush(); // Ensure deletion is persisted before exception
             throw new UnauthorizedException("Invalid or expired refresh token");
         }
 
@@ -72,8 +102,19 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
 
+        refreshTokenRepository.delete(existingToken);
+        refreshTokenRepository.flush(); // Ensure deletion is persisted before generating new token
+
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        Instant expiryDate = Instant.now().plusMillis(jwtService.getRefreshExpiration());
+        RefreshToken newRefreshTokenEntity = RefreshToken.builder()
+                .token(newRefreshToken)
+                .user(user)
+                .expiryDate(expiryDate)
+                .build();
+        refreshTokenRepository.save(newRefreshTokenEntity);
 
         return new AuthResponseDto(newAccessToken, newRefreshToken);
     }
@@ -81,8 +122,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ValidationException("Refresh token is required");
+        }
+        
         RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new ValidationException("Refresh token not found"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid or expired refresh token"));
 
         refreshTokenRepository.delete(token);
     }

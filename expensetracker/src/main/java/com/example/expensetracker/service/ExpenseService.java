@@ -1,9 +1,6 @@
 package com.example.expensetracker.service;
 
-import com.example.expensetracker.dto.CursorPageResponse;
-import com.example.expensetracker.dto.ExpenseDto;
-import com.example.expensetracker.dto.ReceiptDto;
-import com.example.expensetracker.dto.ReceiptFile;
+import com.example.expensetracker.dto.*;
 import com.example.expensetracker.entity.ReceiptEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,15 +9,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface ExpenseService {
-    ExpenseDto create(ExpenseDto dto);
-    ExpenseDto getById(Long id);
-    List<ExpenseDto> getAll();
-    CursorPageResponse<ExpenseDto> getAllPaginated(String cursor, int limit);
-    ExpenseDto update(Long id, ExpenseDto dto);
+    ExpenseResponse create(CreateExpenseRequest request);
+    ExpenseResponse getById(Long id);
+    List<ExpenseResponse> getAll();
+    CursorPageResponse<ExpenseResponse> getAllPaginated(String cursor, int limit);
+    ExpenseResponse update(Long id, UpdateExpenseRequest request);
     void delete(Long id);
-
-    List<ExpenseDto> filter(String category, LocalDate from, LocalDate to, BigDecimal min, BigDecimal max);
-    Object getStatistics();
 
     ReceiptDto addReceipt(Long expenseId, MultipartFile file);
     void deleteReceipt(Long expenseId);

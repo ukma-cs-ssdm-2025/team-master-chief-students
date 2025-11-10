@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -65,7 +66,7 @@ public class CategoryController {
             )
     })
     @PostMapping
-    public ResponseEntity<ApiResponse<CategoryDto>> create(@RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<ApiResponse<CategoryDto>> create(@Valid @RequestBody CategoryDto categoryDto) {
         CategoryDto createdCategory = categoryService.create(categoryDto);
         return new ResponseEntity<>(
                 new ApiResponse<>(true, "Category created successfully", createdCategory),
@@ -162,7 +163,7 @@ public class CategoryController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<CategoryDto>> update(@PathVariable Long id, @RequestBody CategoryDto categoryDto) {
+    public ResponseEntity<ApiResponse<CategoryDto>> update(@PathVariable Long id, @Valid @RequestBody CategoryDto categoryDto) {
         CategoryDto updatedCategory = categoryService.update(id, categoryDto);
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Category updated successfully", updatedCategory)
@@ -203,6 +204,21 @@ public class CategoryController {
                                   "status": 404,
                                   "message": "Category not found",
                                   "timestamp": "2025-10-22T14:06:00"
+                                }
+                                """)
+                    )
+            ),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
+                    responseCode = "409",
+                    description = "Category cannot be deleted: it is associated with existing expenses",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorResponse.class),
+                            examples = @ExampleObject(value = """
+                                {
+                                  "status": 409,
+                                  "message": "Cannot delete category: it is associated with existing expenses",
+                                  "timestamp": "2025-10-22T14:07:00"
                                 }
                                 """)
                     )

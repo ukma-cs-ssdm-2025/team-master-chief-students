@@ -1,6 +1,8 @@
 package com.example.expensetracker.util;
 
 import com.example.expensetracker.exception.ValidationException;
+import lombok.Getter;
+
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
@@ -62,6 +64,7 @@ public class CursorUtil {
     /**
      * Represents decoded cursor information.
      */
+    @Getter
     public static class CursorInfo {
         private final Instant createdAt;
         private final Long id;
@@ -71,13 +74,6 @@ public class CursorUtil {
             this.id = id;
         }
 
-        public Instant getCreatedAt() {
-            return createdAt;
-        }
-
-        public Long getId() {
-            return id;
-        }
     }
 }
 

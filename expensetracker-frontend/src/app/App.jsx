@@ -1,15 +1,31 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { AuthPage } from "../pages/auth/AuthPage";
-import { DashboardPage } from "../pages/dashboard/DashboardPage";
-import { TeamsPage } from "../pages/teams/TeamsPage";
-import { TeamDetailsPage } from "../pages/teams/TeamDetailsPage";
-import { ProtectedRoute } from "../shared/ui/ProtectedRoute";
-import { NotFoundPage } from "../pages/not-found/NotFoundPage";
-import { Layout } from "../widgets/layout/Layout";
+import { AuthPage } from "@pages/auth/AuthPage";
+import { DashboardPage } from "@pages/dashboard/DashboardPage";
+import {
+  TeamsPage,
+  TeamDetailsLayout,
+  TeamExpensesTab,
+  TeamMembersTab,
+  TeamAnalyticsTab,
+  TeamExportTab,
+  TeamsLayout,
+} from "@pages/teams";
+import { NotFoundPage } from "@pages/not-found/NotFoundPage";
+import { ProtectedRoute } from "@shared/ui";
+import { Layout } from "@widgets/layout/Layout";
+import { getActiveAccount, getAuthToken } from "@shared/lib";
 
 export const App = () => {
-  const hasToken = !!localStorage.getItem("accessToken");
+  useEffect(() => {
+    const activeAccount = getActiveAccount();
+    if (activeAccount) {
+      localStorage.setItem("accessToken", activeAccount.accessToken);
+      localStorage.setItem("refreshToken", activeAccount.refreshToken);
+    }
+  }, []);
+
+  const hasToken = !!getAuthToken();
 
   return (
     <Routes>
@@ -24,26 +40,16 @@ export const App = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/teams"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <TeamsPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/teams/:teamId"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <TeamDetailsPage />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/teams" element={<TeamsLayout />}>
+        <Route index element={<TeamsPage />} />
+        <Route path=":teamId" element={<TeamDetailsLayout />}>
+          <Route index element={<Navigate to="expenses" replace />} />
+          <Route path="expenses" element={<TeamExpensesTab />} />
+          <Route path="members" element={<TeamMembersTab />} />
+          <Route path="analytics" element={<TeamAnalyticsTab />} />
+          <Route path="export" element={<TeamExportTab />} />
+        </Route>
+      </Route>
       <Route
         path="/"
         element={

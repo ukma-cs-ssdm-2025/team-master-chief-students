@@ -28,13 +28,17 @@ public class UserEntity {
     private String password;
 
     @Column(nullable = false)
+    @Builder.Default
     private String role = "ROLE_USER";
 
+    @Builder.Default
     private boolean active = true;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ExpenseEntity> expenses = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<CategoryEntity> categories = new ArrayList<>();
 }

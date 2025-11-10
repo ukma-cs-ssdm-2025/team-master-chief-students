@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { exportApi } from './api';
+import { logger } from '@shared/lib/logger';
 
 export const useExpenseExport = () => {
-  const [exporting, setExporting] = useState(false);
+  const [exporting, setExporting] = useState(null);
   const [error, setError] = useState(null);
 
   const downloadFile = (blob, filename) => {
@@ -16,22 +17,31 @@ export const useExpenseExport = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  const exportExpenses = async () => {
-    setExporting(true);
+  const exportExpenses = async (format) => {
+    setExporting(format);
     setError(null);
 
     try {
-      const blob = await exportApi.exportToCSV();
-      const fileName = `expenses_export_${new Date().toISOString().split('T')[0]}.csv`;
+      let blob;
+      let fileName;
+
+      if (format === 'csv') {
+        blob = await exportApi.exportToCSV();
+        fileName = `expenses_export_${new Date().toISOString().split('T')[0]}.csv`;
+      } else if (format === 'pdf') {
+        blob = await exportApi.exportToPDF();
+        fileName = `expenses_report_${new Date().toISOString().split('T')[0]}.pdf`;
+      }
+
       downloadFile(blob, fileName);
       return { success: true };
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to export expenses';
+      const errorMessage = err.response?.data?.message || `Failed to export to ${format.toUpperCase()}`;
       setError(errorMessage);
-      console.error('Export failed:', err);
+      logger.error('Export failed:', err);
       return { success: false, error: errorMessage };
     } finally {
-      setExporting(false);
+      setExporting(null);
     }
   };
 

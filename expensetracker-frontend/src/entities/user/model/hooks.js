@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { axiosInstance } from "../../../shared/api/axiosInstance";
+import { axiosInstance } from "@shared/api/axiosInstance";
 
 export const useUser = () => {
   const [user, setUser] = useState(null);

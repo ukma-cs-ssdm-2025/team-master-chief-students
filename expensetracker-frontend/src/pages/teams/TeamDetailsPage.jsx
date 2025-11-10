@@ -1,12 +1,18 @@
+// src/pages/teams/TeamDetailsPage.jsx
 import React, { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTeamDetails, useTeamExpenses } from "../../entities/team/model/hooks";
-import { useUser } from "../../entities/user/model/hooks";
-import { AddMemberForm } from "../../features/team/add-member/ui/AddMemberForm";
-import { MembersList } from "../../features/team/members/ui/MembersList";
-import { TeamExpensesList } from "../../features/team/expenses/ui/TeamExpensesList";
-import { CreateTeamExpenseForm } from "../../features/team/expenses/ui/CreateTeamExpenseForm";
-import { Modal } from "../../shared/ui/Modal";
+import { useTeamDetails, useTeamExpenses } from "@entities/team";
+import { useUser } from "@entities/user";
+import { AddMemberForm } from "@features/team/add-member/ui/AddMemberForm";
+import { MembersList } from "@features/team/members/ui/MembersList";
+import { TeamExpensesList } from "@features/team/expenses/ui/TeamExpensesList";
+import { CreateTeamExpenseForm } from "@features/team/expenses/ui/CreateTeamExpenseForm";
+import { TeamExpenseExport } from "@features/team/export/ui/TeamExpenseExport";
+import { DeleteTeamModal } from "@features/team/delete/ui/DeleteTeamModal";
+import { Modal, Toast, LoadingSpinner } from "@shared/ui";
+import { TeamExpenseTrendChart, TeamCategoryChart } from "@widgets/charts";
+import { TeamAnalyticsFilter } from "@features/team/analytics";
+import { useToast } from "@shared/hooks/useToast";
 
 export const TeamDetailsPage = () => {
   const { teamId } = useParams();
@@ -20,6 +26,7 @@ export const TeamDetailsPage = () => {
     addMember,
     changeMemberRole,
     removeMember,
+    deleteTeam,
   } = useTeamDetails(parseInt(teamId));
 
   const {
@@ -35,6 +42,11 @@ export const TeamDetailsPage = () => {
 
   const [activeTab, setActiveTab] = useState("expenses");
   const [showAddMember, setShowAddMember] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState("daily");
+  const [filters, setFilters] = useState({});
+  const [isAnalyticsFilterOpen, setIsAnalyticsFilterOpen] = useState(false);
+  const { toast, showError, hideToast } = useToast();
 
   const currentUserId = user?.data?.id;
 
@@ -49,15 +61,20 @@ export const TeamDetailsPage = () => {
   }, [team?.members, currentUserId]);
 
   const canManage = userRole === "OWNER" || userRole === "ADMIN";
+  const canDelete = userRole === "OWNER";
+
+  const handleDeleteTeam = async () => {
+    try {
+      await deleteTeam();
+      navigate("/teams");
+    } catch (err) {
+      showError(err.message || "Failed to delete team");
+    }
+  };
 
   if (teamLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading team details...</p>
-        </div>
-      </div>
+      <LoadingSpinner size="xl" fullScreen text="Loading team details..." />
     );
   }
 
@@ -141,6 +158,24 @@ export const TeamDetailsPage = () => {
                 )}
               </p>
             </div>
+
+            {/* Delete Team Button */}
+            {canDelete && (
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-medium"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                Delete Team
+              </button>
+            )}
           </div>
         </div>
 
@@ -176,6 +211,36 @@ export const TeamDetailsPage = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                   Members
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab("analytics")}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "analytics"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Analytics
+                </span>
+              </button>
+              <button
+                onClick={() => setActiveTab("export")}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === "export"
+                    ? "border-blue-500 text-blue-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export
                 </span>
               </button>
             </nav>
@@ -255,6 +320,50 @@ export const TeamDetailsPage = () => {
               />
             </div>
           )}
+
+          {activeTab === "analytics" && (
+            <div>
+              <TeamAnalyticsFilter
+                filters={filters}
+                onFiltersChange={setFilters}
+                onReset={() => setFilters({})}
+                isOpen={isAnalyticsFilterOpen}
+                onToggle={() => setIsAnalyticsFilterOpen(!isAnalyticsFilterOpen)}
+              />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Category Distribution Chart */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Category Distribution</h2>
+                  <div className="flex-1 h-[400px]">
+                    <TeamCategoryChart teamId={parseInt(teamId)} filters={filters} />
+                  </div>
+                </div>
+
+                {/* Expense Trend Chart */}
+                <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col">
+                  <div className="flex justify-between items-center mb-4 border-b pb-2">
+                    <h2 className="text-xl font-bold text-gray-900">Expense Trend</h2>
+                    <select
+                      value={chartPeriod}
+                      onChange={(e) => setChartPeriod(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm hover:border-blue-400 transition"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  <div className="flex-1 h-[400px]">
+                    <TeamExpenseTrendChart teamId={parseInt(teamId)} period={chartPeriod} filters={filters} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "export" && (
+            <TeamExpenseExport teamId={parseInt(teamId)} userRole={userRole} />
+          )}
         </div>
 
         {/* Add Member Modal */}
@@ -279,6 +388,21 @@ export const TeamDetailsPage = () => {
             </div>
           </Modal>
         )}
+
+        {/* Delete Team Modal */}
+        <DeleteTeamModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteTeam}
+          teamName={team.name}
+        />
+
+        <Toast
+          isOpen={toast.isOpen}
+          onClose={hideToast}
+          message={toast.message}
+          type={toast.type}
+        />
       </div>
     </div>
   );

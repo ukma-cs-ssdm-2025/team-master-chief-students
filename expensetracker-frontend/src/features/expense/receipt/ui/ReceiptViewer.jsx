@@ -1,19 +1,24 @@
 // src/features/expense/receipt/ui/ReceiptViewer.jsx
 import React, { useState } from 'react';
+import { ConfirmModal } from '@shared/ui/ConfirmModal';
+import { useToast } from '@shared/hooks/useToast';
+import { Toast } from '@shared/ui/Toast';
+import { logger } from '@shared/lib/logger';
 
 export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
   const [deleting, setDeleting] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { toast, showError, hideToast } = useToast();
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this receipt?')) return;
-
     setDeleting(true);
     try {
       await onDelete(expenseId);
+      setShowDeleteConfirm(false);
     } catch (err) {
-      console.error('Failed to delete receipt:', err);
-      alert('Failed to delete receipt');
+      logger.error('Failed to delete receipt:', err);
+      showError('Failed to delete receipt');
     } finally {
       setDeleting(false);
     }
@@ -53,13 +58,13 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
           </button>
 
           <button
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             disabled={deleting}
             type="button"
             className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50"
           >
             {deleting ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <LoadingSpinner size="sm" className="text-white" />
             ) : (
               <svg
                 className="w-4 h-4"
@@ -113,6 +118,26 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
           />
         </div>
       )}
+
+      {showDeleteConfirm && (
+        <ConfirmModal
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title="Delete Receipt"
+          message="Are you sure you want to delete this receipt?"
+          confirmText="Delete"
+          cancelText="Cancel"
+          type="danger"
+        />
+      )}
+
+      <Toast
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+      />
     </>
   );
 };

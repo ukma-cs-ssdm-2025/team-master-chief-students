@@ -3,6 +3,8 @@ services:
     image: postgres:15
     container_name: expense-tracker-postgres
     restart: always
+    env_file:
+      - .env.docker
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -13,18 +15,26 @@ services:
       - pg_data_15:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: expense-tracker-pgadmin
     restart: always
+    env_file:
+      - .env.docker
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -32,6 +42,8 @@ services:
     build: .
     container_name: expense-tracker-app
     restart: always
+    env_file:
+      - .env.docker
     ports:
       - "${SERVER_PORT}:8080"
     environment:
@@ -42,13 +54,20 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION_MS}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION_MS}
+      FILE_UPLOAD_DIR: /app/uploads
+    volumes:
+      - app_uploads:/app/uploads
+      - app_logs:/app/logs
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
 volumes:
   pg_data_15:
+  app_uploads:
+  app_logs:
 
 networks:
   app-network:

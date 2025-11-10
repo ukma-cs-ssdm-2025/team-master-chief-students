@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal } from "../../../../shared/ui/Modal";
+import { Modal, Icon } from "@shared/ui";
 
 export const ChangeRoleConfirmModal = ({ 
   isOpen, 
@@ -20,14 +20,7 @@ export const ChangeRoleConfirmModal = ({
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <Icon name="close" className="w-6 h-6" />
           </button>
         </div>
 
@@ -53,19 +46,7 @@ export const ChangeRoleConfirmModal = ({
               </span>
             </div>
             <div className="flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
-                />
-              </svg>
+              <Icon name="chevronDown" className="w-5 h-5 text-gray-400" />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">New role:</span>

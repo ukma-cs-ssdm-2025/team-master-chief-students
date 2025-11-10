@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useCategories } from "../../../../entities/category/model/hooks";
+import { useCategories } from "@entities/category";
+import { Icon } from "@shared/ui";
 
 export const CreateTeamExpenseForm = ({ onCreate }) => {
   const { categories, loading: categoriesLoading } = useCategories();
@@ -136,19 +137,7 @@ export const CreateTeamExpenseForm = ({ onCreate }) => {
           </>
         ) : (
           <>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <Icon name="plus" className="w-5 h-5" />
             <span>Add Team Expense</span>
           </>
         )}
