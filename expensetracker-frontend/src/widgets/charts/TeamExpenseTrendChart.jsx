@@ -121,7 +121,7 @@ export const TeamExpenseTrendChart = ({ teamId, period = 'daily', filters = {} }
       <ResponsiveContainer width="100%" height={400} minHeight={400} minWidth={0}>
         <LineChart
           data={chartData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+          margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
