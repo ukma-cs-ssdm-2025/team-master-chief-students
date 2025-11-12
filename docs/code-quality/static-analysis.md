@@ -1,28 +1,28 @@
-# Звіт статичного аналізу коду
+# Static Code Analysis Report
 
-### 1. Інструмент та конфігурація
+### 1. Tool and Configuration
 
-- **Назва інструменту:** Checkstyle
-- **Версія плагіна:** 3.3.1
-- **Конфігурація:** `google_checks.xml` (стандартний набір правил від Google).
-- **Команда для запуску:** `mvn checkstyle:checkstyle`
+- **Tool Name:** Checkstyle
+- **Plugin Version:** 3.3.1
+- **Configuration:** `google_checks.xml` (standard rule set from Google).
+- **Command to run:** `mvn checkstyle:checkstyle`
 
-### 2. Результати аналізу
+### 2. Analysis Results
 
 ![Checkstyle Report](img.png)
 
-Всього було знайдено **588 порушень** у **40 файлах**.
+A total of **588 violations** were found in **40 files**.
 
-Найбільш поширеними проблемами були:
-- **Line length:** Довжина рядків перевищувала 100 символів.
-- **Missing Javadoc:** Відсутні коментарі Javadoc для публічних методів.
-- **Parameter name:** Ім'я параметра `_name` не відповідало патерну `^[a-z][a-zA-Z0-9]*$`.
+The most common problems were:
+- **Line length:** Line length exceeded 100 characters.
+- **Missing Javadoc:** Missing Javadoc comments for public methods.
+- **Parameter name:** Parameter name `_name` does not match pattern `^[a-z][a-zA-Z0-9]*$`.
 
-### 3. Висновки та план дій
+### 3. Conclusions and Action Plan
 
-Аналіз показав, що наша команда не завжди дотримується єдиного стилю форматування коду, зокрема щодо довжини рядків та іменування змінних.
+The analysis showed that our team does not always follow a unified code formatting style, particularly regarding line length and variable naming.
 
-**Наш план дій:**
-1.  Виправити всі знайдені помилки до наступного коміту.
-2.  Налаштувати IDE (IntelliJ IDEA, VS Code) для автоматичного форматування коду за правилами Google Style.
-3.  Домовитись про обов'язкове додавання Javadoc для всіх нових публічних API.
+**Our Action Plan:**
+1.  Fix all found errors before the next commit.
+2.  Configure IDE (IntelliJ IDEA, VS Code) for automatic code formatting according to Google Style rules.
+3.  Agree on mandatory addition of Javadoc for all new public APIs.

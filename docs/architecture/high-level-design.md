@@ -1,43 +1,43 @@
-# High‑Level Design — «Expense Tracker SaaS»
+# High‑Level Design — Expense Tracker SaaS
 
 ---
 
-## 1) Загальний опис архітектури
+## 1) General Architecture Description
 
-Наша система — багатошарова клієнт‑серверна веб‑платформа для обліку витрат із можливістю спільного доступу в командах. **Frontend (React + TypeScript)** взаємодіє з **Backend (Java Spring Boot)** через REST API. **PostgreSQL** зберігає транзакційні дані, **Redis** використовується як кеш і сховище сесій/токен‑чорного списку. Розгортання контейнеризоване за допомогою **Docker**; автентифікація — **JWT**.
+Our system is a multi-layered client-server web platform for expense tracking with team collaboration capabilities. **Frontend (React + TypeScript)** interacts with **Backend (Java Spring Boot)** through REST API. **PostgreSQL** stores transactional data, **Redis** is used as cache and session/token blacklist storage. Deployment is containerized using **Docker**; authentication — **JWT**.
 
 ---
 
-## 2) Обраний архітектурний стиль і чому
+## 2) Selected Architectural Style and Rationale
 
 * **Layered (Presentation → Application → Domain → Infrastructure)**.
-* Причини: зрозуміла структура, слабке зчеплення між шарами, легке покриття тестами, контроль транзакцій, можливість еволюції до модульного моноліту або мікросервісів у майбутньому.
+* Reasons: clear structure, loose coupling between layers, easy test coverage, transaction control, possibility to evolve into modular monolith or microservices in the future.
 
 ---
 
-## 3) Основні компоненти системи
+## 3) Main System Components
 
 **Frontend (React, TypeScript)**
-UI з дашбордами, формами транзакцій, категоризацією та швидкими діями (контекстне меню).
+UI with dashboards, transaction forms, categorization, and quick actions (context menu).
 
 **Backend (Spring Boot)**
-REST‑контролери, сервіси з бізнес‑логікою, доменна модель, доступ до даних через JPA.
+REST controllers, services with business logic, domain model, data access through JPA.
 
 **Database (PostgreSQL)**
-Реляційне сховище для транзакцій і звітів.
+Relational storage for transactions and reports.
 
 **Cache (Redis)**
-Кеш для аналітики, rate‑limit і чорний список токенів.
+Cache for analytics, rate-limit, and token blacklist.
 
 **Security**
-JWT токени, ролі (USER, MANAGER, ADMIN).
+JWT tokens, roles (USER, MANAGER, ADMIN).
 
 **Deployment & Infra**
-Docker‑контейнери, reverse proxy (Nginx), CI/CD.
+Docker containers, reverse proxy (Nginx), CI/CD.
 
 ---
 
-## 4) Діаграма компонентів
+## 4) Component Diagram
 
 ```mermaid
 flowchart LR
@@ -63,37 +63,37 @@ flowchart LR
     S --> REDIS
 ```
 
-*На діаграмі:* клієнт взаємодіє з бекендом, бізнес‑логіка обробляється в сервісах, дані зберігаються в Postgres, кешування у Redis.
+*In the diagram:* client interacts with backend, business logic is processed in services, data is stored in Postgres, caching in Redis.
 
 ---
 
-## 5) Ключові архітектурні рішення
+## 5) Key Architectural Decisions
 
-* **PostgreSQL:** обрали замість MongoDB через транзакційність і аналітичні можливості.
-* **Модульний моноліт:** стартуємо як моноліт для простоти, але готові до розділення на мікросервіси.
-* **React:** обрали через гнучкість та велику спільноту.
-* **JWT:** легка масштабованість і безсерверна перевірка токенів.
-* **Redis:** для кешу та rate‑limit.
-* **Docker:** для контейнеризації та простого деплою.
-* **Flyway:** для контрольованих міграцій БД.
-* **Prometheus + Grafana:** для моніторингу та метрик.
+* **PostgreSQL:** chosen over MongoDB for transactional capabilities and analytical features.
+* **Modular monolith:** starting as a monolith for simplicity, but ready to split into microservices.
+* **React:** chosen for flexibility and large community.
+* **JWT:** easy scalability and stateless token validation.
+* **Redis:** for cache and rate-limit.
+* **Docker:** for containerization and easy deployment.
+* **Flyway:** for controlled database migrations.
+* **Prometheus + Grafana:** for monitoring and metrics.
 
 ---
 
-## 6) Технологічний стек
+## 6) Technology Stack
 
 * **Frontend:** React, TypeScript, Vite, React Router, Recharts.
-* **Backend:** Java 21/25, Spring Boot 3.x, Spring Security, Spring Data JPA, MapStruct.
-* **Database:** PostgreSQL 16+/17+.
+* **Backend:** Java 17, Spring Boot 3.x, Spring Security, Spring Data JPA.
+* **Database:** PostgreSQL 15+.
 * **Cache:** Redis 7+.
 * **Infra:** Docker, Nginx, Flyway, Prometheus, Grafana.
 * **Auth:** JWT (access + refresh), RBAC.
 
 ---
 
-## 7) Як компоненти взаємодіють
+## 7) How Components Interact
 
-* Frontend шле запити до Backend через REST API.
-* Backend читає/пише в PostgreSQL, а також кешує дані у Redis.
-* Аутентифікація реалізована через JWT токени.
-* Керування правами доступу реалізоване через ролі RBAC.
+* Frontend sends requests to Backend through REST API.
+* Backend reads/writes to PostgreSQL, and also caches data in Redis.
+* Authentication is implemented through JWT tokens.
+* Access control is implemented through RBAC roles.

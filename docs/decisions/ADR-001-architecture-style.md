@@ -1,24 +1,24 @@
-# ADR-001: Використати трирівневу архітектуру для застосунку відстеження витрат
-## Статус
-Прийнято
-## Контекст
-Застосунок для відстеження витрат включає введення витрат користувачем, обробку бізнес-логіки (підрахунок, категоризація, узгодження) та збереження даних з можливістю генерації звітів і статистики.  
-Необхідно чітке розділення презентаційного, бізнес- та інфраструктурного шарів для масштабованості, тестування та спрощеного супроводження.
-## Рішення
-Реалізувати трирівневу архітектуру:
-- **Presentation Layer**: React SPA / мобільний клієнт (введення витрат, перегляд статистики)
-- **Business Layer**: API Gateway + модулі бізнес-логіки (Expense, Approval, Reporting, Integration)
+# ADR-001: Use Three-Tier Architecture for Expense Tracking Application
+## Status
+Accepted
+## Context
+The expense tracking application includes user expense entry, business logic processing (calculation, categorization, reconciliation), and data storage with the ability to generate reports and statistics.  
+Clear separation of presentation, business, and infrastructure layers is necessary for scalability, testing, and simplified maintenance.
+## Decision
+Implement three-tier architecture:
+- **Presentation Layer**: React SPA / mobile client (expense entry, statistics viewing)
+- **Business Layer**: API Gateway + business logic modules (Expense, Approval, Reporting, Integration)
 - **Data / Infra Layer**: PostgreSQL, Redis Cache, Message Broker, Object Storage  
-Взаємодія між шарами відбувається через REST / GraphQL, RPC виклики та SQL.
-## Наслідки
-- ✅ Чітке розділення відповідальностей між UI, бізнес-логікою та даними
-- ✅ Легше тестувати окремі модулі
-- ✅ Підтримка повторного використання бізнес-логіки
-- ✅ Можливість масштабування окремих шарів незалежно
-- ⚠️ Додаткові витрати на інтеграцію між шарами
-- ⚠️ Потенційне збільшення латентності через мережеві виклики між компонентами
-- ❌ Менша гнучкість у порівнянні з подієвою / мікросервісною архітектурою
-## Реалізація
-Спринт 1: Проєктування шарів та контрактів між ними  
-Спринт 2-3: Реалізація бізнес-рівня (Expense, Approval, Reporting, Integration) та інтеграція з базою даних  
-Спринт 4: Інтеграція клієнтського рівня та налаштування кешування / черг повідомлень
+Interaction between layers occurs through REST / GraphQL, RPC calls, and SQL.
+## Consequences
+- ✅ Clear separation of responsibilities between UI, business logic, and data
+- ✅ Easier to test individual modules
+- ✅ Support for business logic reuse
+- ✅ Ability to scale individual layers independently
+- ⚠️ Additional costs for integration between layers
+- ⚠️ Potential increase in latency due to network calls between components
+- ❌ Less flexibility compared to event-driven / microservices architecture
+## Implementation
+Sprint 1: Design layers and contracts between them  
+Sprint 2-3: Implement business layer (Expense, Approval, Reporting, Integration) and database integration  
+Sprint 4: Integrate client layer and configure caching / message queues

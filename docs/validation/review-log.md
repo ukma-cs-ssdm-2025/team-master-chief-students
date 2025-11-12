@@ -1,37 +1,36 @@
-# Огляд тест-плану
+# Test Plan Review
 
-## Команда-рецензент
-Знайшов скрін в тімсі, а потім відповідно і у репозиторії команди [team-kod-pisat-dyploit-pushit](https://github.com/ukma-cs-ssdm-2025/team-kod-pisat-dyploit-pushit/blob/main/docs/validations/test-plan.md)
+## Reviewing Team
+Found a screenshot in Teams, and then accordingly in the repository of team [team-kod-pisat-dyploit-pushit](https://github.com/ukma-cs-ssdm-2025/team-kod-pisat-dyploit-pushit/blob/main/docs/validations/test-plan.md)
 
-## Тест-план цієї команди 
-| №   | Компонент / функція                          | Рівень тесту | Тип (позитивний / негативний) | Очікуваний результат / критерій прийняття                                              | Власник тесту |
+## This Team's Test Plan 
+| №   | Component / Function                          | Test Level | Type (Positive / Negative) | Expected Result / Acceptance Criterion                                              | Test Owner |
 | --- | -------------------------------------------- | ------------ | ----------------------------- | -------------------------------------------------------------------------------------- | ------------- |
-| 1   | Авторизація користувача (Login/Register) | Unit         | Позитивний                    | Користувач із валідними даними успішно реєструється або входить, отримує токен доступу | Олександр     |
-| 1.1 | Авторизація користувача (Login/Register)     | Integration  | Негативний                    | Логін із неправильними обліковими даними -> система відхиляє запит та повертає статус 401 Unauthorized                        | Олександр     |
-| 2   | Створення та редагування рецензії        | Unit         | Позитивний                    | Рецензія з валідними даними успішно створюється, зберігається в БД                     | Остап         |
-| 2.1 | Створення та редагування рецензії            | Integration  | Негативний                    | Немає токена автентифікації -> API повертає 403 Forbidden                               | Остап         |
-| 3   | Оцінювання фільму (Rating System)        | Unit         | Позитивний                    | Користувач може виставити оцінку від 1 до 10, середній рейтинг оновлюється коректно    | Олександр     |
-| 3.1 | Оцінювання фільму (Rating System)            | Integration  | Негативний                    | Оцінка поза межами 1–10 -> повертається 400 Bad Request                                 | Олександр     |
-| 4   | Продуктивність API                       | Performance  | Позитивний                    | 90% запитів до `/api/reviews` виконуються менше ніж за 1.5 с                           | Остап         |
-| 5   | Безпека токенів (JWT)                    | Security     | Негативний                    | Запити з простроченими або підробленими токенами відхиляються (401 Unauthorized)       | Олександр     |
+| 1   | User Authentication (Login/Register) | Unit         | Positive                    | User with valid data successfully registers or logs in, receives access token | Oleksandr     |
+| 1.1 | User Authentication (Login/Register)     | Integration  | Negative                    | Login with incorrect credentials -> system rejects request and returns status 401 Unauthorized                        | Oleksandr     |
+| 2   | Creating and Editing Review        | Unit         | Positive                    | Review with valid data is successfully created, saved in DB                     | Ostap         |
+| 2.1 | Creating and Editing Review            | Integration  | Negative                    | No authentication token -> API returns 403 Forbidden                               | Ostap         |
+| 3   | Rating Movie (Rating System)        | Unit         | Positive                    | User can set rating from 1 to 10, average rating updates correctly    | Oleksandr     |
+| 3.1 | Rating Movie (Rating System)            | Integration  | Negative                    | Rating outside 1–10 range -> returns 400 Bad Request                                 | Oleksandr     |
+| 4   | API Performance                       | Performance  | Positive                    | 90% of requests to `/api/reviews` execute in less than 1.5 s                           | Ostap         |
+| 5   | Token Security (JWT)                    | Security     | Negative                    | Requests with expired or forged tokens are rejected (401 Unauthorized)       | Oleksandr     |
 
-## Процес огляду
+## Review Process
 
-|  №  | Критерій                                   | Так/Ні | Коментар                                                                                   |
+|  №  | Criterion                                   | Yes/No | Comment                                                                                   |
 | :-: | ------------------------------------------ | :----: | ------------------------------------------------------------------------------------------ |
-|  1  | Охоплені ключові вимоги та критичні шляхи  |    Так   | Тест-план охоплює основні функції: авторизацію, рецензії, рейтинг, продуктивність, безпеку |
-|  2  | Чітко сформульовані критерії прийняття     |    Так   | Очікувані результати прописані зрозуміло, є коди відповідей                                |
-|  3  | Є тести для негативних сценаріїв           |    Так   | Передбачені помилки 401, 403, 400 для некоректних запитів                                  |
-|  4  | Простежується зв’язок із вимогами (Lab 02) |   Так/Ні   | Було б добре додати посилання на конкретні user stories або FR/NFR ID                      |
-|  5  | План реалістичний і виконуваний у CI       |    Так   | Тести короткі, зрозумілі, можна реалізувати через Postman                  |
+|  1  | Key requirements and critical paths covered  |   Yes   | Test plan covers main functions: authentication, reviews, rating, performance, security |
+|  2  | Clearly formulated acceptance criteria     |   Yes   | Expected results are clearly stated, response codes are included                                |
+|  3  | Negative scenario tests exist           |   Yes   | Errors 401, 403, 400 are provided for incorrect requests                                  |
+|  4  | Traceability to requirements (Lab 02) |  Yes/No   | It would be good to add links to specific user stories or FR/NFR ID                      |
+|  5  | Plan is realistic and executable in CI       |   Yes   | Tests are short, clear, can be implemented via Postman                  |
 
-### Короткий фідбек:
-#### Позитиви:
-- Дуже добре структуровано — є як unit, так і integration рівні.
-- Є баланс між позитивними й негативними сценаріями.
-- Чітко прописані критерії прийняття з кодами статусів HTTP.
+### Brief Feedback:
+#### Positives:
+- Very well structured — includes both unit and integration levels.
+- Balance between positive and negative scenarios.
+- Acceptance criteria are clearly stated with HTTP status codes.
   
-#### Пропозиції покращення:
-- Додати колонку або посилання на вимоги (FR-001, US-002...), щоб було простіше простежити зв’язок.
-- Можна розширити тестування Performance із додатковими метриками, наприклад, latency або throughput.
-
+#### Improvement Suggestions:
+- Add a column or links to requirements (FR-001, US-002...), to make traceability easier.
+- Can expand Performance testing with additional metrics, e.g., latency or throughput.

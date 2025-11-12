@@ -1,21 +1,21 @@
-# Тест-план
+# Test Plan
 
-| № | Компонент/функція | Рівень тесту | Тип (позитивний/негативний) | Очікуаний результат / критерій прийняття | Власник |
+| № | Component/Function | Test Level | Type (Positive/Negative) | Expected Result / Acceptance Criterion | Owner |
 |---|---|---|---|---|---|
-| 1 | **Авторизація користувача** | Unit | Позитивний | Функція `authenticateUser()` повертає JWT токен при валідних credentials (email + password). Токен містить userId та expiry | Вова |
-| 2 | Авторизація користувача | Integration | Негативний | При неправильному паролі API повертає статус 401 та повідомлення "Invalid credentials". Токен не генерується | Вова |
-| 3 | Авторизація користувача | Unit | Негативний | Функція валідації відхиляє email без символу "@" або пустий пароль. Повертає помилку валідації | Захар |
-| 4 | **Перегляд графіків витрат** | Unit | Позитивний | Функція `generateChartData()` на фронті коректно агрегує витрати по категоріях за обраний період. Сума всіх категорій = загальна сума витрат | Захар |
-| 5 | Перегляд графіків витрат | Integration | Позитивний | Компонент Chart отримує дані з API `/expenses`, обробляє їх та рендерить графік без помилок. Відображаються всі категорії з ненульовими значеннями | Нікіта |
-| 6 | Перегляд графіків витрат | Unit | Негативний | При порожньому масиві витрат функція `generateChartData()` повертає пусті дані та компонент відображає placeholder "Немає даних для відображення" | Нікіта |
-| 7 | **Додавання особистих витрат** | Unit | Позитивний | Функція `addExpense()` створює запис з обов'язковими полями (amount, category, date) та повертає ID створеного запису | Вова |
-| 8 | Додавання особистих витрат | Integration | Позитивний | POST `/expenses` з валідними даними створює запис у БД та повертає 201 Created з об'єктом витрати | Вова |
-| 9 | Додавання особистих витрат | Unit | Негативний | Функція валідації відхиляє від'ємну суму або дату в майбутньому. Повертає validation error | Захар |
-| 10 | **Додавання командних витрат** (не готово) | Unit | Позитивний | Функція `addTeamExpense()` має створювати запис з полями teamId, amount, category, splitType та масивом учасників | Захар |
-| 11 | Додавання командних витрат (не готово) | Integration | Позитивний | POST `/team-expenses` має створювати запис і розподіляти борги між учасниками згідно splitType (equal/percentage/custom) | Нікіта |
-| 12 | Додавання командних витрат (не готово) | Integration | Негативний | API має повертати 400 якщо користувач не є учасником команди або сума розподілу не дорівнює 100% | Нікіта |
-| 13 | **Продуктивність: Завантаження дашборду** | Performance | Нефункціональний | Час завантаження головної сторінки з графіками < 2 секунди при 1000+ записах витрат. Вимірюється через Lighthouse | Вова |
-| 14 | **Безпека: SQL Injection** | Security | Нефункціональний | Всі API endpoints з параметрами використовують prepared statements. Тест на payload `'; DROP TABLE users--` не впливає на БД | Захар |
-| 15 | **Безпека: XSS захист** | Security | Нефункціональний | При додаванні витрати з назвою `<script>alert('xss')</script>` дані екрануються і відображаються як текст без виконання | Нікіта |
+| 1 | **User Authentication** | Unit | Positive | Function `authenticateUser()` returns JWT token for valid credentials (email + password). Token contains userId and expiry | Volodymyr |
+| 2 | User Authentication | Integration | Negative | With incorrect password API returns status 401 and message "Invalid credentials". Token is not generated | Volodymyr |
+| 3 | User Authentication | Unit | Negative | Validation function rejects email without "@" symbol or empty password. Returns validation error | Zakhar |
+| 4 | **Viewing Expense Charts** | Unit | Positive | Function `generateChartData()` on frontend correctly aggregates expenses by categories for selected period. Sum of all categories = total expense sum | Zakhar |
+| 5 | Viewing Expense Charts | Integration | Positive | Chart component receives data from API `/expenses`, processes it and renders chart without errors. All categories with non-zero values are displayed | Nikita |
+| 6 | Viewing Expense Charts | Unit | Negative | With empty expense array function `generateChartData()` returns empty data and component displays placeholder "No data to display" | Nikita |
+| 7 | **Adding Personal Expenses** | Unit | Positive | Function `addExpense()` creates record with required fields (amount, category, date) and returns ID of created record | Volodymyr |
+| 8 | Adding Personal Expenses | Integration | Positive | POST `/expenses` with valid data creates record in DB and returns 201 Created with expense object | Volodymyr |
+| 9 | Adding Personal Expenses | Unit | Negative | Validation function rejects negative amount or future date. Returns validation error | Zakhar |
+| 10 | **Adding Team Expenses** (not ready) | Unit | Positive | Function `addTeamExpense()` should create record with fields teamId, amount, category, splitType and array of participants | Zakhar |
+| 11 | Adding Team Expenses (not ready) | Integration | Positive | POST `/team-expenses` should create record and distribute debts among participants according to splitType (equal/percentage/custom) | Nikita |
+| 12 | Adding Team Expenses (not ready) | Integration | Negative | API should return 400 if user is not a team member or distribution sum does not equal 100% | Nikita |
+| 13 | **Performance: Dashboard Loading** | Performance | Non-functional | Dashboard loading time < 2 seconds with 1000+ expense records. Measured via Lighthouse | Volodymyr |
+| 14 | **Security: SQL Injection** | Security | Non-functional | All API endpoints with parameters use prepared statements. Test with payload `'; DROP TABLE users--` does not affect DB | Zakhar |
+| 15 | **Security: XSS Protection** | Security | Non-functional | When adding expense with name `<script>alert('xss')</script>` data is escaped and displayed as text without execution | Nikita |
 
 ---
