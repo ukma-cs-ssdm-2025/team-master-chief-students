@@ -1,0 +1,3298 @@
+{
+  "info": {
+    "_postman_id": "2edec221-380f-44cf-9706-221112ee53d0",
+    "name": "Teams",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45742475",
+    "_collection_link": "https://nikita-5793019.postman.co/workspace/ee1e8524-5d29-4350-90c4-c009c7f36c68/collection/45742475-2edec221-380f-44cf-9706-221112ee53d0?action=share&source=collection_link&creator=45742475"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login - Alice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"accessToken\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"userId\", \"1\");",
+                  "    pm.collectionVariables.set(\"userEmail\", \"alice@example.com\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Bob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"bobAccessToken\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"bobUserId\", \"2\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"bob@example.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Teams Management",
+      "item": [
+        {
+          "name": "Create Team",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check that status code is 200",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Check that success is true",
+                  "pm.test(\"Success is true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "// Check that message is correct",
+                  "pm.test(\"Message is correct\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Team created successfully\");",
+                  "});",
+                  "",
+                  "// Check that data contains id and name",
+                  "pm.test(\"Data contains id and name\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property(\"id\");",
+                  "    pm.expect(jsonData.data).to.have.property(\"name\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"My New Team\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Create Team",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"My New Team\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:16:50 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Team created successfully\",\n    \"data\": {\n        \"id\": 4,\n        \"name\": \"My New Team\"\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:16:50.571755196\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List My Teams",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check that status code is 200\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Check that success is true\r",
+                  "pm.test(\"Success is true\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.success).to.eql(true);\r",
+                  "});\r",
+                  "\r",
+                  "// Check that message is correct\r",
+                  "pm.test(\"Message is correct\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.message).to.eql(\"Teams retrieved successfully\");\r",
+                  "});\r",
+                  "\r",
+                  "// Check that data is an array with at least one team\r",
+                  "pm.test(\"Data is an array with teams\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.data).to.be.an(\"array\").that.is.not.empty;\r",
+                  "});\r",
+                  "\r",
+                  "// Check that each team has id and name\r",
+                  "pm.test(\"Each team has id and name\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    jsonData.data.forEach(team => {\r",
+                  "        pm.expect(team).to.have.property(\"id\");\r",
+                  "        pm.expect(team).to.have.property(\"name\");\r",
+                  "    });\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List My Teams",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:17:22 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Teams retrieved successfully\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Development Team\"\n        },\n        {\n            \"id\": 3,\n            \"name\": \"My New Team\"\n        },\n        {\n            \"id\": 4,\n            \"name\": \"My New Team\"\n        }\n    ],\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:17:22.287722327\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Team Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check that status code is 200",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Check that success is true",
+                  "pm.test(\"Success is true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "// Check that message is correct",
+                  "pm.test(\"Message is correct\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Team details retrieved successfully\");",
+                  "});",
+                  "",
+                  "// Check that data is an object with correct fields",
+                  "pm.test(\"Data object contains team details\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.be.an(\"object\");",
+                  "    pm.expect(jsonData.data).to.have.property(\"id\");",
+                  "    pm.expect(jsonData.data).to.have.property(\"name\");",
+                  "    pm.expect(jsonData.data).to.have.property(\"members\");",
+                  "});",
+                  "",
+                  "// Check that members is a non-empty array",
+                  "pm.test(\"Members is a non-empty array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.members).to.be.an(\"array\").that.is.not.empty;",
+                  "});",
+                  "",
+                  "// Check each member has required fields",
+                  "pm.test(\"Each member has userId, email, and role\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    jsonData.data.members.forEach(member => {",
+                  "        pm.expect(member).to.have.property(\"userId\");",
+                  "        pm.expect(member).to.have.property(\"email\");",
+                  "        pm.expect(member).to.have.property(\"role\");",
+                  "    });",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Team Details",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:19:40 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Team details retrieved successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"name\": \"My New Team\",\n        \"members\": [\n            {\n                \"userId\": 1,\n                \"email\": \"alice@example.com\",\n                \"role\": \"OWNER\"\n            },\n            {\n                \"userId\": 2,\n                \"email\": \"bob@example.com\",\n                \"role\": \"MEMBER\"\n            }\n        ]\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:19:40.964397091\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Team Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check that status code is 200",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Check that success is true",
+                  "pm.test(\"Success is true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "// Check that message is correct",
+                  "pm.test(\"Message is correct\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Member added successfully\");",
+                  "});",
+                  "",
+                  "// Check that data is null",
+                  "pm.test(\"Data is null\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.eql(null);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": 4,\n    \"role\": \"MEMBER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "members"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Add Team Member",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"userId\": 4,\n    \"role\": \"MEMBER\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "members"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:20:37 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Member added successfully\",\n    \"data\": null,\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:20:37.911988199\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Change Member Role",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Team Member",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check that status code is 200\r",
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "// Check that success is true\r",
+                  "pm.test(\"Success is true\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.success).to.eql(true);\r",
+                  "});\r",
+                  "\r",
+                  "// Check that message is correct\r",
+                  "pm.test(\"Message is correct\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.message).to.eql(\"Member removed successfully\");\r",
+                  "});\r",
+                  "\r",
+                  "// Check that data is null\r",
+                  "pm.test(\"Data is null\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.data).to.eql(null);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members/4",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "members",
+                "4"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Remove Team Member",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members/4",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "members",
+                    "4"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:25:54 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Member removed successfully\",\n    \"data\": null,\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:25:54.098712535\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update team name",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "\r",
+                  "    pm.test(\"Response success is true\", () => {\r",
+                  "        pm.expect(jsonData.success).to.eql(true);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Message confirms team name update\", () => {\r",
+                  "        pm.expect(jsonData.message).to.include(\"updated successfully\");\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Data contains team id and name\", () => {\r",
+                  "        pm.expect(jsonData.data).to.have.property(\"id\");\r",
+                  "        pm.expect(jsonData.data).to.have.property(\"name\");\r",
+                  "    });\r",
+                  "\r",
+                  "    console.log(\"Updated team ID:\", jsonData.data.id);\r",
+                  "    console.log(\"Updated team name:\", jsonData.data.name);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"name\": \"New\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/name",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "name"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "New Request",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"name\": \"New\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/name",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "name"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:34:59 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Team name updated successfully\",\n    \"data\": {\n        \"id\": 3,\n        \"name\": \"New\"\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:34:59.873896515\"\n    }\n}"
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{ jwt_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {},
+            "exec": [
+              ""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Team Expenses",
+      "item": [
+        {
+          "name": "Create Team Expense",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check that status code is 200",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Check that success is true",
+                  "pm.test(\"Success is true\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});",
+                  "",
+                  "// Check that message is correct",
+                  "pm.test(\"Message is correct\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.message).to.eql(\"Expense created successfully\");",
+                  "});",
+                  "",
+                  "// Check that data object contains all required fields",
+                  "pm.test(\"Data object contains required fields\", function () {",
+                  "    const data = pm.response.json().data;",
+                  "    pm.expect(data).to.be.an(\"object\");",
+                  "    pm.expect(data).to.have.property(\"id\");",
+                  "    pm.expect(data).to.have.property(\"categoryId\");",
+                  "    pm.expect(data).to.have.property(\"categoryName\");",
+                  "    pm.expect(data).to.have.property(\"description\");",
+                  "    pm.expect(data).to.have.property(\"amount\");",
+                  "    pm.expect(data).to.have.property(\"date\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"categoryId\": 1,\n    \"description\": \"Team lunch meeting\",\n    \"amount\": 150.50,\n    \"date\": \"2025-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "expenses"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Create Team Expense",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"categoryId\": 1,\n    \"description\": \"Team lunch meeting\",\n    \"amount\": 150.50,\n    \"date\": \"2025-01-15\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:27:24 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Expense created successfully\",\n    \"data\": {\n        \"id\": 1181,\n        \"categoryId\": 1,\n        \"categoryName\": \"Food & Dining\",\n        \"description\": \"Team lunch meeting\",\n        \"amount\": 150.5,\n        \"date\": \"2025-01-15\"\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:27:24.862262893\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Team Expenses - First Page",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.test(\"Response success is true\", () => {",
+                  "        pm.expect(jsonData.success).to.eql(true);",
+                  "    });",
+                  "    pm.test(\"Message indicates successful retrieval\", () => {",
+                  "        pm.expect(jsonData.message).to.include(\"retrieved successfully\");",
+                  "    });",
+                  "",
+                  "    const pageData = jsonData.data;",
+                  "    if (pageData) {",
+                  "        pm.test(\"Page data contains items array\", () => {",
+                  "            pm.expect(pageData.items).to.be.an(\"array\");",
+                  "        });",
+                  "",
+                  "        if (pageData.nextCursor) {",
+                  "            pm.collectionVariables.set(\"nextCursor\", pageData.nextCursor);",
+                  "            console.log(\"Next cursor saved: \" + pageData.nextCursor);",
+                  "        }",
+                  "",
+                  "        console.log(\"Has next page: \" + pageData.hasNext);",
+                  "        console.log(\"Items count: \" + pageData.size);",
+                  "    }",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Team Expenses - First Page",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=5",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:29:26 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Team expenses retrieved successfully\",\n    \"data\": {\n        \"items\": [\n            {\n                \"id\": 1181,\n                \"categoryId\": 1,\n                \"categoryName\": \"Food & Dining\",\n                \"description\": \"Team lunch meeting\",\n                \"amount\": 150.5,\n                \"date\": \"2025-01-15\"\n            },\n            {\n                \"id\": 1180,\n                \"categoryId\": 1,\n                \"categoryName\": \"Food & Dining\",\n                \"description\": \"Team lunch meeting\",\n                \"amount\": 150.5,\n                \"date\": \"2025-01-15\"\n            }\n        ],\n        \"nextCursor\": null,\n        \"hasNext\": false,\n        \"size\": 2\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:29:26.563707646\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Team Expenses - Next Page (with cursor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Response structure is valid\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.success).to.be.true;\r",
+                  "    pm.expect(jsonData.message).to.eql(\"Team expenses retrieved successfully\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"items\");\r",
+                  "    pm.expect(jsonData.data.items).to.be.an(\"array\");\r",
+                  "    pm.expect(jsonData.data.items.length).to.eql(0);\r",
+                  "    pm.expect(jsonData.data.nextCursor).to.be.null;\r",
+                  "    pm.expect(jsonData.data.hasNext).to.be.false;\r",
+                  "    pm.expect(jsonData.data.size).to.eql(0);\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?cursor={{nextCursor}}&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "cursor",
+                  "value": "{{nextCursor}}"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Team Expenses - Next Page (with cursor)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?cursor={{nextCursor}}&limit=5",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "cursor",
+                      "value": "{{nextCursor}}"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 14:26:11 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Team expenses retrieved successfully\",\n    \"data\": {\n        \"items\": [],\n        \"nextCursor\": null,\n        \"hasNext\": false,\n        \"size\": 0\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T14:26:11.66395249\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Team Expenses - All (no cursor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "\r",
+                  "    pm.test(\"Response success is true\", () => {\r",
+                  "        pm.expect(jsonData.success).to.eql(true);\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Message confirms team expenses retrieval\", () => {\r",
+                  "        pm.expect(jsonData.message).to.include(\"retrieved successfully\");\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Data contains valid expenses list\", () => {\r",
+                  "        pm.expect(jsonData.data).to.have.property(\"items\");\r",
+                  "        pm.expect(jsonData.data.items).to.be.an(\"array\").that.is.not.empty;\r",
+                  "    });\r",
+                  "\r",
+                  "    pm.test(\"Pagination data is valid\", () => {\r",
+                  "        pm.expect(jsonData.data).to.have.property(\"nextCursor\");\r",
+                  "        pm.expect(jsonData.data).to.have.property(\"hasNext\");\r",
+                  "        pm.expect(jsonData.data).to.have.property(\"size\");\r",
+                  "    });\r",
+                  "\r",
+                  "    console.log(\"Items count:\", jsonData.data.size);\r",
+                  "    console.log(\"Has next page:\", jsonData.data.hasNext);\r",
+                  "    console.log(\"Next cursor:\", jsonData.data.nextCursor);\r",
+                  "}\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "teams",
+                "{{teamId}}",
+                "expenses"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "List Team Expenses - All (no cursor)",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:55:58 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Team expenses retrieved successfully\",\n    \"data\": {\n        \"items\": [\n            {\n                \"id\": 1181,\n                \"categoryId\": 1,\n                \"categoryName\": \"Food & Dining\",\n                \"description\": \"Team lunch meeting\",\n                \"amount\": 150.5,\n                \"date\": \"2025-01-15\"\n            },\n            {\n                \"id\": 1180,\n                \"categoryId\": 1,\n                \"categoryName\": \"Food & Dining\",\n                \"description\": \"Team lunch meeting\",\n                \"amount\": 150.5,\n                \"date\": \"2025-01-15\"\n            }\n        ],\n        \"nextCursor\": null,\n        \"hasNext\": false,\n        \"size\": 2\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:55:58.967766867\"\n    }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Expense Sharing",
+      "item": [
+        {
+          "name": "Get Personal Expenses",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "",
+                  "    pm.test(\"Response success is true\", () => {",
+                  "        pm.expect(jsonData.success).to.eql(true);",
+                  "    });",
+                  "",
+                  "    pm.test(\"Message confirms expenses retrieval\", () => {",
+                  "        pm.expect(jsonData.message).to.include(\"retrieved successfully\");",
+                  "    });",
+                  "",
+                  "    pm.test(\"Data contains valid items array\", () => {",
+                  "        pm.expect(jsonData.data).to.have.property(\"items\");",
+                  "        pm.expect(jsonData.data.items).to.be.an(\"array\").that.is.not.empty;",
+                  "    });",
+                  "",
+                  "    pm.test(\"Pagination data is valid\", () => {",
+                  "        pm.expect(jsonData.data).to.have.property(\"nextCursor\");",
+                  "        pm.expect(jsonData.data).to.have.property(\"hasNext\");",
+                  "        pm.expect(jsonData.data).to.have.property(\"size\");",
+                  "    });",
+                  "",
+                  "    // Save pagination cursor for next request if available",
+                  "    if (jsonData.data.nextCursor) {",
+                  "        pm.collectionVariables.set(\"nextCursor\", jsonData.data.nextCursor);",
+                  "        console.log(\"Next cursor saved:\", jsonData.data.nextCursor);",
+                  "    }",
+                  "",
+                  "    console.log(\"Items count:\", jsonData.data.size);",
+                  "    console.log(\"Has next page:\", jsonData.data.hasNext);",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/expenses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get Personal Expenses",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/expenses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "expenses"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 11:59:02 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Expenses retrieved successfully\",\n    \"data\": {\n        \"items\": [\n            {\n                \"id\": 72,\n                \"categoryId\": 3,\n                \"categoryName\": \"Shopping\",\n                \"description\": \"Daily expense #72\",\n                \"amount\": 25.29,\n                \"date\": \"2025-01-23\"\n            },\n            {\n                \"id\": 69,\n                \"categoryId\": 6,\n                \"categoryName\": \"Healthcare\",\n                \"description\": \"Utility payment #69\",\n                \"amount\": 182.63,\n                \"date\": \"2025-09-18\"\n            },\n            {\n                \"id\": 101,\n                \"categoryId\": 4,\n                \"categoryName\": \"Entertainment\",\n                \"description\": \"One-time purchase #101\",\n                \"amount\": 425.2,\n                \"date\": \"2024-11-15\"\n            },\n            {\n                \"id\": 33,\n                \"categoryId\": 2,\n                \"categoryName\": \"Transportation\",\n                \"description\": \"Utility payment #33\",\n                \"amount\": 51.01,\n                \"date\": \"2025-07-07\"\n            },\n            {\n                \"id\": 89,\n                \"categoryId\": 7,\n                \"categoryName\": \"Education\",\n                \"description\": \"Subscription #89\",\n                \"amount\": 411.34,\n                \"date\": \"2025-07-10\"\n            },\n            {\n                \"id\": 83,\n                \"categoryId\": 6,\n                \"categoryName\": \"Healthcare\",\n                \"description\": \"Shopping trip #83\",\n                \"amount\": 70.34,\n                \"date\": \"2025-05-23\"\n            },\n            {\n                \"id\": 4,\n                \"categoryId\": 7,\n                \"categoryName\": \"Education\",\n                \"description\": \"Service fee #4\",\n                \"amount\": 460.07,\n                \"date\": \"2025-11-06\"\n            },\n            {\n                \"id\": 63,\n                \"categoryId\": 8,\n                \"categoryName\": \"Travel\",\n                \"description\": \"Special purchase #63\",\n                \"amount\": 189.55,\n                \"date\": \"2024-12-19\"\n            },\n            {\n                \"id\": 59,\n                \"categoryId\": 3,\n                \"categoryName\": \"Shopping\",\n                \"description\": \"Monthly bill #59\",\n                \"amount\": 255.15,\n                \"date\": \"2024-12-31\"\n            },\n            {\n                \"id\": 65,\n                \"categoryId\": 5,\n                \"categoryName\": \"Bills & Utilities\",\n                \"description\": \"Food order #65\",\n                \"amount\": 295.23,\n                \"date\": \"2025-10-01\"\n            },\n            {\n                \"id\": 42,\n                \"categoryId\": 7,\n                \"categoryName\": \"Education\",\n                \"description\": \"Food order #42\",\n                \"amount\": 331.3,\n                \"date\": \"2025-03-28\"\n            },\n            {\n                \"id\": 118,\n                \"categoryId\": 6,\n                \"categoryName\": \"Healthcare\",\n                \"description\": \"Regular payment #118\",\n                \"amount\": 163.02,\n                \"date\": \"2025-03-06\"\n            },\n            {\n                \"id\": 3,\n                \"categoryId\": 3,\n                \"categoryName\": \"Shopping\",\n                \"description\": \"Daily expense #3\",\n                \"amount\": 141.5,\n                \"date\": \"2025-06-09\"\n            },\n            {\n                \"id\": 27,\n                \"categoryId\": 6,\n                \"categoryName\": \"Healthcare\",\n                \"description\": \"Food order #27\",\n                \"amount\": 386.38,\n                \"date\": \"2025-09-15\"\n            },\n            {\n                \"id\": 104,\n                \"categoryId\": 6,\n                \"categoryName\": \"Healthcare\",\n                \"description\": \"Food order #104\",\n                \"amount\": 346.38,\n                \"date\": \"2025-06-20\"\n            },\n            {\n                \"id\": 67,\n                \"categoryId\": 5,\n                \"categoryName\": \"Bills & Utilities\",\n                \"description\": \"Monthly bill #67\",\n                \"amount\": 41.98,\n                \"date\": \"2025-07-06\"\n            },\n            {\n                \"id\": 6,\n                \"categoryId\": 5,\n                \"categoryName\": \"Bills & Utilities\",\n                \"description\": \"Daily expense #6\",\n                \"amount\": 108.83,\n                \"date\": \"2025-01-06\"\n            },\n            {\n                \"id\": 94,\n                \"categoryId\": 1,\n                \"categoryName\": \"Food & Dining\",\n                \"description\": \"One-time purchase #94\",\n                \"amount\": 458.57,\n                \"date\": \"2024-12-31\"\n            },\n            {\n                \"id\": 74,\n                \"categoryId\": 5,\n                \"categoryName\": \"Bills & Utilities\",\n                \"description\": \"Regular expense #74\",\n                \"amount\": 260.73,\n                \"date\": \"2025-03-21\"\n            },\n            {\n                \"id\": 111,\n                \"categoryId\": 6,\n                \"categoryName\": \"Healthcare\",\n                \"description\": \"Utility payment #111\",\n                \"amount\": 288.41,\n                \"date\": \"2024-12-13\"\n            }\n        ],\n        \"nextCursor\": \"MTc1ODE5MzE5NzI3MToxMTE\",\n        \"hasNext\": true,\n        \"size\": 20\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T11:59:02.072461133\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Share Personal Expense to Team",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "pm.test(\"Expense shared successfully\", function () {\r",
+                  "    const jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.success).to.be.true;\r",
+                  "    pm.expect(jsonData.message).to.eql(\"Expense shared successfully\");\r",
+                  "    pm.expect(jsonData.data).to.be.an(\"object\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"id\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"categoryId\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"categoryName\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"description\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"amount\");\r",
+                  "    pm.expect(jsonData.data).to.have.property(\"date\");\r",
+                  "});\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"teamId\": {{teamId}},\n    \"mode\": \"MOVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/expenses/{{personalExpenseId}}/share",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "expenses",
+                "{{personalExpenseId}}",
+                "share"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Share Personal Expense to Team",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"teamId\": {{teamId}},\n    \"mode\": \"MOVE\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/expenses/{{personalExpenseId}}/share",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "expenses",
+                    "{{personalExpenseId}}",
+                    "share"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Vary",
+                  "value": "Origin"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Method"
+                },
+                {
+                  "key": "Vary",
+                  "value": "Access-Control-Request-Headers"
+                },
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 12 Nov 2025 14:36:01 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Expense shared successfully\",\n    \"data\": {\n        \"id\": 73,\n        \"categoryId\": 6,\n        \"categoryName\": \"Healthcare\",\n        \"description\": \"Shopping trip #73\",\n        \"amount\": 155.33,\n        \"date\": \"2025-07-22\"\n    },\n    \"metadata\": {\n        \"timestamp\": \"2025-11-12T14:36:01.282878944\"\n    }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "FLOWS",
+      "item": [
+        {
+          "name": "FLOW 1: Complete Team Workflow",
+          "item": [
+            {
+              "name": "Step 1: Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 2: Create Team",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Flow Test Team\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 3: Add Member (Bob)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"userId\": 2,\n    \"role\": \"MEMBER\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "members"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 4: Create Team Expense",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"categoryId\": 1,\n    \"description\": \"Flow test expense\",\n    \"amount\": 99.99,\n    \"date\": \"2025-01-20\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 5: List Expenses (Cursor Pagination - Page 1)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=3",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "3"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 6: List Expenses (Cursor Pagination - Page 2)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?cursor={{nextCursor}}&limit=3",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "cursor",
+                      "value": "{{nextCursor}}"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "3"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 7: Get Team Details",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "FLOW 2: Share Personal Expense",
+          "item": [
+            {
+              "name": "Step 1: Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 2: Get First Team (or use existing)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 3: Get Personal Expenses",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/expenses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "expenses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 4: Share Expense to Team (MOVE)",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"teamId\": {{teamId}},\n    \"mode\": \"MOVE\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/expenses/{{personalExpenseId}}/share",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "expenses",
+                    "{{personalExpenseId}}",
+                    "share"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 5: Verify in Team Expenses",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 6: Verify Removed from Personal",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/expenses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "expenses"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "FLOW 3: Team Member Management",
+          "item": [
+            {
+              "name": "Step 1: Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 2: Create Team",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Flow Test Team\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 3: Add Member (Bob)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"userId\": 2,\n    \"role\": \"MEMBER\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "members"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 4: Get Team Details (verify Bob added)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Check that status code is 200",
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Check that success is true",
+                      "pm.test(\"Success is true\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.success).to.eql(true);",
+                      "});",
+                      "",
+                      "// Check that message is correct",
+                      "pm.test(\"Message is correct\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.eql(\"Team details retrieved successfully\");",
+                      "});",
+                      "",
+                      "// Check that data is an object with correct fields",
+                      "pm.test(\"Data object contains team details\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.data).to.be.an(\"object\");",
+                      "    pm.expect(jsonData.data).to.have.property(\"id\");",
+                      "    pm.expect(jsonData.data).to.have.property(\"name\");",
+                      "    pm.expect(jsonData.data).to.have.property(\"members\");",
+                      "});",
+                      "",
+                      "// Check that members is a non-empty array",
+                      "pm.test(\"Members is a non-empty array\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.data.members).to.be.an(\"array\").that.is.not.empty;",
+                      "});",
+                      "",
+                      "// Check each member has required fields",
+                      "pm.test(\"Each member has userId, email, and role\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    jsonData.data.members.forEach(member => {",
+                      "        pm.expect(member).to.have.property(\"userId\");",
+                      "        pm.expect(member).to.have.property(\"email\");",
+                      "        pm.expect(member).to.have.property(\"role\");",
+                      "    });",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 5: Remove Team Member Bob",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Check that status code is 200\r",
+                      "pm.test(\"Status code is 200\", function () {\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "});\r",
+                      "\r",
+                      "// Check that success is true\r",
+                      "pm.test(\"Success is true\", function () {\r",
+                      "    const jsonData = pm.response.json();\r",
+                      "    pm.expect(jsonData.success).to.eql(true);\r",
+                      "});\r",
+                      "\r",
+                      "// Check that message is correct\r",
+                      "pm.test(\"Message is correct\", function () {\r",
+                      "    const jsonData = pm.response.json();\r",
+                      "    pm.expect(jsonData.message).to.eql(\"Member removed successfully\");\r",
+                      "});\r",
+                      "\r",
+                      "// Check that data is null\r",
+                      "pm.test(\"Data is null\", function () {\r",
+                      "    const jsonData = pm.response.json();\r",
+                      "    pm.expect(jsonData.data).to.eql(null);\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/members/4",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "members",
+                    "4"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 6: Get Team Details (verify Bob deleted)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Check that status code is 200",
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Check that success is true",
+                      "pm.test(\"Success is true\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.success).to.eql(true);",
+                      "});",
+                      "",
+                      "// Check that message is correct",
+                      "pm.test(\"Message is correct\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.eql(\"Team details retrieved successfully\");",
+                      "});",
+                      "",
+                      "// Check that data is an object with correct fields",
+                      "pm.test(\"Data object contains team details\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.data).to.be.an(\"object\");",
+                      "    pm.expect(jsonData.data).to.have.property(\"id\");",
+                      "    pm.expect(jsonData.data).to.have.property(\"name\");",
+                      "    pm.expect(jsonData.data).to.have.property(\"members\");",
+                      "});",
+                      "",
+                      "// Check that members is a non-empty array",
+                      "pm.test(\"Members is a non-empty array\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.data.members).to.be.an(\"array\").that.is.not.empty;",
+                      "});",
+                      "",
+                      "// Check each member has required fields",
+                      "pm.test(\"Each member has userId, email, and role\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    jsonData.data.members.forEach(member => {",
+                      "        pm.expect(member).to.have.property(\"userId\");",
+                      "        pm.expect(member).to.have.property(\"email\");",
+                      "        pm.expect(member).to.have.property(\"role\");",
+                      "    });",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "FLOW 4: Expense Management",
+          "item": [
+            {
+              "name": "Step 1: Login",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"alice@example.com\",\n    \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/auth/login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 2: Create Team",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Flow Test Team\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 3: Create Team Expense",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Check that status code is 200",
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// Check that success is true",
+                      "pm.test(\"Success is true\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.success).to.eql(true);",
+                      "});",
+                      "",
+                      "// Check that message is correct",
+                      "pm.test(\"Message is correct\", function () {",
+                      "    const jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.message).to.eql(\"Expense created successfully\");",
+                      "});",
+                      "",
+                      "// Check that data object contains all required fields",
+                      "pm.test(\"Data object contains required fields\", function () {",
+                      "    const data = pm.response.json().data;",
+                      "    pm.expect(data).to.be.an(\"object\");",
+                      "    pm.expect(data).to.have.property(\"id\");",
+                      "    pm.expect(data).to.have.property(\"categoryId\");",
+                      "    pm.expect(data).to.have.property(\"categoryName\");",
+                      "    pm.expect(data).to.have.property(\"description\");",
+                      "    pm.expect(data).to.have.property(\"amount\");",
+                      "    pm.expect(data).to.have.property(\"date\");",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"categoryId\": 1,\n    \"description\": \"Team lunch meeting\",\n    \"amount\": 150.50,\n    \"date\": \"2025-01-15\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 4: List Team Expenses - All (no cursor)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "if (pm.response.code === 200) {\r",
+                      "    const jsonData = pm.response.json();\r",
+                      "\r",
+                      "    pm.test(\"Response success is true\", () => {\r",
+                      "        pm.expect(jsonData.success).to.eql(true);\r",
+                      "    });\r",
+                      "\r",
+                      "    pm.test(\"Message confirms team expenses retrieval\", () => {\r",
+                      "        pm.expect(jsonData.message).to.include(\"retrieved successfully\");\r",
+                      "    });\r",
+                      "\r",
+                      "    pm.test(\"Data contains valid expenses list\", () => {\r",
+                      "        pm.expect(jsonData.data).to.have.property(\"items\");\r",
+                      "        pm.expect(jsonData.data.items).to.be.an(\"array\").that.is.not.empty;\r",
+                      "    });\r",
+                      "\r",
+                      "    pm.test(\"Pagination data is valid\", () => {\r",
+                      "        pm.expect(jsonData.data).to.have.property(\"nextCursor\");\r",
+                      "        pm.expect(jsonData.data).to.have.property(\"hasNext\");\r",
+                      "        pm.expect(jsonData.data).to.have.property(\"size\");\r",
+                      "    });\r",
+                      "\r",
+                      "    console.log(\"Items count:\", jsonData.data.size);\r",
+                      "    console.log(\"Has next page:\", jsonData.data.hasNext);\r",
+                      "    console.log(\"Next cursor:\", jsonData.data.nextCursor);\r",
+                      "}\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}/expenses?limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "teams",
+                    "{{teamId}}",
+                    "expenses"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Step 5: Get export to PDF",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// Check status code is 200\r",
+                      "pm.test(\"Status code is 200\", function () {\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "});\r",
+                      "\r",
+                      "// Check response is a PDF (content-type)\r",
+                      "pm.test(\"Response is a PDF file\", function () {\r",
+                      "    pm.response.to.have.header(\"Content-Type\");\r",
+                      "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/pdf\");\r",
+                      "});\r",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/expenses/export/pdf",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "expenses",
+                    "export",
+                    "pdf"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "userEmail",
+      "value": ""
+    },
+    {
+      "key": "teamId",
+      "value": ""
+    },
+    {
+      "key": "nextCursor",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "personalExpenseId",
+      "value": "",
+      "type": "default"
+    }
+  ]
+}
