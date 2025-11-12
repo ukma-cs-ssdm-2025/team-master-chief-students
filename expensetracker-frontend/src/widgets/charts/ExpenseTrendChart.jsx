@@ -91,7 +91,7 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
       const lastMonth = new Date(today);
       lastMonth.setMonth(today.getMonth() - 1);
       const fromDate = lastMonth.toISOString().split('T')[0];
-      
+
       return {
         ...filters,
         fromDate,
@@ -102,7 +102,7 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
       const lastYear = new Date(today);
       lastYear.setFullYear(today.getFullYear() - 1);
       const fromDate = lastYear.toISOString().split('T')[0];
-      
+
       return {
         ...filters,
         fromDate,
@@ -113,7 +113,7 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
       const { fromDate, toDate, ...restFilters } = filters;
       return restFilters;
     }
-    
+
     return filters;
   }, [period, filters]);
 
@@ -156,7 +156,7 @@ export const ExpenseTrendChart = ({ period = 'daily', filters = {} }) => {
       <ResponsiveContainer width="100%" height={400} minHeight={400} minWidth={0}>
         <LineChart
           data={chartData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 60 }}
+          margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
