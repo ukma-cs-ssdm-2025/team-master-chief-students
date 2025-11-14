@@ -2,99 +2,97 @@
 
 ---
 
-## 1. Reliability (Надійність)
+## 1. Reliability
 
-**Вимоги:**  
+**Requirements:**  
 - `REL-001`: Uptime ≥ 99.5%  
-- `REL-002`: Recovery ≤ 5 хв 
-- Система має стабільно працювати й витримувати збої без втрати даних.
+- `REL-002`: Recovery ≤ 5 min 
+- System must operate stably and withstand failures without data loss.
 
-**Рішення:**  
-- Використовується надійна база даних PostgreSQL.  
-- Усі операції з витратами є ідемпотентними — повторний запит не створює дубль.  
-- Сервер повертає інформативні коди помилок (`400`, `404`, `500`).  
-- Передбачено обробку винятків для всіх запитів API.  
+**Solution:**  
+- Reliable PostgreSQL database is used.  
+- All expense operations are idempotent — repeated requests do not create duplicates.  
+- Server returns informative error codes (`400`, `404`, `500`).  
+- Exception handling is provided for all API requests.  
 
-**Перевірка:**  
-- Ручне тестування повторних запитів.  
-- Перевірка, що при помилці система не “ламається” і показує повідомлення користувачу.
-- Навантажувальні тести (JMeter)
-- метрики Prometheus
+**Verification:**  
+- Manual testing of repeated requests.  
+- Verification that on error the system does not "crash" and shows a message to the user.
+- Load testing (JMeter)
+- Prometheus metrics
 
 ---
 
-## 2. Maintainability (Підтримуваність)
+## 2. Maintainability
 
-**Вимоги:**  
-- `MAINT-001`: тестове покриття ≥70%  
+**Requirements:**  
+- `MAINT-001`: test coverage ≥70%  
 - `MAINT-002`: CI/CD  
-- Код і API мають бути зрозумілими, легко змінюваними та документованими.
+- Code and API must be understandable, easily modifiable, and documented.
 
-**Рішення:**  
-- Документація створюється автоматично у форматі OpenAPI (`openapi-generated.yaml`).  
-- Є окремі рівні логіки: контролери, сервіси, репозиторії.  
-- Дотримується єдиний стиль REST API (`/api/v1/...`).  
-- Код містить короткі коментарі та має зрозумілі назви методів. 
-- Автоматичний деплой через GitHub Actions (build -> test -> deploy).
+**Solution:**  
+- Documentation is automatically generated in OpenAPI format (`openapi-generated.yaml`).  
+- Separate layers of logic exist: controllers, services, repositories.  
+- Unified REST API style is followed (`/api/v1/...`).  
+- Code contains brief comments and has understandable method names. 
+- Automatic deployment through GitHub Actions (build -> test -> deploy).
 
-**Перевірка:**  
-- Перевірка, що документація Swagger оновлюється автоматично.  
-- Новий член команди може швидко розібратись у структурі проєкту.  
-
----
-
-## 3. Scalability (Масштабованість)
-
-**Вимоги:**  
-- Система повинна легко підтримувати збільшення кількості користувачів або даних.
-
-**Рішення:**  
-- Архітектура розділена на компоненти: Frontend, Backend, Database.  
-- API можна розширювати новими маршрутами без змін у поточних.  
-- Є можливість додавання кешування для частих запитів у майбутньому
-
-**Перевірка:**  
-- Додавання нового API-модуля без зміни існуючих функцій.  
-- Перевірка роботи при великій кількості записів у базі.  
+**Verification:**  
+- Verification that Swagger documentation is automatically updated.  
+- New team member can quickly understand the project structure.  
 
 ---
 
-## 4.  Security (Безпека)
+## 3. Scalability
 
-**Вимоги:**  
-- `SEC-001`, `SEC-002`, `SEC-003`: Хешування паролів, HTTPS, Сесії з автозавершенням після 15 хв. неактивності.
-- Дані користувачів повинні бути захищені під час зберігання і передачі.  
+**Requirements:**  
+- System must easily support an increase in the number of users or data.
 
-**Рішення:**  
-- JWT аутентифікація Авторизація через JWT токени.  
-- Паролі хешуються перед збереженням у базі даних.     
-- Refresh endpoint `/api/v1/auth/refresh` для оновлення токенів. 
-- Доступ до даних обмежений ролями (USER, MANAGER, ADMIN). 
-- Використовується HTTPS для всіх запитів.  
+**Solution:**  
+- Architecture is divided into components: Frontend, Backend, Database.  
+- API can be extended with new routes without changes to existing ones.  
+- Possibility to add caching for frequent requests in the future
 
-
-**Перевірка:**  
-- Тестування входу/виходу користувача та менеджера, адміна.  
-- Спроба отримати доступ без токена — очікувана відмова.     
+**Verification:**  
+- Adding a new API module without changing existing functions.  
+- Testing operation with a large number of records in the database.  
 
 ---
 
-## 5.  Usability (Зручність використання)
+## 4. Security
 
-**Вимога:** 
-- `USAB-001`: адаптивність  
-- `USAB-002`: локалізація uk/en  
-- API має бути інтуїтивним, узгодженим і зручним для користувачів та розробників.
+**Requirements:**  
+- `SEC-001`, `SEC-002`, `SEC-003`: Password hashing, HTTPS, Sessions with auto-termination after 15 min of inactivity.
+- User data must be protected during storage and transmission.  
 
-**Рішення:**  
-- Чітка структура REST-ендпоінтів (`/api/v1/expenses`, `/api/v1/users`).  
-- Узгоджені формати запитів і відповідей (JSON).
-- Узгоджені HTTP-коди (`200`, `400`, `404`, `401`, `500`).  
-- Swagger UI (README.md) для перегляду та тестування API.  
-- Локалізовані повідомлення (українська та англійська).  
+**Solution:**  
+- JWT authentication. Authorization through JWT tokens.  
+- Passwords are hashed before saving to the database.     
+- Refresh endpoint `/api/v1/auth/refresh` for token refresh. 
+- Data access is restricted by roles (USER, MANAGER, ADMIN). 
+- HTTPS is used for all requests.  
 
-**Перевірка:**  
-- Тестування API через Swagger UI.  
-- Оцінка зрозумілості назв маршрутів та повідомлень.
+
+**Verification:**  
+- Testing login/logout for users and managers, admins.  
+- Attempt to access without token — expected denial.     
 
 ---
+
+## 5. Usability
+
+**Requirement:** 
+- `USAB-001`: responsiveness  
+- `USAB-002`: localization uk/en  
+- API must be intuitive, consistent, and convenient for users and developers.
+
+**Solution:**  
+- Clear REST endpoint structure (`/api/v1/expenses`, `/api/v1/users`).  
+- Consistent request and response formats (JSON).
+- Consistent HTTP codes (`200`, `400`, `404`, `401`, `500`).  
+- Swagger UI (README.md) for viewing and testing API.  
+- Localized messages (Ukrainian and English).  
+
+**Verification:**  
+- Testing API through Swagger UI.  
+- Evaluation of route names and message clarity.

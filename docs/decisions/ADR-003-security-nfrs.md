@@ -1,38 +1,38 @@
-# ADR-003: Використати JWT для автентифікації та управління сесіями
+# ADR-003: Use JWT for Authentication and Session Management
 
-## Статус
-Прийнято
+## Status
+Accepted
 
-## Контекст
-Застосунок для відстеження витрат потребує безпечної та масштабованої системи автентифікації.  
-Основні вимоги:  
-- Захист користувацьких паролів від компрометації  
-- Безпечна передача даних між клієнтом і сервером  
-- Масштабованість у розподіленому середовищі (Kubernetes, кілька інстансів API)  
-- Зручність для користувачів (мінімізація повторних входів)
+## Context
+The expense tracking application requires a secure and scalable authentication system.  
+Main requirements:  
+- Protection of user passwords from compromise  
+- Secure data transmission between client and server  
+- Scalability in distributed environment (Kubernetes, multiple API instances)  
+- Convenience for users (minimize repeated logins)
 
-## Рішення
-Реалізувати автентифікацію на основі **JWT-токенів**:  
-- **Паролі** зберігати у БД лише у вигляді хешів (`bcrypt` із сіллю та work factor ≥ 10).  
-- **Клієнтський логін**: `POST /auth/login` передає креденшали по HTTPS.  
-- **API** після валідації повертає два токени:  
-  - **Access Token** (короткочасний, 15 хв)  
-  - **Refresh Token** (довгочасний, 7–30 днів, зберігається у захищеному сховищі)  
-- Клієнт надсилає всі подальші запити з `Authorization: Bearer <access_token>`.  
-- Refresh-токени зберігаються у БД / Redis для відкликання.  
-- Вся комунікація відбувається через HTTPS (TLS 1.2+).  
+## Decision
+Implement authentication based on **JWT tokens**:  
+- **Passwords** are stored in the database only as hashes (`bcrypt` with salt and work factor ≥ 10).  
+- **Client login**: `POST /auth/login` sends credentials over HTTPS.  
+- **API** after validation returns two tokens:  
+  - **Access Token** (short-lived, 15 min)  
+  - **Refresh Token** (long-lived, 7–30 days, stored in secure storage)  
+- Client sends all subsequent requests with `Authorization: Bearer <access_token>`.  
+- Refresh tokens are stored in DB / Redis for revocation.  
+- All communication occurs over HTTPS (TLS 1.2+).  
 
-## Наслідки
-- ✅ Масштабування без необхідності sticky sessions у балансувальнику  
-- ✅ Сучасний стандарт, сумісний із веб- і мобільними клієнтами  
-- ✅ Захист паролів через bcrypt  
-- ✅ Підтримка session timeout та механізму відкликання токенів  
-- ⚠️ Потрібна інфраструктура для керування refresh-токенами (наприклад, Redis)  
-- ⚠️ У разі компрометації access-токен діятиме до закінчення свого TTL  
-- ❌ Ускладнене управління безпекою у порівнянні зі звичайними сесіями
+## Consequences
+- ✅ Scaling without need for sticky sessions in load balancer  
+- ✅ Modern standard, compatible with web and mobile clients  
+- ✅ Password protection through bcrypt  
+- ✅ Support for session timeout and token revocation mechanism  
+- ⚠️ Infrastructure needed for managing refresh tokens (e.g., Redis)  
+- ⚠️ In case of access token compromise, it will be active until its TTL expires  
+- ❌ More complex security management compared to regular sessions
 
-## Реалізація
-Спринт 2: Додати модуль Auth у backend, реалізувати логіку логіну та генерації токенів  
-Спринт 2: Інтегрувати Redis / PostgreSQL для зберігання refresh-токенів  
-Спринт 2: Реалізувати middleware для перевірки access-токенів у кожному API-виклику  
-Спринт 2: Налаштувати ротацію та відкликання токенів, додати тестування безпеки
+## Implementation
+Sprint 2: Add Auth module to backend, implement login logic and token generation  
+Sprint 2: Integrate Redis / PostgreSQL for storing refresh tokens  
+Sprint 2: Implement middleware for validating access tokens in each API call  
+Sprint 2: Configure token rotation and revocation, add security testing

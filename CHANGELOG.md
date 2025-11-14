@@ -1,69 +1,70 @@
 # ChangeLog 
  
-## **v1.1.0 – November 6, 2025*
+## **v1.2.0 – November 13, 2025**
 
 ## 1. Breaking Changes / Deprecations  
 **None**  
-No breaking API changes or deprecated components introduced in this version.
+No breaking API changes or deprecated functionality were introduced in this release. All existing endpoints remain compatible.
 
 ---
 
 ## 2. Upgrade / Migration Notes
-- **Prometheus:** Added monitoring integration. Configure `scrape_configs` with the appropriate service ports and endpoints.  
-- **File Storage:** Ensure access to directories for file saving/deletion with appropriate environment permissions.  
-- **CSV/PDF Export:** Confirm availability of required fonts and locales for export rendering.  
+- **Dashboard & UI Refactor:** The dashboard layout was redesigned for improved usability. Check updated structure and styling dependencies before redeployment.  
+- **Filtering Service:** Added cursor-based expense filtering — ensure pagination logic aligns with API consumers.  
+- **Prometheus:** No new configuration required; metrics collection remains stable.  
+- **Export System:** Enhanced CSV/PDF export stability; make sure required locales and fonts remain installed.   
 
 ---
 
 ## 3. Known Issues / Limitations  
-- Some automated tests for context initialization remain disabled (tracked separately).  
-- Minor layout inconsistencies in Swagger UI documentation.  
+- Some integration tests for CI pipeline remain disabled pending refactoring (#125).  
+- Minor UI inconsistencies in the analytics view on smaller screens.  
+- Occasional delay in multi-account data synchronization under heavy load.   
 
 ---
 
 ## 4. Links  
-- **Diff:** [compare v1.0.0...v1.1.0](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/compare/v1.0.0...v1.1.0)  
+- **Diff:** [compare v1.1.0...v1.2.0](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/compare/v1.1.0...v1.2.0)  
 - **Closed Issues / PRs:**  
-  - [#71](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/71) - Date conversion fix  
-  - [#72](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/72) - Receipt endpoint  
-  - [#73](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/73) - Team Charter update 
-  - [#75](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/75) - Change review-log
-  - [#83](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/83) - Feat/add export endpoint
-  - [#84](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/84) - Feat/add receipt
-  - [#86](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/86) - Docs/lab06
-  - [#88](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/88) - Fix Checkstyle error
-  - [#89](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/89) - Close getReceiptFile method
-  - [#90](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/90) - Merged into main from Develop
-  - [#94](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/94) - CSV export  
-  - [#99](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/99) - Team management  
-  - [#100](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/100) - Add debugging-log.md
-  - [#101](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/101) - Role change
-  - [#102](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/102) - Fix Forbidden when changing role
-  - [#104](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/104) - Simplify TeamCard and fix API endpoints for team expenses
-  - [#105](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/105) - Implementation and Demonstration
-  - [#106](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/106) - Feat/teams 
-  - [#107](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/107) - PDF export  
+  - [#110](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/110) - Dashboard redesign and UI improvements
+  - [#111](http://github.com/ukma-cs-ssdm-2025/team-master-chief-students/pull/111) - Improve UI structure
+  - [#114](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/114) - Cursor-based expense filtering  
+  - [#117](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/117) - Delete team endpoint  
+  - [#118](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/118) - Share and export enhancements  
+  - [#120](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/120) - Codebase improvements  
+  - [#122](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/122) - Performance optimization  
+  - [#123](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/123) - Testing infrastructure implementation
+  - [#125](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/125) - Fix CI workflow
+  - [#126](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/126) - DTO validation and exception handling  
+  - [#128](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/128) - Multi-account support  
+  - [#131](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/131) - Authentication service tests  
+  - [#135](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/135) - Time series statistics  
+  - [#136](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/136) - Team analytics filters  
+  - [#137](https://github.com/ukma-cs-ssdm-2025/team-master-chief-students/issues/137) - UI enhancement and refactor
 
 ---
 
 ## 5. QA Notes  
-- Disabled flaky context-init tests — marked as quarantined (`tracking via #NNN`).  
-- All other tests passed successfully on CI; coverage extended for export and receipt modules.  
-- Manual verification of Prometheus endpoints and export formats completed.  
+- All unit and integration tests passed successfully on CI.  
+- Disabled tests for context-init remain quarantined (`tracked via #125`).  
+- New performance tests confirm improved response times (<250ms p95).  
+- UI tested manually across Chrome and Edge — layout verified.  
+- API tested on postman with automated tests  
 
 ---
 
 ## 6. Compatibility / Data  
-No database migrations required in this version.  
-Schema remains unchanged; all existing data and configurations remain valid.  
+No database schema or data migrations required.  
+Existing configurations and API tokens remain valid across the update.  
 
 ---
 
 ## 7. Stability / Readiness  
-Backward compatible with **v1.0.0**; safe minor upgrade.  
-Codebase optimized, CI/CD stable, and quality gates passed successfully.  
+Backward compatible with **v1.1.0**; safe minor upgrade.  
+All endpoints validated, CI/CD workflows remain stable, and overall performance improved.  
 
 ---
 
 ## Summary of Changes  
-Includes new export features (CSV/PDF), improved testing and documentation, Prometheus monitoring, and refactored endpoints for better maintainability.  
+This release introduces a major dashboard redesign, adds cursor-based expense filtering, multi-account support, enhanced exports, and improved validation and testing coverage.  
+It focuses on improving system performance, UI experience, and maintainability while keeping full backward compatibility. 

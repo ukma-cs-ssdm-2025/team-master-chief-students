@@ -65,9 +65,10 @@ export const TeamDetailsLayout = () => {
         </div>
         <button
           onClick={() => navigate("/teams")}
-          className="mt-4 text-blue-500 hover:text-blue-600"
+          className="mt-4 flex items-center gap-2 text-blue-500 hover:text-blue-600 transition-colors"
         >
-          ← Back to Teams
+          <Icon name="arrowLeft" className="w-5 h-5" />
+          Back to Teams
         </button>
       </div>
     );
@@ -81,9 +82,10 @@ export const TeamDetailsLayout = () => {
         </div>
         <button
           onClick={() => navigate("/teams")}
-          className="mt-4 text-blue-500 hover:text-blue-600"
+          className="mt-4 flex items-center gap-2 text-blue-500 hover:text-blue-600 transition-colors"
         >
-          ← Back to Teams
+          <Icon name="arrowLeft" className="w-5 h-5" />
+          Back to Teams
         </button>
       </div>
     );
@@ -93,14 +95,27 @@ export const TeamDetailsLayout = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate("/teams")}
+        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors group"
+      >
+        <Icon name="arrowLeft" className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+        <span className="font-medium">Back to Teams</span>
+      </button>
+
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{team.name}</h1>
             <p className="text-gray-600">
-              {membersCount} member{membersCount !== 1 ? 's' : ''} • Your role: {userRole || 'N/A'}{' '}
-              {canDelete && '✓ Can manage'}
+              {membersCount} member{membersCount !== 1 ? 's' : ''} • Your role: <span className={`font-medium ${
+                userRole === 'OWNER' ? 'text-purple-600' :
+                userRole === 'ADMIN' ? 'text-blue-600' :
+                'text-gray-600'
+              }`}>{userRole || 'N/A'}</span>
+              {canDelete && <span className="ml-2 text-green-600">✓ Can manage</span>}
             </p>
           </div>
           {canDelete && (
@@ -197,4 +212,3 @@ export const TeamDetailsLayout = () => {
     </div>
   );
 };
-
