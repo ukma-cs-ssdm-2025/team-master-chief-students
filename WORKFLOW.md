@@ -1,50 +1,49 @@
-# Робочий процес завдань
+# Task Workflow
 
-## 1. Створення завдання
+## 1. Creating a Task
 
-Завжди створюємо Issue для будь-якої нової задачі, багу чи ідеї (невеликі зміни можна без).
-- **Формат:**
-- Коротка назва
-- Детальний опис (user story або що треба зробити)
-- Labels (тип, статус, пріоритет)
-- Assignee (хто відповідальний)
+Always create an Issue for any new task, bug, or idea (small changes can be done without).
 
-## 2. Використання Labels (міток)
+**Format:**
+- Short title
+- Detailed description (user story or what needs to be done)
+- Labels (type, status, priority)
+- Assignee (who is responsible)
 
-### Типи завдань
-- bug🐞 — позначає помилку або несправність у коді
-- feature✨ — завдання на розробку нової функціональності
-- documentation📝 — оновлення чи створення документації
-- ui/ux🎨 — задачі, пов’язані з інтерфейсом і дизайном
-### Статус
-- in progress🚧 — завдання зараз у роботі
-- done✅ — завдання виконане
-- waiting⏳ — очікує уточнень або залежить від іншого завдання
-### Пріоритет
-- high priority🔴 — критично важливе завдання
-- medium priority🟡 — завдання середньої важливості
-- low priority🟢 — завдання низького пріоритету
-### Ролі
-- user👤 — функціонал або завдання для ролі користувача
-- admin🛠 — завдання для адміністратора або менеджера
+## 2. Using Labels
 
-## 3. Виконання завдання
+### Task Types
+- `bug🐞` — marks an error or malfunction in the code
+- `feature✨` — task for developing new functionality
+- `documentation📝` — updating or creating documentation
+- `ui/ux🎨` — tasks related to interface and design
 
-- Коли починаєш роботу — ставиш мітку in progress.
-- Створюєш гілку у Git: feature/<short-name> або bugfix/<short-name>.
-- Працюєш над кодом.
+### Status
+- `in progress🚧` — task is currently being worked on
+- `done✅` — task is completed
+- `waiting⏳` — waiting for clarifications or depends on another task
+
+### Priority
+- `high priority🔴` — critically important task
+- `medium priority🟡` — task of medium importance
+- `low priority🟢` — low priority task
+
+### Roles
+- `user👤` — functionality or task for user role
+- `admin🛠` — task for administrator or manager
+
+## 3. Executing a Task
+
+- When starting work — set the `in progress` label.
+- Create a branch in Git: `feature/<short-name>` or `bugfix/<short-name>`.
+- Work on the code.
 
 ## 4. Pull Request
 
-- Коли завдання готове → відкриваєш Pull Request.
-- У PR посилаєшся на Issue:
-Closes #5
-(це автоматично закриє Issue після злиття).
-- У PR можна описати, що змінилось.
-
-## 5. Завершення
-
-- Після review і злиття PR → Issue отримує мітку done.
-- Issue закривається.
-
-
+- When the task is ready → open a Pull Request.
+- In the PR, reference the Issue:
+  ```
+  Closes #5
+  ```
+  (This will automatically close the Issue after merging).
+- In the PR, you can describe what changed.

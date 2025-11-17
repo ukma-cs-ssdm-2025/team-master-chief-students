@@ -1,172 +1,170 @@
-# Регламент тестування
+# Testing Regulations
 
-## 1. Опис
-Цей документ визначає обов'язкові для виконання правила та стандарти, спрямовані на забезпечення стабільності, підтримуваності та загальної якості тестів.  
-Дотримання цього регламенту є відповідальністю кожного члена команди.
-
----
-
-## 2. Стандарти написання тестів
-
-### 2.1. Структура "Arrange-Act-Assert" (AAA)
-Кожен тест повинен мати чітко відокремлені блоки:
-- **Arrange** — підготовка даних
-- **Act** — виконання дії
-- **Assert** — перевірка результату
-
-Рекомендується використовувати порожні рядки або коментарі для візуального розділення секцій.
+## 1. Description
+This document defines mandatory rules and standards aimed at ensuring stability, maintainability, and overall test quality.  
+Compliance with these regulations is the responsibility of each team member.
 
 ---
 
-### 2.3. Принцип єдиної відповідальності
-Один тестовий випадок повинен перевіряти **один логічний аспект** функціональності.  
-Тест повинен мати одну, і тільки одну, причину для падіння.
+## 2. Test Writing Standards
+
+### 2.1. "Arrange-Act-Assert" (AAA) Structure
+Each test must have clearly separated blocks:
+- **Arrange** — data preparation
+- **Act** — action execution
+- **Assert** — result verification
+
+It is recommended to use blank lines or comments for visual separation of sections.
 
 ---
 
-### 2.4. Аналіз граничних значень
-Тестування повинно обов’язково включати перевірку граничних умов:
+### 2.3. Single Responsibility Principle
+One test case should verify **one logical aspect** of functionality.  
+A test should have one, and only one, reason to fail.
+
+---
+
+### 2.4. Boundary Value Analysis
+Testing must necessarily include verification of boundary conditions:
 - `null`, `BigDecimal.ZERO`
-- порожні рядки та колекції
-- від’ємні числа
-- максимальні допустимі значення тощо
+- empty strings and collections
+- negative numbers
+- maximum allowable values, etc.
 
 ---
 
-## 3. Процес роботи з помилками (Bug Fixing)
+## 3. Bug Fixing Process
 
-### 3.1. Крок 1: Відтворення
-Дефект повинен бути стабільно відтворений.  
-Створюється новий тестовий випадок, який імітує умови виникнення помилки і **падає**.
+### 3.1. Step 1: Reproduction
+The defect must be stably reproduced.  
+A new test case is created that simulates the conditions of the error occurrence and **fails**.
 
-### 3.2. Крок 2: Ізоляція та діагностика
-Проводиться аналіз для виявлення першопричини.  
-Рекомендується використовувати:
-- дебагер (breakpoints в IntelliJ IDEA)
-- логи рівня `DEBUG`
-- аналіз `stack trace`
+### 3.2. Step 2: Isolation and Diagnosis
+Analysis is conducted to identify the root cause.  
+It is recommended to use:
+- debugger (breakpoints in IntelliJ IDEA)
+- `DEBUG` level logs
+- `stack trace` analysis
 
-### 3.3. Крок 3: Виправлення
-Вноситься **мінімально необхідний код** для усунення першопричини дефекту.
+### 3.3. Step 3: Fix
+**Minimally necessary code** is introduced to eliminate the root cause of the defect.
 
-### 3.4. Крок 4: Верифікація
-- Запускається тест, що раніше падав — тепер він має пройти.
-- Запускається повний набір тестів (`mvn test`) для перевірки відсутності побічних ефектів.
-
----
-
-## 4. Підтримка кодової бази та тестів
-
-### 4.1. Рефакторинг тестів
-Тести — це повноцінна частина кодової бази.  
-До них застосовуються ті ж стандарти чистоти коду.  
-Рекомендується:
-- Виносити повторювані дані в helper-методи або `@BeforeEach`
-- Використовувати змістовні імена змінних
-- Уникати дублювання
-
-### 4.2. Актуалізація тестів
-При зміні або видаленні функціональності тести **оновлюються або видаляються** у тому ж Pull Request.
-
-### 4.3. Регулярне оновлення тестів
-Рекомендується щомісячний перегляд покриття критичних модулів, щоб додавати нові сценарії.
-
-### 4.4. Коментування складних сценаріїв
-Якщо тест перевіряє складну або неочевидну бізнес-логіку — додається короткий коментар, що пояснює її.
+### 3.4. Step 4: Verification
+- Run the test that previously failed — it should now pass.
+- Run the full test suite (`mvn test`) to verify absence of side effects.
 
 ---
 
-## 5. Інструментарій
+## 4. Codebase and Test Maintenance
 
-### 🔹 Основний фреймворк: **JUnit 5 (Jupiter)**
-- **Призначення:** юніт- та інтеграційні тести
-- **Основні анотації:** `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, `@AfterAll`, `@Disabled`, `@DisplayName`
+### 4.1. Test Refactoring
+Tests are a full part of the codebase.  
+The same code cleanliness standards apply to them.  
+It is recommended:
+- Extract repeated data into helper methods or `@BeforeEach`
+- Use meaningful variable names
+- Avoid duplication
+
+### 4.2. Test Updates
+When functionality is changed or removed, tests **are updated or removed** in the same Pull Request.
+
+### 4.3. Regular Test Updates
+Monthly review of critical module coverage is recommended to add new scenarios.
+
+### 4.4. Commenting Complex Scenarios
+If a test verifies complex or non-obvious business logic — a brief comment explaining it should be added.
 
 ---
 
-### 🔹 Тестування Spring компонентів
+## 5. Tooling
+
+### 🔹 Main Framework: **JUnit 5 (Jupiter)**
+- **Purpose:** unit and integration tests
+- **Main annotations:** `@Test`, `@BeforeEach`, `@AfterEach`, `@BeforeAll`, `@AfterAll`, `@Disabled`, `@DisplayName`
+
+---
+
+### 🔹 Spring Component Testing
 
 #### @WebMvcTest
-- **Призначення:** тестування REST контролерів без підняття повного контексту
-- **Переваги:** швидке виконання, ізоляція веб-шару
+- **Purpose:** testing REST controllers without loading full context
+- **Advantages:** fast execution, web layer isolation
 
 #### @DataJpaTest
-- **Призначення:** тестування JPA репозиторіїв з in-memory базою (H2)
-- **Переваги:** швидка перевірка запитів до БД без запуску додатку
+- **Purpose:** testing JPA repositories with in-memory database (H2)
+- **Advantages:** fast verification of DB queries without starting the application
 
 #### @SpringBootTest
-- **Призначення:** E2E тестування з повним контекстом
-- **Переваги:** використовується для критичних інтеграційних сценаріїв
+- **Purpose:** E2E testing with full context
+- **Advantages:** used for critical integration scenarios
 
 ---
 
-### 🔹 Ізоляція залежностей: **Mockito**
-- **Призначення:** створення моків для сервісів, репозиторіїв, API
-- **Основні можливості:**  
+### 🔹 Dependency Isolation: **Mockito**
+- **Purpose:** creating mocks for services, repositories, APIs
+- **Main capabilities:**  
   `when()`, `verify()`, `@Mock`, `@InjectMocks`
 
 ---
 
-### 🔹 Вимірювання покриття: **JaCoCo**
-- **Запуск:**
-    - `mvn clean test jacoco:report` — генерація звіту
-    - `mvn jacoco:check` — перевірка мінімальних порогів
-- **Мінімальні пороги:**
-    - Загальне покриття ≥ 80%
-    - Сервіси/репозиторії ≥ 90%
-    - Контролери ≥ 85%
+### 🔹 Coverage Measurement: **JaCoCo**
+- **Execution:**
+    - `mvn clean test jacoco:report` — generate report
+    - `mvn jacoco:check` — check minimum thresholds
+- **Minimum thresholds:**
+    - Overall coverage ≥ 80%
+    - Services/repositories ≥ 90%
+    - Controllers ≥ 85%
 
 ---
 
 ### 🔹 CI/CD: **GitHub Actions**
-- **Призначення:** автоматичний запуск тестів при кожному push/PR
-- **Основні кроки:** setup JDK → запуск тестів → перевірка покриття → звіт
+- **Purpose:** automatic test execution on each push/PR
+- **Main steps:** setup JDK → run tests → check coverage → report
 
 ---
 
-### 🔹 Статичний аналіз коду
-| Інструмент | Призначення |
+### 🔹 Static Code Analysis
+| Tool | Purpose |
 |-------------|--------------|
-| **Checkstyle** | Контроль стилю коду |
-| **SpotBugs** | Виявлення потенційних багів |
-| **PMD** | Виявлення code smells та неоптимальних конструкцій |
+| **Checkstyle** | Code style control |
+| **SpotBugs** | Potential bug detection |
+| **PMD** | Code smell and suboptimal construction detection |
 
 ---
 
-## 6. Типи перевірок та їх призначення
+## 6. Check Types and Their Purpose
 
-| Тип перевірки | Що перевіряє | Коли виконується | Інструменти |
+| Check Type | What it checks | When executed | Tools |
 |----------------|--------------|------------------|--------------|
-| **Статичний аналіз коду** | Стиль, потенційні помилки | При кожному push | Checkstyle, SpotBugs, PMD |
-| **Модульні тести** | Окремі методи/класи | При кожному push | JUnit + Mockito |
-| **Web Layer Tests** | REST API, маршрутизація, JSON | При кожному push | @WebMvcTest |
-| **Інтеграційні тести** | Повний флоу (Controller → DB) | При PR у develop/main | @SpringBootTest |
-| **Repository Tests** | JPA-запити | При кожному push | @DataJpaTest |
-| **Code Coverage Gate** | Відсоток покриття коду | При PR у develop/main | JaCoCo |
+| **Static code analysis** | Style, potential errors | On each push | Checkstyle, SpotBugs, PMD |
+| **Unit tests** | Individual methods/classes | On each push | JUnit + Mockito |
+| **Web Layer Tests** | REST API, routing, JSON | On each push | @WebMvcTest |
+| **Integration tests** | Full flow (Controller → DB) | On PR to develop/main | @SpringBootTest |
+| **Repository Tests** | JPA queries | On each push | @DataJpaTest |
+| **Code Coverage Gate** | Code coverage percentage | On PR to develop/main | JaCoCo |
 
 ---
 
 ## 8. Best Practices
 
-### 8.1. Швидкість виконання тестів
-- Використовувати **моки** замість реальних залежностей
-- Мінімізувати кількість `@SpringBootTest`
-- Не робити реальні HTTP-запити до зовнішніх API
+### 8.1. Test Execution Speed
+- Use **mocks** instead of real dependencies
+- Minimize number of `@SpringBootTest`
+- Don't make real HTTP requests to external APIs
 
-### 8.2. Ізоляція тестів
-- Кожен тест — незалежний
-- Не залежати від порядку виконання
-- Кожен тест створює власні дані
+### 8.2. Test Isolation
+- Each test — independent
+- Don't depend on execution order
+- Each test creates its own data
 
-### 8.3. Використання констант
-- Часто використовувані дані зберігаються в `TestConstants` або `TestDataBuilder`
+### 8.3. Using Constants
+- Frequently used data is stored in `TestConstants` or `TestDataBuilder`
 
-### 8.4. Перевірка винятків
-- Використовувати `assertThrows()`
-- Перевіряти повідомлення винятку, якщо воно має бізнес-значення
+### 8.4. Exception Verification
+- Use `assertThrows()`
+- Verify exception message if it has business value
 
-### 8.5. Уникнення дублювання коду
-- Повторювану логіку виносити в helper-методи, `@BeforeEach` або builder-класи
-- Тести мають бути **чистими, короткими та зрозумілими**
-
----
+### 8.5. Avoiding Code Duplication
+- Extract repeated logic into helper methods, `@BeforeEach`, or builder classes
+- Tests must be **clean, short, and understandable**

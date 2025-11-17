@@ -23,14 +23,19 @@ jobs:
                   
                   echo "Checking commits between $BASE_COMMIT and $HEAD_COMMIT..."
                   
-                  git log --pretty=%B $BASE_COMMIT..$HEAD_COMMIT | while read -r COMMIT_MSG; do
-                    # Пропускаємо порожні рядки, які можуть з'явитися між комітами
+                  git log --pretty=%s $BASE_COMMIT..$HEAD_COMMIT | while read -r COMMIT_MSG; do
                     if [ -z "$COMMIT_MSG" ]; then
                       continue
                     fi
                   
                     echo "------------------------------------------------"
-                    echo "Checking commit: $COMMIT_MSG"
+                    echo "Checking commit subject: $COMMIT_MSG"
+
+                    if [[ "$COMMIT_MSG" == "Merge remote-tracking branch"* ]]; then
+                      echo "➡️ Skipping merge commit."
+                      continue # Переходимо до наступного коміту
+                    fi
+                    # ============================
                   
                     if [[ ! "$COMMIT_MSG" =~ $REGEX ]]; then
                       echo "🚫 Error: The commit message does not match the required format."

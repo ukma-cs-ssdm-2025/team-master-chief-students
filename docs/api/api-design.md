@@ -3,22 +3,22 @@
 ## Architecture Overview
 - **Base URL**: `http://localhost:8080/v3/api-docs`
 - **API Style**: RESTful
-- **Authentication**: JWT Bearer tokens (planned)
+- **Authentication**: JWT Bearer tokens
 - **Response Format**: JSON
 - **Versioning Strategy**: URL path versioning (/v1, /v2)
 
 ## Resource Model
-У проєкті реалізовано такі основні сутності:
+The following main entities are implemented in the project:
 
-- **User** — представляє користувача системи.  
-  Кожен користувач має унікальний `id`, ім’я користувача, електронну адресу та статус активності.  
-  Користувач може створювати витрати (expenses).
+- **User** — represents a system user.  
+  Each user has a unique `id`, username, email address, and activity status.  
+  Users can create expenses.
 
-- **Expense** — описує окрему витрату користувача.  
-  Витрата містить категорію, опис, суму та дату.  
-  Кожна витрата належить одному користувачу.
+- **Expense** — describes a single user expense.  
+  An expense contains category, description, amount, and date.  
+  Each expense belongs to one user.
 
-- **Auth** — відповідає за автентифікацію користувачів (реєстрація, вхід у систему, оновлення токенів).
+- **Auth** — handles user authentication (registration, login, token refresh).
 
 ---
 
@@ -80,21 +80,21 @@
 
 ## Design Decisions
 
-- **REST architecture** — API побудовано з дотриманням принципів REST. Кожен ресурс має свій endpoint та використовує стандартні HTTP-методи (`GET`, `POST`, `PUT`, `DELETE`).
+- **REST architecture** — API is built following REST principles. Each resource has its own endpoint and uses standard HTTP methods (`GET`, `POST`, `PUT`, `DELETE`).
 
-- **Versioning** — використовується префікс `/api/v1` для полегшення майбутньої підтримки різних версій API.
+- **Versioning** — prefix `/api/v1` is used to facilitate future support of different API versions.
 
-- **Authentication** — реалізовано JWT (JSON Web Token) для безпечної авторизації користувачів.  
-  Використовується пара токенів: `accessToken` і `refreshToken`.
+- **Authentication** — JWT (JSON Web Token) is implemented for secure user authorization.  
+  A pair of tokens is used: `accessToken` and `refreshToken`.
 
-- **Layered structure** — логіка поділена на рівні:  
-  контролери (`controller`), сервіси (`service`), репозиторії (`repository`) для підвищення зручності підтримки коду.
+- **Layered structure** — logic is divided into layers:  
+  controllers (`controller`), services (`service`), repositories (`repository`) to improve code maintainability.
 
-- **Validation & Error handling** — всі запити проходять валідацію. У разі помилок API повертає уніфіковану структуру відповіді (`success`, `message`, `data`, `metadata`).
+- **Validation & Error handling** — all requests are validated. In case of errors, API returns a unified response structure (`success`, `message`, `data`, `metadata`).
 
-- **Consistent responses** — усі відповіді API мають єдиний формат через обгортку `ApiResponse`.
+- **Consistent responses** — all API responses have a unified format through the `ApiResponse` wrapper.
 
-- **Filtering & Statistics** — реалізовано фільтрацію витрат за категорією, сумою та датою, а також статистику витрат користувача.
+- **Filtering & Statistics** — expense filtering by category, amount, and date is implemented, as well as user expense statistics.
 
 
 ### Why Code-First?

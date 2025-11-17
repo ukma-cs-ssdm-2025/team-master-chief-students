@@ -1,27 +1,27 @@
-# ADR-003: Вибір бази даних для застосунку відстеження витрат
-## Статус
-Прийнято
-## Контекст
-Застосунок для відстеження витрат потребує надійного збереження даних користувачів, включно з історією витрат, категоріями, звітами та статистикою.  
-Потрібна база даних, яка підтримує:  
-- Структуровані дані (SQL таблиці для витрат, категорій, користувачів)  
-- Масштабованість і швидкий доступ до агрегованої статистики  
-- Можливість інтеграції з кешем та іншими сервісами  
+# ADR-002: Database Choice for Expense Tracking Application
+## Status
+Accepted
+## Context
+The expense tracking application requires reliable storage of user data, including expense history, categories, reports, and statistics.  
+A database is needed that supports:  
+- Structured data (SQL tables for expenses, categories, users)  
+- Scalability and fast access to aggregated statistics  
+- Ability to integrate with cache and other services  
 
-## Рішення
-Вибрати **PostgreSQL** як основну базу даних.  
-- Використовувати таблиці для зберігання витрат, категорій, користувачів  
-- Використовувати індекси для швидкого читання та агрегацій  
-- Інтегрувати Redis як кеш для статистичних запитів  
+## Decision
+Choose **PostgreSQL** as the primary database.  
+- Use tables to store expenses, categories, users  
+- Use indexes for fast reads and aggregations  
+- Integrate Redis as cache for statistical queries  
 
-## Наслідки
-- ✅ Надійне зберігання структурованих даних  
-- ✅ Підтримка складних SQL-запитів та агрегацій  
-- ✅ Швидке читання статистики через кешування  
-- ⚠️ Потрібне налаштування резервного копіювання та масштабування  
-- ❌ Не оптимально для зберігання великих об’єктів (для цього використовується Object Storage)  
+## Consequences
+- ✅ Reliable storage of structured data  
+- ✅ Support for complex SQL queries and aggregations  
+- ✅ Fast statistics reading through caching  
+- ⚠️ Need to configure backups and scaling  
+- ❌ Not optimal for storing large objects (Object Storage is used for this)  
 
-## Реалізація
-Спринт 1: Створення схем бази даних та таблиць  
-Спринт 2-3: Інтеграція з бекендом та реалізація CRUD для витрат  
-Спринт 4: Налаштування кешу Redis для звітів та статистики
+## Implementation
+Sprint 1: Create database schemas and tables  
+Sprint 2-3: Integrate with backend and implement CRUD for expenses  
+Sprint 4: Configure Redis cache for reports and statistics
