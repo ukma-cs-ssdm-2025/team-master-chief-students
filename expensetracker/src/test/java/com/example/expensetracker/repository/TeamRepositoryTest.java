@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-@DisplayName("ExpenseRepository Tests")
+@DisplayName("TeamRepository Tests")
 public class TeamRepositoryTest {
 
     @Container
