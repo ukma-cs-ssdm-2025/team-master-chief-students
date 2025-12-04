@@ -9,7 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -29,8 +29,10 @@ public class DataInitializer {
     private final TeamMemberRepository teamMemberRepository;
     private final ExpenseRepository expenseRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-    
+    private final TransactionTemplate transactionTemplate;
+
     private final Random random = new Random(42);
+    private static final String DEFAULT_PASSWORD = "password123";
 
     @Bean
     public CommandLineRunner initTestData() {
@@ -41,40 +43,40 @@ public class DataInitializer {
             }
 
             log.info("Initializing test data...");
-            initializeData();
+            // Use TransactionTemplate to ensure the transaction is active
+            transactionTemplate.executeWithoutResult(status -> initializeData());
             log.info("Test data initialization completed");
         };
     }
 
-    @Transactional
     public void initializeData() {
         // Create 5 users
-        UserEntity alice = createUser("alice@example.com", "Alice", "password123");
-        UserEntity bob = createUser("bob@example.com", "Bob", "password123");
-        UserEntity charlie = createUser("charlie@example.com", "Charlie", "password123");
-        UserEntity diana = createUser("diana@example.com", "Diana", "password123");
-        UserEntity eve = createUser("eve@example.com", "Eve", "password123");
+        UserEntity alice = createUser("alice@example.com", "Alice", DEFAULT_PASSWORD);
+        UserEntity bob = createUser("bob@example.com", "Bob", DEFAULT_PASSWORD);
+        UserEntity charlie = createUser("charlie@example.com", "Charlie", DEFAULT_PASSWORD);
+        UserEntity diana = createUser("diana@example.com", "Diana", DEFAULT_PASSWORD);
+        UserEntity eve = createUser("eve@example.com", "Eve", DEFAULT_PASSWORD);
 
         // Create unique categories for each user (4-10 categories per user)
         List<CategoryEntity> aliceCategories = createUserCategories(alice, List.of(
-            "Food & Dining", "Transportation", "Shopping", "Entertainment", 
-            "Bills & Utilities", "Healthcare", "Education", "Travel"
+                "Food & Dining", "Transportation", "Shopping", "Entertainment",
+                "Bills & Utilities", "Healthcare", "Education", "Travel"
         ));
         List<CategoryEntity> bobCategories = createUserCategories(bob, List.of(
-            "Groceries", "Gas & Fuel", "Restaurants", "Movies", 
-            "Phone Bill", "Gym Membership", "Books"
+                "Groceries", "Gas & Fuel", "Restaurants", "Movies",
+                "Phone Bill", "Gym Membership", "Books"
         ));
         List<CategoryEntity> charlieCategories = createUserCategories(charlie, List.of(
-            "Fast Food", "Public Transport", "Clothing", "Games", 
-            "Internet", "Medical", "Courses", "Hotels", "Car Rental"
+                "Fast Food", "Public Transport", "Clothing", "Games",
+                "Internet", "Medical", "Courses", "Hotels", "Car Rental"
         ));
         List<CategoryEntity> dianaCategories = createUserCategories(diana, List.of(
-            "Supermarket", "Taxi", "Fashion", "Concerts", 
-            "Electricity", "Pharmacy", "Online Learning"
+                "Supermarket", "Taxi", "Fashion", "Concerts",
+                "Electricity", "Pharmacy", "Online Learning"
         ));
         List<CategoryEntity> eveCategories = createUserCategories(eve, List.of(
-            "Restaurant", "Bus", "Electronics", "Theater", 
-            "Water Bill", "Dentist", "Workshops", "Flights", "Rent a Car"
+                "Restaurant", "Bus", "Electronics", "Theater",
+                "Water Bill", "Dentist", "Workshops", "Flights", "Rent a Car"
         ));
 
         // Create teams: Team 1 (alice, bob, charlie), Team 2 (diana, eve)
@@ -98,12 +100,12 @@ public class DataInitializer {
         createPersonalExpenses(eve, eveCategories, 125);
 
         // Create 300 team expenses for Team 1 (distributed among alice, bob, charlie)
-        createTeamExpenses(team1, List.of(alice, bob, charlie), 
-                          List.of(aliceCategories, bobCategories, charlieCategories), 300);
+        createTeamExpenses(team1, List.of(alice, bob, charlie),
+                List.of(aliceCategories, bobCategories, charlieCategories), 300);
 
         // Create 300 team expenses for Team 2 (distributed among diana, eve)
-        createTeamExpenses(team2, List.of(diana, eve), 
-                          List.of(dianaCategories, eveCategories), 300);
+        createTeamExpenses(team2, List.of(diana, eve),
+                List.of(dianaCategories, eveCategories), 300);
 
         long totalExpenses = expenseRepository.count();
         // Count personal expenses (team is null) and team expenses separately
@@ -111,7 +113,7 @@ public class DataInitializer {
                 .filter(e -> e.getTeam() == null)
                 .count();
         long teamExpenses = totalExpenses - personalExpenses;
-        
+
         log.info("Created test data:");
         log.info("- Users: {} (alice, bob, charlie, diana, eve)", userRepository.count());
         log.info("- Teams: {} (Development Team, Marketing Team)", teamRepository.count());
@@ -158,9 +160,9 @@ public class DataInitializer {
         return teamMemberRepository.save(member);
     }
 
-    private ExpenseEntity createPersonalExpense(UserEntity user, CategoryEntity category, 
-                                                 String description, BigDecimal amount, 
-                                                 LocalDate date, Instant createdAt) {
+    private ExpenseEntity createPersonalExpense(UserEntity user, CategoryEntity category,
+                                                String description, BigDecimal amount,
+                                                LocalDate date, Instant createdAt) {
         ExpenseEntity expense = ExpenseEntity.builder()
                 .user(user)
                 .category(category)
@@ -199,52 +201,51 @@ public class DataInitializer {
     private void createPersonalExpenses(UserEntity user, List<CategoryEntity> categories, int count) {
         LocalDate startDate = LocalDate.now().minusDays(365);
         Instant startInstant = Instant.now().minusSeconds(31536000); // 365 days ago
-        
+
         String[] descriptions = {
-            "Daily expense", "Weekly purchase", "Monthly bill", "Regular payment",
-            "Shopping trip", "Service fee", "Subscription", "One-time purchase",
-            "Regular expense", "Special purchase", "Utility payment", "Food order"
+                "Daily expense", "Weekly purchase", "Monthly bill", "Regular payment",
+                "Shopping trip", "Service fee", "Subscription", "One-time purchase",
+                "Regular expense", "Special purchase", "Utility payment", "Food order"
         };
-        
+
         for (int i = 0; i < count; i++) {
             CategoryEntity category = categories.get(random.nextInt(categories.size()));
             String description = descriptions[random.nextInt(descriptions.length)] + " #" + (i + 1);
             BigDecimal amount = BigDecimal.valueOf(5.0 + random.nextDouble() * 495.0)
                     .setScale(2, java.math.RoundingMode.HALF_UP);
-            
+
             LocalDate date = startDate.plusDays(random.nextInt(365));
             Instant createdAt = startInstant.plusSeconds(random.nextInt(31536000));
-            
+
             createPersonalExpense(user, category, description, amount, date, createdAt);
         }
     }
 
-    private void createTeamExpenses(TeamEntity team, List<UserEntity> users, 
+    private void createTeamExpenses(TeamEntity team, List<UserEntity> users,
                                     List<List<CategoryEntity>> userCategories, int count) {
         LocalDate startDate = LocalDate.now().minusDays(365);
         Instant startInstant = Instant.now().minusSeconds(31536000);
-        
+
         String[] descriptions = {
-            "Team lunch", "Team meeting", "Team event", "Team travel",
-            "Team equipment", "Team training", "Team conference", "Team dinner",
-            "Team activity", "Team project expense", "Team supplies", "Team service"
+                "Team lunch", "Team meeting", "Team event", "Team travel",
+                "Team equipment", "Team training", "Team conference", "Team dinner",
+                "Team activity", "Team project expense", "Team supplies", "Team service"
         };
-        
+
         for (int i = 0; i < count; i++) {
             int userIndex = random.nextInt(users.size());
             UserEntity user = users.get(userIndex);
             List<CategoryEntity> categories = userCategories.get(userIndex);
             CategoryEntity category = categories.get(random.nextInt(categories.size()));
-            
+
             String description = descriptions[random.nextInt(descriptions.length)] + " #" + (i + 1);
             BigDecimal amount = BigDecimal.valueOf(10.0 + random.nextDouble() * 990.0)
                     .setScale(2, java.math.RoundingMode.HALF_UP);
-            
+
             LocalDate date = startDate.plusDays(random.nextInt(365));
             Instant createdAt = startInstant.plusSeconds(random.nextInt(31536000));
-            
+
             createTeamExpense(user, team, category, description, amount, date, createdAt);
         }
     }
 }
-

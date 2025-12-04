@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class TeamServiceImpl extends BaseService implements TeamService {
 
     private static final Logger logger = LogManager.getLogger(TeamServiceImpl.class);
+    private static final String TEAM_NOT_FOUND_MSG = "Team not found";
 
     private final TeamRepository teamRepository;
     private final TeamMemberRepository teamMemberRepository;
@@ -103,7 +104,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         teamAcl.requireMembership(me, teamId);
         
         TeamEntity team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new NotFoundException("Team not found"));
+                .orElseThrow(() -> new NotFoundException(TEAM_NOT_FOUND_MSG));
 
         List<TeamMemberDto> members = teamMemberRepository.findAllByTeamId(teamId)
                 .stream()
@@ -149,7 +150,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         }
 
         TeamEntity team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new NotFoundException("Team not found"));
+                .orElseThrow(() -> new NotFoundException(TEAM_NOT_FOUND_MSG));
         
         UserEntity user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -260,7 +261,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER, TeamRole.ADMIN);
         
         TeamEntity team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new NotFoundException("Team not found"));
+                .orElseThrow(() -> new NotFoundException(TEAM_NOT_FOUND_MSG));
         
         team.setName(dto.getName());
         team = teamRepository.save(team);
@@ -285,7 +286,7 @@ public class TeamServiceImpl extends BaseService implements TeamService {
         teamAcl.requireMembership(me, teamId, TeamRole.OWNER);
         
         TeamEntity team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new NotFoundException("Team not found"));
+                .orElseThrow(() -> new NotFoundException(TEAM_NOT_FOUND_MSG));
         if (!team.getOwner().getId().equals(me)) {
             throw new ValidationException("Only team owner can delete the team");
         }
