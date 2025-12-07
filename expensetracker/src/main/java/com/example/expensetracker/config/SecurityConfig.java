@@ -41,7 +41,8 @@ public class SecurityConfig {
                                   "http://localhost:5173",
                                   "http://195.189.226.101",
                                   "https://195.189.226.101",
-                                  "https://expense-tracker.pp.ua"
+                                  "https://expense-tracker.pp.ua",
+                                  "https://www.expense-tracker.pp.ua"
                               ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
