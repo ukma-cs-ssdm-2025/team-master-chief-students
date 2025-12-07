@@ -10,6 +10,10 @@ on:
       - '.github/workflows/deploy-expensetracker.yml'
   workflow_dispatch: {}
 
+concurrency:
+  group: expensetracker-deploy
+  cancel-in-progress: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -36,6 +40,8 @@ jobs:
           push: true
           tags: |
             ${{ env.BACKEND_IMAGE }}:latest
+          cache-from: type=gha,scope=expense-backend
+          cache-to: type=gha,scope=expense-backend,mode=max
 
       - name: Build & push frontend image
         uses: docker/build-push-action@v6
@@ -45,6 +51,8 @@ jobs:
           push: true
           tags: |
             ${{ env.FRONTEND_IMAGE }}:latest
+          cache-from: type=gha,scope=expense-frontend
+          cache-to: type=gha,scope=expense-frontend,mode=max
 
   deploy:
     needs: build-and-push
