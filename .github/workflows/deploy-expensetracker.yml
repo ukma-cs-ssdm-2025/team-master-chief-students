@@ -61,19 +61,16 @@ jobs:
           script: |
             set -e
 
-            # 1. если репо ещё не скачано на сервер
             if [ ! -d "/opt/expense-tracker/.git" ]; then
               sudo mkdir -p /opt/expense-tracker
               sudo chown $USER:$USER /opt/expense-tracker
-              git clone https://github.com/ermolz/<ИМЯ_РЕПОЗИТОРИЯ>.git /opt/expense-tracker
+              git clone https://github.com/ukma-cs-ssdm-2025/team-master-chief-students /opt/expense-tracker
             fi
 
-            # 2. обновляем код
             cd /opt/expense-tracker
             git fetch origin
             git checkout main
             git pull
 
-            # 3. тянем свежие образы и поднимаем сервисы
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
