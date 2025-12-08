@@ -144,11 +144,6 @@ class AuthServiceImplTest extends AbstractPostgresContainerTest {
     @DisplayName("Should refresh tokens and rotate refresh token")
     void shouldRefreshTokensAndRotateRefreshToken() {
         // Given
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
         String initialRefreshToken = jwtService.generateRefreshToken(testUser);
         Instant expiryDate = Instant.now().plusMillis(jwtService.getRefreshExpiration());
         RefreshToken initialTokenEntity = RefreshToken.builder()
@@ -158,12 +153,6 @@ class AuthServiceImplTest extends AbstractPostgresContainerTest {
                 .build();
         refreshTokenRepository.save(initialTokenEntity);
         refreshTokenRepository.flush();
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
 
         // When
         AuthResponseDto response = authService.refresh(initialRefreshToken);

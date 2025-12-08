@@ -1,22 +1,35 @@
 // src/features/expense/receipt/ui/ReceiptViewer.jsx
 import React, { useState } from 'react';
 import { ConfirmModal } from '@shared/ui/ConfirmModal';
+import { LoadingSpinner } from '@/shared/ui/LoadingSpinner';
 import { useToast } from '@shared/hooks/useToast';
 import { Toast } from '@shared/ui/Toast';
 import { logger } from '@shared/lib/logger';
 
-export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
+export const ReceiptViewer = ({ receiptId, expenseId, onDelete, receiptUrl }) => {
   const [deleting, setDeleting] = useState(false);
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { toast, showError, hideToast } = useToast();
 
   const handleDelete = async () => {
+    const idToDelete = receiptId || expenseId;
+
+    if (!idToDelete) {
+      showError('Receipt ID is missing');
+      return;
+    }
+
     setDeleting(true);
     try {
-      await onDelete(expenseId);
+      await onDelete(idToDelete);
       setShowDeleteConfirm(false);
     } catch (err) {
+      if (err.response?.status === 404) {
+        logger.warn('Receipt already deleted');
+        setShowDeleteConfirm(false);
+        return;
+      }
       logger.error('Failed to delete receipt:', err);
       showError('Failed to delete receipt');
     } finally {
@@ -24,7 +37,9 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
     }
   };
 
-  if (!receiptUrl) return <p className="text-gray-500 italic">Loading receipt...</p>;
+  if (!receiptUrl) {
+    return <p className="text-gray-500 italic">Loading receipt...</p>;
+  }
 
   return (
     <>
@@ -41,6 +56,7 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
             onClick={() => setShowFullscreen(true)}
             type="button"
             className="bg-blue-500 text-white rounded-full p-2 hover:bg-blue-600 transition-colors shadow-lg"
+            title="View fullscreen"
           >
             <svg
               className="w-4 h-4"
@@ -62,6 +78,7 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
             disabled={deleting}
             type="button"
             className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg disabled:opacity-50"
+            title="Delete receipt"
           >
             {deleting ? (
               <LoadingSpinner size="sm" className="text-white" />
@@ -94,6 +111,7 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
             className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
             onClick={() => setShowFullscreen(false)}
             type="button"
+            title="Close"
           >
             <svg
               className="w-8 h-8"
@@ -125,7 +143,7 @@ export const ReceiptViewer = ({ expenseId, onDelete, receiptUrl }) => {
           onClose={() => setShowDeleteConfirm(false)}
           onConfirm={handleDelete}
           title="Delete Receipt"
-          message="Are you sure you want to delete this receipt?"
+          message="Are you sure you want to delete this receipt? This action cannot be undone."
           confirmText="Delete"
           cancelText="Cancel"
           type="danger"

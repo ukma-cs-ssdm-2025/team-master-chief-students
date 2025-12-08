@@ -1,8 +1,11 @@
 package com.example.expensetracker.reliability;
 
 import com.example.expensetracker.dto.CategoryDto;
+import com.example.expensetracker.entity.ExpenseEntity;
 import com.example.expensetracker.entity.UserEntity;
 import com.example.expensetracker.exception.*;
+import com.example.expensetracker.repository.CategoryRepository;
+import com.example.expensetracker.repository.ExpenseRepository;
 import com.example.expensetracker.repository.UserRepository;
 import com.example.expensetracker.security.SecurityUser;
 import com.example.expensetracker.service.CategoryService;
@@ -16,13 +19,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Error-handling reliability test
- * 
- * Перевіряє, що система коректно обробляє винятки та помилки:
+ * * Перевіряє, що система коректно обробляє винятки та помилки:
  * - Не падає при виникненні помилок
  * - Повертає зрозумілі повідомлення про помилки
  * - Логує помилки для діагностики
@@ -35,6 +40,12 @@ class ErrorHandlingReliabilityTest extends AbstractPostgresContainerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private ExpenseRepository expenseRepository;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -109,12 +120,27 @@ class ErrorHandlingReliabilityTest extends AbstractPostgresContainerTest {
     @Test
     @DisplayName("Should handle conflict situations gracefully")
     void shouldHandleConflictSituationsGracefully() {
-        // Given: спроба видалити категорію, пов'язану з витратами
-        // (Цей тест потребує налаштування тестового середовища з даними)
-        // В реальному сценарії це перевіряється через CategoryServiceImplTest
-        
-        // Система має викидати ConflictException замість падіння
-        // Це перевіряється в CategoryServiceImplTest.shouldThrowConflictExceptionWhenDeletingCategoryWithAssociatedExpenses
+        // Given: A category with an associated expense
+        CategoryDto categoryDto = TestDataFactory.categoryDto("Conflict Category");
+        CategoryDto createdCategory = categoryService.create(categoryDto);
+
+        // Retrieve the underlying entity to link the expense
+        var categoryEntity = categoryRepository.findById(createdCategory.getId()).orElseThrow();
+
+        // Create an expense linked to this category to cause a foreign key constraint violation on delete
+        ExpenseEntity expense = ExpenseEntity.builder()
+                .amount(BigDecimal.TEN)
+                .description("Dependent Expense")
+                .date(LocalDate.now())
+                .user(testUser)
+                .category(categoryEntity)
+                .build();
+        expenseRepository.save(expense);
+
+        // When/Then: Attempting to delete the category should throw ConflictException
+        // instead of a raw database error
+        assertThatThrownBy(() -> categoryService.delete(createdCategory.getId()))
+                .isInstanceOf(ConflictException.class);
     }
 
     @Test
@@ -134,24 +160,38 @@ class ErrorHandlingReliabilityTest extends AbstractPostgresContainerTest {
                 .isInstanceOf(ValidationException.class)
                 .extracting(Throwable::getMessage)
                 .toString();
-        
+
         assertThat(errorMessage).isNotNull();
     }
 
     @Test
+
     @DisplayName("Should handle extremely long input without crashing")
+
     void shouldHandleExtremelyLongInputWithoutCrashing() {
-        // Given: category name that exceeds maximum length
+
+// Given: category name that exceeds maximum length
+
         String veryLongName = "a".repeat(1000); // Значно більше за ліміт 100 символів
+
         CategoryDto dto = TestDataFactory.categoryDto(veryLongName);
 
-        // When/Then: система не падає, а викидає ValidationException
+
+
+// When/Then: система не падає, а викидає ValidationException
+
         assertThatThrownBy(() -> categoryService.create(dto))
+
                 .isInstanceOf(ValidationException.class)
+
                 .hasMessageContaining("Category name must not exceed 100 characters");
 
-        // Система залишається стабільною
+
+
+// Система залишається стабільною
+
         assertThat(categoryService.getAllForCurrentUser()).isNotNull();
+
     }
 
     @Test
@@ -173,4 +213,3 @@ class ErrorHandlingReliabilityTest extends AbstractPostgresContainerTest {
         }
     }
 }
-

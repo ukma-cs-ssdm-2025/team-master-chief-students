@@ -24,7 +24,7 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long>, J
         WHERE e.user.id = :userId
         """)
     List<ExpenseEntity> findByUserId(@Param("userId") Long userId);
-    
+
     @Query("""
         SELECT DISTINCT e FROM ExpenseEntity e
         LEFT JOIN FETCH e.category
@@ -103,17 +103,34 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long>, J
     List<ExpenseEntity> findAllByTeamId(@Param("teamId") Long teamId);
 
     boolean existsByIdAndUserId(Long id, Long userId);
-    
+
     boolean existsByCategoryId(Long categoryId);
 
-    @Deprecated
+    /**
+     * @param userId the user ID
+     * @return count of expenses
+     * @deprecated Use {@link #count(org.springframework.data.jpa.domain.Specification)} instead. To be removed in v2.0.
+     */
+    @Deprecated(since = "1.5", forRemoval = true)
     long countByUserId(Long userId);
 
-    @Deprecated
+    /**
+     * @param userId the user ID
+     * @return sum of amounts
+     * @deprecated Use {@link com.example.expensetracker.service.ExpenseFilterService#getStatistics} instead. To be removed in v2.0.
+     */
+    @Deprecated(since = "1.5", forRemoval = true)
     @Query("SELECT COALESCE(SUM(e.amount), 0) FROM ExpenseEntity e WHERE e.user.id = :userId")
     BigDecimal sumAmountByUserId(Long userId);
 
-    @Deprecated
+    /**
+     * @param userId user id
+     * @param teamIds team ids
+     * @param pageable pageable
+     * @return page of expenses
+     * @deprecated Use cursor-based pagination methods like {@link #findByUserIdWithCursor} or {@link #findByTeamIdWithCursor} instead. To be removed in v2.0.
+     */
+    @Deprecated(since = "1.5", forRemoval = true)
     @Query("""
         SELECT DISTINCT e FROM ExpenseEntity e
         LEFT JOIN FETCH e.category
@@ -128,10 +145,24 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long>, J
             Pageable pageable
     );
 
-    @Deprecated
+    /**
+     * @param teamId team id
+     * @param pageable pageable
+     * @return page of expenses
+     * @deprecated Use {@link #findByTeamIdOrdered} instead. To be removed in v2.0.
+     */
+    @Deprecated(since = "1.5", forRemoval = true)
     Page<ExpenseEntity> findByTeamId(Long teamId, Pageable pageable);
 
-    @Deprecated
+    /**
+     * @param teamId team id
+     * @param createdAt created at
+     * @param id id
+     * @param pageable pageable
+     * @return list of expenses
+     * @deprecated Use {@link #findByTeamIdWithCursor} instead. To be removed in v2.0.
+     */
+    @Deprecated(since = "1.5", forRemoval = true)
     @Query("""
         SELECT DISTINCT e FROM ExpenseEntity e
         LEFT JOIN FETCH e.category
@@ -151,6 +182,4 @@ public interface ExpenseRepository extends JpaRepository<ExpenseEntity, Long>, J
             @Param("id") Long id,
             Pageable pageable
     );
-    
-
 }

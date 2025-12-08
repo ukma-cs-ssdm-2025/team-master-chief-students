@@ -70,15 +70,11 @@ class CategoryRepositoryTest {
         // Given
         CategoryEntity category1 = TestDataFactory.createCategory(user1);
         category1.setName("Groceries");
-        category1 = entityManager.persistAndFlush(category1);
 
-        CategoryEntity category2 = TestDataFactory.createCategory(user1);
-        category2.setName("Transport");
-        category2 = entityManager.persistAndFlush(category2);
 
         CategoryEntity category3 = TestDataFactory.createCategory(user2);
         category3.setName("Entertainment");
-        category3 = entityManager.persistAndFlush(category3);
+
 
         entityManager.clear();
 
@@ -157,7 +153,6 @@ class CategoryRepositoryTest {
         // Given
         CategoryEntity category = TestDataFactory.createCategory(user1);
         category.setName("Groceries");
-        category = entityManager.persistAndFlush(category);
 
         entityManager.clear();
 
@@ -175,10 +170,6 @@ class CategoryRepositoryTest {
     @Test
     @DisplayName("Should be case-sensitive when checking existence by name")
     void shouldBeCaseSensitiveWhenCheckingExistenceByName() {
-        // Given
-        CategoryEntity category = TestDataFactory.createCategory(user1);
-        category.setName("Groceries");
-        category = entityManager.persistAndFlush(category);
 
         entityManager.clear();
 
@@ -201,15 +192,12 @@ class CategoryRepositoryTest {
         // Given
         CategoryEntity category1 = TestDataFactory.createCategory(user1);
         category1.setName("Category 1");
-        category1 = entityManager.persistAndFlush(category1);
 
         CategoryEntity category2 = TestDataFactory.createCategory(user1);
         category2.setName("Category 2");
-        category2 = entityManager.persistAndFlush(category2);
 
         CategoryEntity category3 = TestDataFactory.createCategory(user1);
         category3.setName("Category 3");
-        category3 = entityManager.persistAndFlush(category3);
 
         entityManager.clear();
 
