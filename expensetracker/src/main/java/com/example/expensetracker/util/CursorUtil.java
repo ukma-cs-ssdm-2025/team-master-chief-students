@@ -2,6 +2,7 @@ package com.example.expensetracker.util;
 
 import com.example.expensetracker.exception.ValidationException;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
 import java.util.Base64;
@@ -15,6 +16,11 @@ import java.util.Optional;
 public class CursorUtil {
 
     private static final String DELIMITER = ":";
+
+    // Private constructor to prevent instantiation
+    private CursorUtil() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Encodes cursor from createdAt and id using URL-safe base64 encoding.
@@ -33,7 +39,7 @@ public class CursorUtil {
 
     /**
      * Decodes cursor to createdAt and id.
-     * Throws ValidationException if cursor is invalid (according to requirements).
+     * Throws ValidationException if cursor is invalid.
      *
      * @param cursor base64url-encoded cursor string
      * @return Optional containing a CursorInfo with createdAt and id, or empty if cursor is null/blank
@@ -48,6 +54,7 @@ public class CursorUtil {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(cursor);
             String decoded = new String(decodedBytes);
             String[] parts = decoded.split(DELIMITER, 2);
+
             if (parts.length != 2) {
                 throw new ValidationException("Invalid cursor format");
             }
@@ -57,6 +64,7 @@ public class CursorUtil {
 
             return Optional.of(new CursorInfo(Instant.ofEpochMilli(epochMillis), id));
         } catch (IllegalArgumentException e) {
+            // Covers both Base64 errors and NumberFormatException (which extends IllegalArgumentException)
             throw new ValidationException("Invalid cursor format: " + e.getMessage());
         }
     }
@@ -65,15 +73,9 @@ public class CursorUtil {
      * Represents decoded cursor information.
      */
     @Getter
+    @RequiredArgsConstructor
     public static class CursorInfo {
         private final Instant createdAt;
         private final Long id;
-
-        public CursorInfo(Instant createdAt, Long id) {
-            this.createdAt = createdAt;
-            this.id = id;
-        }
-
     }
 }
-

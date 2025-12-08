@@ -244,7 +244,7 @@ class ExpenseServiceImplTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(mapper).updateEntity(eq(expense), eq(request));
+        verify(mapper).updateEntity((expense), (request));
     }
 
     @Test

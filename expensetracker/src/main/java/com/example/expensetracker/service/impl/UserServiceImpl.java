@@ -23,6 +23,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private static final String USER_NOT_FOUND_MSG = "User not found";
 
     @Override
     public UserDto getCurrentUser(Authentication auth) {
@@ -32,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
         String email = auth.getName();
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MSG));
 
         return userMapper.toDto(user);
     }
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserById(Long id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MSG));
         return userMapper.toDto(user);
     }
 
@@ -55,7 +56,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto updateUser(Long id, UserDto dto) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MSG));
 
         userMapper.updateEntityFromDto(dto, user);
         UserEntity updated = userRepository.save(user);
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         UserEntity user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> new NotFoundException(USER_NOT_FOUND_MSG));
 
         userRepository.delete(user);
     }
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND_MSG));
         return new SecurityUser(user);
     }
 }

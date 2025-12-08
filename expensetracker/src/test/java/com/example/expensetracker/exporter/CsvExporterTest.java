@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CsvExporterTest {
+class CsvExporterTest {
 
     @Test
     void export_WithEmptyList_ShouldReturnOnlyHeader() {

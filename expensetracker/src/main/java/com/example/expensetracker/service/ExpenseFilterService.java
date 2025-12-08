@@ -39,6 +39,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ExpenseFilterService extends BaseService {
 
+    private static final String FIELD_AMOUNT = "amount";
+    private static final String FIELD_CATEGORY = "category";
+    private static final String FIELD_DATE = "date";
+    private static final String FIELD_ID = "id";
+
     private final ExpenseFilterRepository expenseRepository;
     private final ExpenseFilterMapper mapper;
     private final EntityManager entityManager;
@@ -74,7 +79,7 @@ public class ExpenseFilterService extends BaseService {
                 spec,
                 PageRequest.of(0, pageSize)
                         .withSort(Sort.by(Sort.Direction.DESC, "createdAt")
-                                .and(Sort.by(Sort.Direction.DESC, "id")))
+                                .and(Sort.by(Sort.Direction.DESC, FIELD_ID)))
         );
         List<ExpenseEntity> entities = page.getContent();
 
@@ -104,10 +109,11 @@ public class ExpenseFilterService extends BaseService {
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
+        // 1. Total Amount and Count
         CriteriaQuery<Object[]> totalQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> root = totalQuery.from(ExpenseEntity.class);
         totalQuery.select(cb.array(
-                cb.coalesce(cb.sum(root.get("amount")), BigDecimal.ZERO),
+                cb.coalesce(cb.sum(root.get(FIELD_AMOUNT)), BigDecimal.ZERO),
                 cb.count(root)
         ));
         Predicate wherePredicate = spec.toPredicate(root, totalQuery, cb);
@@ -118,17 +124,18 @@ public class ExpenseFilterService extends BaseService {
         BigDecimal totalAmount = (BigDecimal) totalResult[0];
         Long count = ((Number) totalResult[1]).longValue();
 
+        // 2. By Category
         CriteriaQuery<Object[]> categoryQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> categoryRoot = categoryQuery.from(ExpenseEntity.class);
         categoryQuery.select(cb.array(
-                categoryRoot.get("category").get("id"),
-                cb.sum(categoryRoot.get("amount"))
+                categoryRoot.get(FIELD_CATEGORY).get(FIELD_ID),
+                cb.sum(categoryRoot.get(FIELD_AMOUNT))
         ));
         Predicate categoryPredicate = spec.toPredicate(categoryRoot, categoryQuery, cb);
         if (categoryPredicate != null) {
             categoryQuery.where(categoryPredicate);
         }
-        categoryQuery.groupBy(categoryRoot.get("category").get("id"));
+        categoryQuery.groupBy(categoryRoot.get(FIELD_CATEGORY).get(FIELD_ID));
         List<Object[]> categoryResults = entityManager.createQuery(categoryQuery).getResultList();
         Map<Long, BigDecimal> byCategory = categoryResults.stream()
                 .collect(Collectors.toMap(
@@ -136,19 +143,20 @@ public class ExpenseFilterService extends BaseService {
                         row -> (BigDecimal) row[1]
                 ));
 
+        // 3. By Date
         CriteriaQuery<Object[]> dateQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> dateRoot = dateQuery.from(ExpenseEntity.class);
         dateQuery.select(cb.array(
-                dateRoot.get("date"),
-                cb.sum(dateRoot.get("amount")),
+                dateRoot.get(FIELD_DATE),
+                cb.sum(dateRoot.get(FIELD_AMOUNT)),
                 cb.count(dateRoot)
         ));
         Predicate datePredicate = spec.toPredicate(dateRoot, dateQuery, cb);
         if (datePredicate != null) {
             dateQuery.where(datePredicate);
         }
-        dateQuery.groupBy(dateRoot.get("date"));
-        dateQuery.orderBy(cb.asc(dateRoot.get("date")));
+        dateQuery.groupBy(dateRoot.get(FIELD_DATE));
+        dateQuery.orderBy(cb.asc(dateRoot.get(FIELD_DATE)));
         List<Object[]> dateResults = entityManager.createQuery(dateQuery).getResultList();
         List<DailyStat> byDate = dateResults.stream()
                 .map(row -> DailyStat.builder()
@@ -167,56 +175,49 @@ public class ExpenseFilterService extends BaseService {
     }
 
     private void validateFilterRequest(ExpenseFilterRequest request) {
-        if (request.getFromDate() != null && request.getToDate() != null) {
-            if (request.getFromDate().isAfter(request.getToDate())) {
-                throw new ValidationException("fromDate cannot be after toDate");
-            }
+        if (request.getFromDate() != null && request.getToDate() != null
+                && request.getFromDate().isAfter(request.getToDate())) {
+            throw new ValidationException("fromDate cannot be after toDate");
         }
 
-        if (request.getMinAmount() != null && request.getMaxAmount() != null) {
-            if (request.getMinAmount().compareTo(request.getMaxAmount()) > 0) {
-                throw new ValidationException("minAmount cannot be greater than maxAmount");
-            }
+        if (request.getMinAmount() != null && request.getMaxAmount() != null
+                && request.getMinAmount().compareTo(request.getMaxAmount()) > 0) {
+            throw new ValidationException("minAmount cannot be greater than maxAmount");
         }
 
-        if (request.getLimit() != null) {
-            if (request.getLimit() < 1 || request.getLimit() > 100) {
-                throw new ValidationException("limit must be between 1 and 100");
-            }
+        if (request.getLimit() != null && (request.getLimit() < 1 || request.getLimit() > 100)) {
+            throw new ValidationException("limit must be between 1 and 100");
         }
 
-        if (request.getCategoryMatch() != null && 
-            !request.getCategoryMatch().equalsIgnoreCase("exact") && 
-            !request.getCategoryMatch().equalsIgnoreCase("like")) {
+        if (request.getCategoryMatch() != null &&
+                !request.getCategoryMatch().equalsIgnoreCase("exact") &&
+                !request.getCategoryMatch().equalsIgnoreCase("like")) {
             throw new ValidationException("categoryMatch must be 'exact' or 'like'");
         }
     }
 
     @Transactional(readOnly = true)
     public TimeSeriesStatsDto getTimeSeriesStatistics(Long userId, ExpenseFilterRequest request) {
-        ExpenseFilterRequest statsRequest = ExpenseFilterRequest.builder()
-                .categoryId(request.getCategoryId())
-                .category(request.getCategory())
-                .categoryMatch(request.getCategoryMatch())
-                .fromDate(request.getFromDate())
-                .toDate(request.getToDate())
-                .minAmount(request.getMinAmount())
-                .maxAmount(request.getMaxAmount())
-                .hasReceipt(request.getHasReceipt())
-                .teamId(request.getTeamId())
-                .search(request.getSearch())
-                .build();
+        ExpenseFilterRequest statsRequest = createStatsRequest(request, request.getTeamId());
+        return calculateTimeSeriesStats(userId, statsRequest);
+    }
 
-        Specification<ExpenseEntity> spec = ExpenseFilterSpecification.buildStatsSpecification(
-                userId, statsRequest
-        );
+    @Transactional(readOnly = true)
+    public TimeSeriesStatsDto getTeamTimeSeriesStatistics(Long userId, Long teamId, ExpenseFilterRequest request) {
+        teamAcl.requireMembership(userId, teamId);
+        ExpenseFilterRequest statsRequest = createStatsRequest(request, teamId);
+        return calculateTimeSeriesStats(userId, statsRequest);
+    }
 
+    // Extracted logic to avoid transactional self-invocation and duplicate code
+    private TimeSeriesStatsDto calculateTimeSeriesStats(Long userId, ExpenseFilterRequest request) {
+        Specification<ExpenseEntity> spec = ExpenseFilterSpecification.buildStatsSpecification(userId, request);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Object[]> totalQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> root = totalQuery.from(ExpenseEntity.class);
         totalQuery.select(cb.array(
-                cb.coalesce(cb.sum(root.get("amount")), BigDecimal.ZERO),
+                cb.coalesce(cb.sum(root.get(FIELD_AMOUNT)), BigDecimal.ZERO),
                 cb.count(root)
         ));
         Predicate wherePredicate = spec.toPredicate(root, totalQuery, cb);
@@ -230,16 +231,16 @@ public class ExpenseFilterService extends BaseService {
         CriteriaQuery<Object[]> dateQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> dateRoot = dateQuery.from(ExpenseEntity.class);
         dateQuery.select(cb.array(
-                dateRoot.get("date"),
-                cb.sum(dateRoot.get("amount")),
+                dateRoot.get(FIELD_DATE),
+                cb.sum(dateRoot.get(FIELD_AMOUNT)),
                 cb.count(dateRoot)
         ));
         Predicate datePredicate = spec.toPredicate(dateRoot, dateQuery, cb);
         if (datePredicate != null) {
             dateQuery.where(datePredicate);
         }
-        dateQuery.groupBy(dateRoot.get("date"));
-        dateQuery.orderBy(cb.asc(dateRoot.get("date")));
+        dateQuery.groupBy(dateRoot.get(FIELD_DATE));
+        dateQuery.orderBy(cb.asc(dateRoot.get(FIELD_DATE)));
         List<Object[]> dateResults = entityManager.createQuery(dateQuery).getResultList();
         List<PeriodStat> byPeriod = dateResults.stream()
                 .map(row -> PeriodStat.builder()
@@ -257,37 +258,26 @@ public class ExpenseFilterService extends BaseService {
     }
 
     @Transactional(readOnly = true)
-    public TimeSeriesStatsDto getTeamTimeSeriesStatistics(Long userId, Long teamId, ExpenseFilterRequest request) {
-        teamAcl.requireMembership(userId, teamId);
-
-        ExpenseFilterRequest statsRequest = ExpenseFilterRequest.builder()
-                .categoryId(request.getCategoryId())
-                .category(request.getCategory())
-                .categoryMatch(request.getCategoryMatch())
-                .fromDate(request.getFromDate())
-                .toDate(request.getToDate())
-                .minAmount(request.getMinAmount())
-                .maxAmount(request.getMaxAmount())
-                .hasReceipt(request.getHasReceipt())
-                .teamId(teamId)
-                .search(request.getSearch())
-                .build();
-
-        return getTimeSeriesStatistics(userId, statsRequest);
+    public CategoryPieStatsDto getCategoryPieStatistics(Long userId, ExpenseFilterRequest request) {
+        return calculateCategoryPieStats(userId, request);
     }
 
     @Transactional(readOnly = true)
-    public CategoryPieStatsDto getCategoryPieStatistics(Long userId, ExpenseFilterRequest request) {
-        Specification<ExpenseEntity> spec = ExpenseFilterSpecification.buildStatsSpecification(
-                userId, request
-        );
+    public CategoryPieStatsDto getTeamCategoryPieStatistics(Long userId, Long teamId, ExpenseFilterRequest request) {
+        teamAcl.requireMembership(userId, teamId);
+        ExpenseFilterRequest statsRequest = createStatsRequest(request, teamId);
+        return calculateCategoryPieStats(userId, statsRequest);
+    }
 
+    // Extracted logic to avoid transactional self-invocation
+    private CategoryPieStatsDto calculateCategoryPieStats(Long userId, ExpenseFilterRequest request) {
+        Specification<ExpenseEntity> spec = ExpenseFilterSpecification.buildStatsSpecification(userId, request);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
         CriteriaQuery<Object[]> totalQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> root = totalQuery.from(ExpenseEntity.class);
         totalQuery.select(cb.array(
-                cb.coalesce(cb.sum(root.get("amount")), BigDecimal.ZERO),
+                cb.coalesce(cb.sum(root.get(FIELD_AMOUNT)), BigDecimal.ZERO),
                 cb.count(root)
         ));
         Predicate wherePredicate = spec.toPredicate(root, totalQuery, cb);
@@ -301,19 +291,19 @@ public class ExpenseFilterService extends BaseService {
         CriteriaQuery<Object[]> categoryQuery = cb.createQuery(Object[].class);
         Root<ExpenseEntity> categoryRoot = categoryQuery.from(ExpenseEntity.class);
         categoryQuery.select(cb.array(
-                categoryRoot.get("category").get("id"),
-                categoryRoot.get("category").get("name"),
-                cb.sum(categoryRoot.get("amount"))
+                categoryRoot.get(FIELD_CATEGORY).get(FIELD_ID),
+                categoryRoot.get(FIELD_CATEGORY).get("name"),
+                cb.sum(categoryRoot.get(FIELD_AMOUNT))
         ));
         Predicate categoryPredicate = spec.toPredicate(categoryRoot, categoryQuery, cb);
         if (categoryPredicate != null) {
             categoryQuery.where(categoryPredicate);
         }
         categoryQuery.groupBy(
-                categoryRoot.get("category").get("id"),
-                categoryRoot.get("category").get("name")
+                categoryRoot.get(FIELD_CATEGORY).get(FIELD_ID),
+                categoryRoot.get(FIELD_CATEGORY).get("name")
         );
-        categoryQuery.orderBy(cb.desc(cb.sum(categoryRoot.get("amount"))));
+        categoryQuery.orderBy(cb.desc(cb.sum(categoryRoot.get(FIELD_AMOUNT))));
         List<Object[]> categoryResults = entityManager.createQuery(categoryQuery).getResultList();
 
         List<CategoryPieStat> categories = categoryResults.stream()
@@ -323,7 +313,7 @@ public class ExpenseFilterService extends BaseService {
                     BigDecimal amount = (BigDecimal) row[2];
                     BigDecimal percentage = totalAmount.compareTo(BigDecimal.ZERO) > 0
                             ? amount.divide(totalAmount, 4, java.math.RoundingMode.HALF_UP)
-                                    .multiply(BigDecimal.valueOf(100))
+                            .multiply(BigDecimal.valueOf(100))
                             : BigDecimal.ZERO;
                     return CategoryPieStat.builder()
                             .categoryId(categoryId)
@@ -341,24 +331,18 @@ public class ExpenseFilterService extends BaseService {
                 .build();
     }
 
-    @Transactional(readOnly = true)
-    public CategoryPieStatsDto getTeamCategoryPieStatistics(Long userId, Long teamId, ExpenseFilterRequest request) {
-        teamAcl.requireMembership(userId, teamId);
-
-        ExpenseFilterRequest statsRequest = ExpenseFilterRequest.builder()
-                .categoryId(request.getCategoryId())
-                .category(request.getCategory())
-                .categoryMatch(request.getCategoryMatch())
-                .fromDate(request.getFromDate())
-                .toDate(request.getToDate())
-                .minAmount(request.getMinAmount())
-                .maxAmount(request.getMaxAmount())
-                .hasReceipt(request.getHasReceipt())
+    private ExpenseFilterRequest createStatsRequest(ExpenseFilterRequest original, Long teamId) {
+        return ExpenseFilterRequest.builder()
+                .categoryId(original.getCategoryId())
+                .category(original.getCategory())
+                .categoryMatch(original.getCategoryMatch())
+                .fromDate(original.getFromDate())
+                .toDate(original.getToDate())
+                .minAmount(original.getMinAmount())
+                .maxAmount(original.getMaxAmount())
+                .hasReceipt(original.getHasReceipt())
                 .teamId(teamId)
-                .search(request.getSearch())
+                .search(original.getSearch())
                 .build();
-
-        return getCategoryPieStatistics(userId, statsRequest);
     }
 }
-

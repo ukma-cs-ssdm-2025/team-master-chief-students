@@ -200,8 +200,8 @@ class ExternalFailureReliabilityTest extends AbstractPostgresContainerTest {
         var result = categoryService.getAllForCurrentUser();
 
         // Then: система повертає порожній список замість винятку
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result).isNotNull().isEmpty();
+
     }
 }
 
