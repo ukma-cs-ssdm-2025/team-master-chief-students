@@ -91,12 +91,17 @@ const ExpenseItem = memo(({
 }) => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState(expense.receiptUrl);
+  const [hasReceipt, setHasReceipt] = useState(expense.hasReceipt || !!expense.receiptUrl);
 
   React.useEffect(() => {
     if (expense.receiptUrl) {
       setReceiptUrl(expense.receiptUrl);
+      setHasReceipt(true);
     }
-  }, [expense.receiptUrl]);
+    if (expense.hasReceipt !== undefined) {
+      setHasReceipt(expense.hasReceipt);
+    }
+  }, [expense.receiptUrl, expense.hasReceipt]);
 
   const handleShowReceipt = async () => {
     if (!showReceipt) {
@@ -105,11 +110,18 @@ const ExpenseItem = memo(({
         const url = await onLoadReceipt(expense.id);
         if (url) {
           setReceiptUrl(url);
+          setHasReceipt(true);
         }
       }
     } else {
       setShowReceipt(false);
     }
+  };
+
+  const handleDeleteReceipt = async (expenseId) => {
+    await onDeleteReceipt(expenseId);
+    setReceiptUrl(null);
+    setHasReceipt(false);
   };
 
   return (
@@ -136,11 +148,11 @@ const ExpenseItem = memo(({
             onClick={handleShowReceipt}
             type="button"
             className={`p-2 rounded-lg transition-colors ${
-              showReceipt || receiptUrl || expense.receiptUrl
+              hasReceipt || receiptUrl
                 ? 'text-green-500 hover:bg-green-50'
                 : 'text-gray-400 hover:bg-gray-50'
             }`}
-            title={receiptUrl || expense.receiptUrl ? "View receipt" : "Add receipt"}
+            title={hasReceipt || receiptUrl ? "View receipt" : "Add receipt"}
             disabled={isReceiptLoading?.(expense.id)}
           >
             {isReceiptLoading?.(expense.id) ? (
@@ -190,11 +202,11 @@ const ExpenseItem = memo(({
               Hide
             </button>
           </div>
-          {receiptUrl || expense.receiptUrl ? (
+          {receiptUrl || hasReceipt ? (
             <ReceiptViewer
               expenseId={expense.id}
               receiptUrl={receiptUrl || expense.receiptUrl}
-              onDelete={onDeleteReceipt}
+              onDelete={handleDeleteReceipt}
             />
           ) : (
             <ReceiptUpload
