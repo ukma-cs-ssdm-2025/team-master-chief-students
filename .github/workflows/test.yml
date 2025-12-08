@@ -23,6 +23,7 @@ jobs:
             - name: Run tests
               id: tests
               run: mvn test
+              working-directory: ./expensetracker
               continue-on-error: true
 
             - name: Upload test reports on failure
