@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Random;
+import java.util.UUID;
 
 public class TestDataFactory {
 
@@ -183,6 +184,17 @@ public class TestDataFactory {
         UpdateTeamNameDto dto = new UpdateTeamNameDto();
         dto.setName(name);
         return dto;
+    }
+
+    public static ReceiptEntity.ReceiptEntityBuilder receiptEntity() {
+        return ReceiptEntity.builder()
+                .fileUrl("/uploads/" + UUID.randomUUID() + ".jpg");
+    }
+
+    public static ReceiptEntity createReceipt(ExpenseEntity expense) {
+        return receiptEntity()
+                .expense(expense)
+                .build();
     }
 }
 
