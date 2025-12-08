@@ -1,5 +1,7 @@
 export const env = {
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
+  API_BASE_URL: import.meta.env.DEV
+      ? 'http://localhost:8080'
+      : '',
   TOKEN_REFRESH_BUFFER_MINUTES: Number(import.meta.env.VITE_TOKEN_REFRESH_BUFFER_MINUTES) || 2,
   TOKEN_CHECK_INTERVAL_MINUTES: Number(import.meta.env.VITE_TOKEN_CHECK_INTERVAL_MINUTES) || 5,
   TOAST_DURATION_MS: Number(import.meta.env.VITE_TOAST_DURATION_MS) || 3000,

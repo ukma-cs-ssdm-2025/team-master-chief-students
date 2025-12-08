@@ -1,0 +1,88 @@
+name: Build & Deploy ExpenseTracker
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'expensetracker/**'
+      - 'expensetracker-frontend/**'
+      - 'docker-compose.prod.yml'
+      - '.github/workflows/deploy-expensetracker.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: expensetracker-deploy
+  cancel-in-progress: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    env:
+      BACKEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-backend
+      FRONTEND_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/expense-tracker-frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./expensetracker
+          file: ./expensetracker/Dockerfile
+          push: true
+          tags: |
+            ${{ env.BACKEND_IMAGE }}:latest
+          cache-from: type=gha,scope=expense-backend
+          cache-to: type=gha,scope=expense-backend,mode=max
+
+      - name: Build & push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./expensetracker-frontend
+          file: ./expensetracker-frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.FRONTEND_IMAGE }}:latest
+          cache-from: type=gha,scope=expense-frontend
+          cache-to: type=gha,scope=expense-frontend,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+
+            if [ ! -d "/opt/expense-tracker/.git" ]; then
+              sudo mkdir -p /opt/expense-tracker
+              sudo chown $USER:$USER /opt/expense-tracker
+              git clone https://github.com/ukma-cs-ssdm-2025/team-master-chief-students /opt/expense-tracker
+            fi
+
+            cd /opt/expense-tracker
+            git fetch origin
+            git checkout main
+            git pull
+
+            docker-compose -f docker-compose.prod.yml pull
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d
